@@ -1,6 +1,10 @@
 /**
- * WaveCode IDE - 前端主程式
+ * WaveCode IDE - 前端主程式 (Vite ES Module 版)
  */
+import './style.css';
+import './lang/zh-hant.js';
+import './blocks/audio.js';
+import './generators/javascript/audio.js';
 
 // 1. 定義完整的 Toolbox
 const toolbox = {

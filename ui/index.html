@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaveCode IDE</title>
-    <link rel="stylesheet" href="style.css">
     <style>
         /* 強制確保 Blockly SVG 可見 */
         .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 1000; }
@@ -18,10 +17,10 @@
             <h1>WaveCode IDE</h1>
             <div class="toolbar">
                 <div id="run-btn" class="icon-btn" title="執行程式 (Run)">
-                    <img src="icons/run_blocks_24dp_75FB4C.png" alt="Run">
+                    <img src="/icons/run_blocks_24dp_75FB4C.png" alt="Run">
                 </div>
                 <div id="stop-btn" class="icon-btn" title="停止音訊 (Stop)">
-                    <img src="icons/no_sound_24dp_FE2F89.png" alt="Stop">
+                    <img src="/icons/no_sound_24dp_FE2F89.png" alt="Stop">
                 </div>
             </div>
         </header>
@@ -32,15 +31,14 @@
             </div>
         </main>
     </div>
-    <!-- 引入 Blockly (本地庫路徑) -->
-    <script src="lib/blockly_compressed.js"></script>
-    <script src="lib/blocks_compressed.js"></script>
-    <script src="lib/javascript_compressed.js"></script>
-    <script src="lib/zh-hant.js"></script>
-    <!-- 引入 WaveCode 模組 -->
-    <script src="lang/zh-hant.js"></script>
-    <script src="blocks/audio.js"></script>
-    <script src="generators/javascript/audio.js"></script>
-    <script src="main.js"></script>
+    
+    <!-- 引入 Blockly (來自 public/lib) -->
+    <script src="/lib/blockly_compressed.js"></script>
+    <script src="/lib/blocks_compressed.js"></script>
+    <script src="/lib/javascript_compressed.js"></script>
+    <script src="/lib/zh-hant.js"></script>
+
+    <!-- Vite 模組進入點 -->
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>
