@@ -4,14 +4,23 @@
     // 介面文字
     "WAVECODE_RUN": "執行程式",
     "WAVECODE_STOP": "停止音訊",
+    "WAVECODE_NEW": "新建專案",
+    "WAVECODE_EXAMPLES": "範例專案",
+    "WAVECODE_OPEN": "開啟專案",
+    "WAVECODE_SAVE": "儲存專案",
+    "WAVECODE_SETTINGS": "系統設定",
+    "WAVECODE_UPDATE_CHECK": "正在檢查更新...",
+    "WAVECODE_UPDATE_AVAILABLE": "發現新版本！點擊更新",
+    "WAVECODE_UPDATE_DOWNLOADING": "正在下載更新...",
+    "WAVECODE_UPDATE_READY": "更新已就緒，重啟套用",
     
     // 分類名稱
-    "CAT_AUDIO": "音訊處理 (Audio)",
-    "CAT_LOGIC": "邏輯判斷 (Logic)",
-    "CAT_LOOPS": "迴圈控制 (Loops)",
-    "CAT_MATH": "數學運算 (Math)",
-    "CAT_VARIABLES": "變數管理 (Variables)",
-    "CAT_FUNCTIONS": "函式定義 (Functions)",
+    "CAT_AUDIO": "Audio",
+    "CAT_LOGIC": "Logic",
+    "CAT_LOOPS": "Loops",
+    "CAT_MATH": "Math",
+    "CAT_VARIABLES": "Variables",
+    "CAT_FUNCTIONS": "Functions",
 
     // 音訊積木 (JS Style)
     "AUDIO_PLAY_SINE": "playSine( frequency: %1 )",

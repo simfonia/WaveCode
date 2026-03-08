@@ -4,6 +4,15 @@
     // UI
     "WAVECODE_RUN": "Run Code",
     "WAVECODE_STOP": "Stop Audio",
+    "WAVECODE_NEW": "New Project",
+    "WAVECODE_EXAMPLES": "Examples",
+    "WAVECODE_OPEN": "Open Project",
+    "WAVECODE_SAVE": "Save Project",
+    "WAVECODE_SETTINGS": "Settings",
+    "WAVECODE_UPDATE_CHECK": "Checking for updates...",
+    "WAVECODE_UPDATE_AVAILABLE": "New version available!",
+    "WAVECODE_UPDATE_DOWNLOADING": "Downloading update...",
+    "WAVECODE_UPDATE_READY": "Update ready, restart to apply",
     
     // Categories
     "CAT_AUDIO": "Audio",
