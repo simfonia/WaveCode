@@ -1,0 +1,15 @@
+# Rust
+/src-tauri/target/
+/src-tauri/gen/
+
+# Node
+/ui/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App Logs
+*.log
+log/work/*.md
+!log/work/.gitkeep

@@ -1,0 +1,105 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background-color: #1e1e1e;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+header {
+    height: 50px;
+    background-color: #252526;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+h1 {
+    font-size: 18px;
+    margin: 0;
+    color: #E67E22;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden; /* 防止滾動條干擾 */
+}
+
+#blocklyDiv {
+    flex: 3;
+    height: 100%;
+    position: relative;
+    background-color: #1e1e1e;
+}
+
+#stage {
+    flex: 1;
+    background-color: #000;
+    border-left: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 250px;
+}
+
+#waveformCanvas {
+    width: 90%;
+    height: 200px;
+    border: 1px solid #444;
+}
+
+.toolbar {
+    display: flex;
+    gap: 15px;
+}
+
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.icon-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+button {
+    background-color: #E67E22;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #D35400;
+}
