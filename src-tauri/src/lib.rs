@@ -1,53 +1,33 @@
 mod engine;
 use engine::AudioEngine;
 use tauri::State;
-use serde::Deserialize;
 use std::fs;
 use std::sync::Mutex;
 use std::path::PathBuf;
 
-/// 前端傳入的指令封裝
-#[derive(Deserialize)]
-struct PdCommand {
-    receiver: String,
-    args: Vec<String>,
-}
-
-/// 應用程式全域狀態 (用於記憶最後儲存路徑)
+/// 應用程式全域狀態
 struct AppState {
     last_dir: Mutex<Option<PathBuf>>,
 }
 
-// --- Tauri 指令 ---
+// --- WaveCode 複音指令集 ---
 
-/// 更新 Patch (目前主要用於處理編譯器發出的初始參數)
+/// 觸發新音符，傳回聲部索引以供後續釋放
 #[tauri::command]
-fn update_patch(state: State<'_, AudioEngine>, commands: Vec<PdCommand>) {
-    let _ = state.start_dsp();
-    for cmd in commands {
-        if let Some(val_str) = cmd.args.get(0) {
-            if let Ok(val) = val_str.parse::<f32>() {
-                state.send_float(&cmd.receiver, val);
-            }
-        }
-    }
+fn trigger_note(state: State<'_, AudioEngine>, freq: f32) -> usize {
+    state.trigger_note(freq)
 }
 
-/// 傳送數值控制 (頻率、音量)
+/// 釋放指定聲部，進入 ADSR Release 階段
 #[tauri::command]
-fn send_float(state: State<'_, AudioEngine>, receiver: String, value: f32) {
-    // 若設定音量且大於 0，自動啟動引擎
-    if receiver.contains("vol") && value > 0.0 {
-        state.start_dsp();
-    }
-    state.send_float(&receiver, value);
+fn release_note(state: State<'_, AudioEngine>, index: usize) {
+    state.release_voice(index);
 }
 
-/// 停止音訊 (靜音並關閉引擎)
+/// 立即關閉所有聲部的閘門 (常用於切換腳本或按 Stop)
 #[tauri::command]
 fn stop_audio(state: State<'_, AudioEngine>) {
-    state.send_float("vol", 0.0);
-    state.stop_dsp();
+    state.stop_all();
 }
 
 // --- 檔案操作指令 ---
@@ -56,7 +36,6 @@ fn stop_audio(state: State<'_, AudioEngine>) {
 async fn save_project(app_state: State<'_, AppState>, xml_content: String, path: String) -> Result<(), String> {
     let path_buf = PathBuf::from(&path);
     fs::write(&path_buf, xml_content).map_err(|e| e.to_string())?;
-    
     if let Some(parent) = path_buf.parent() {
         let mut last_dir = app_state.last_dir.lock().unwrap();
         *last_dir = Some(parent.to_path_buf());
@@ -68,7 +47,6 @@ async fn save_project(app_state: State<'_, AppState>, xml_content: String, path:
 async fn load_project(app_state: State<'_, AppState>, path: String) -> Result<String, String> {
     let path_buf = PathBuf::from(&path);
     let content = fs::read_to_string(&path_buf).map_err(|e| e.to_string())?;
-    
     if let Some(parent) = path_buf.parent() {
         let mut last_dir = app_state.last_dir.lock().unwrap();
         *last_dir = Some(parent.to_path_buf());
@@ -100,7 +78,7 @@ pub fn run() {
     .manage(AudioEngine::new().expect("音訊引擎啟動失敗"))
     .manage(AppState { last_dir: Mutex::new(None) })
     .invoke_handler(tauri::generate_handler![
-        update_patch, send_float, stop_audio,
+        trigger_note, release_note, stop_audio,
         save_project, load_project, get_examples_path, get_last_dir
     ])
     .run(tauri::generate_context!())

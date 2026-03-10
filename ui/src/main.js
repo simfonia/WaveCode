@@ -10,7 +10,7 @@ import { UIUtils } from './modules/ui_utils.js';
 import { WaveCodeAPI } from './modules/api.js';
 import { WaveCodeCompiler } from './modules/compiler.js';
 
-// 注入 NaN 防護盾 (防止 Minimap 噴錯)
+// 注入 NaN 防護盾
 UIUtils.injectNaNShield();
 
 const invoke = WaveCodeAPI.getInvoke();
@@ -41,7 +41,7 @@ const toolbox = {
             'name': '%{BKY_CAT_AUDIO_CMD}',
             'style': 'audio_category',
             'contents': [
-                { 'kind': 'block', 'type': 'audio_set_frequency', 'inputs': { 'FREQ': { 'shadow': { 'type': 'audio_note' } } } },
+                { 'kind': 'block', 'type': 'audio_play_note', 'inputs': { 'FREQ': { 'shadow': { 'type': 'audio_note' } }, 'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
                 { 'kind': 'block', 'type': 'audio_stop' },
                 { 'kind': 'block', 'type': 'audio_note' },
                 { 'kind': 'block', 'type': 'audio_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } }
@@ -79,6 +79,9 @@ let isDirty = false;
 let currentFilename = '';
 
 function setDirty(dirty) {
+    // 強力防禦：如果正在 clearing，絕對不准設為 dirty
+    if (workspace.isClearing && dirty) return;
+    
     isDirty = dirty;
     const displayFilename = currentFilename || Blockly.Msg['WAVECODE_UNTITLED'] || '未命名專案';
     document.title = `${dirty ? '*' : ''}${displayFilename} - WaveCode IDE`;
@@ -92,14 +95,18 @@ function setDirty(dirty) {
 function createDefaultBlocks() {
     workspace.isClearing = true;
     workspace.clear();
-    workspace.isClearing = false;
     setTimeout(() => {
         const osc = workspace.newBlock('audio_oscillator');
         osc.initSvg(); osc.render(); osc.moveBy(50, 100);
         const dac = workspace.newBlock('audio_dac');
         dac.initSvg(); dac.render(); dac.moveBy(350, 100);
         try { dac.outputConnection.connect(osc.getInput('NEXT').connection); } catch (e) {}
-        setDirty(false);
+        
+        // 延遲重設
+        setTimeout(() => {
+            workspace.isClearing = false;
+            setDirty(false);
+        }, 100);
     }, 50);
 }
 
@@ -134,14 +141,16 @@ document.getElementById('run-btn').addEventListener('click', async () => {
 document.getElementById('stop-btn').addEventListener('click', () => WaveCodeAPI.stop());
 
 document.getElementById('new-btn').addEventListener('click', async () => {
-    if (await checkUnsavedChanges()) { createDefaultBlocks(); currentFilename = ''; setDirty(false); }
+    if (await checkUnsavedChanges()) { 
+        currentFilename = ''; 
+        createDefaultBlocks(); 
+    }
 });
 
 document.getElementById('save-btn').addEventListener('click', async () => {
     try {
         const lastDir = await invoke('get_last_dir');
-        const { save } = window.__TAURI__.dialog;
-        const path = await save({ filters: [{ name: 'WaveCode', extensions: ['wave'] }], defaultPath: lastDir ? `${lastDir}/${currentFilename || 'project.wave'}` : 'project.wave' });
+        const path = await window.__TAURI__.dialog.save({ filters: [{ name: 'WaveCode', extensions: ['wave'] }], defaultPath: lastDir ? `${lastDir}/${currentFilename || 'project.wave'}` : 'project.wave' });
         if (path) {
             await invoke('save_project', { xmlContent: xmlUtils.domToPrettyText(xmlUtils.workspaceToDom(workspace)), path: path });
             currentFilename = path.split(/[\\/]/).pop(); setDirty(false);
@@ -156,9 +165,15 @@ document.getElementById('open-btn').addEventListener('click', async () => {
             const path = await open({ filters: [{ name: 'WaveCode', extensions: ['wave'] }], multiple: false });
             if (path) {
                 const content = await invoke('load_project', { path: path });
-                workspace.isClearing = true; workspace.clear();
+                workspace.isClearing = true; 
+                workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
-                workspace.isClearing = false; currentFilename = path.split(/[\\/]/).pop(); setDirty(false);
+                currentFilename = path.split(/[\\/]/).pop(); 
+                
+                setTimeout(() => {
+                    workspace.isClearing = false;
+                    setDirty(false);
+                }, 100);
             }
         } catch (e) {}
     }
@@ -172,9 +187,15 @@ document.getElementById('examples-btn').addEventListener('click', async () => {
             const path = await open({ defaultPath: examplesPath, filters: [{ name: 'WaveCode', extensions: ['wave'] }], multiple: false });
             if (path) {
                 const content = await invoke('load_project', { path: path });
-                workspace.isClearing = true; workspace.clear();
+                workspace.isClearing = true; 
+                workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
-                workspace.isClearing = false; currentFilename = path.split(/[\\/]/).pop(); setDirty(false);
+                currentFilename = path.split(/[\\/]/).pop(); 
+                
+                setTimeout(() => {
+                    workspace.isClearing = false;
+                    setDirty(false);
+                }, 100);
             }
         } catch (e) {}
     }
@@ -191,9 +212,8 @@ async function checkUpdate(manual = false) {
     btn.classList.add('update-spin');
     btn.title = Blockly.Msg['WAVECODE_UPDATE_CHECK'] || '檢查更新中...';
     try {
-        // 模擬檢查更新延遲
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const hasUpdate = manual; // 模擬：手動檢查時才顯示有更新
+        const hasUpdate = manual; 
         if (hasUpdate) {
             updateStatus = 'available';
             btn.classList.remove('update-spin');
@@ -209,11 +229,10 @@ async function checkUpdate(manual = false) {
 }
 
 document.getElementById('update-btn').addEventListener('click', () => {
-    if (updateStatus === 'available' || updateStatus === 'ready') { /* 此處未來實作下載/安裝邏輯 */ }
+    if (updateStatus === 'available' || updateStatus === 'ready') { }
     else checkUpdate(true);
 });
 
-// 啟動 1 秒後靜默檢查一次
 setTimeout(() => checkUpdate(false), 1000);
 
 // --- 7. 介面 i18n ---
@@ -248,7 +267,7 @@ document.getElementById('lang-selector').addEventListener('change', (e) => {
 
 applyI18n();
 
-// --- 7. 啟動與初始化 ---
+// --- 8. 啟動與初始化 ---
 
 const resizeObserver = new ResizeObserver(() => Blockly.svgResize(workspace));
 resizeObserver.observe(blocklyDiv);
@@ -260,5 +279,20 @@ setTimeout(() => {
 }, 300);
 
 workspace.addChangeListener((e) => {
-    if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE].includes(e.type) && !e.isUiEvent) setDirty(true);
+    // 如果正在 clearing 或是 UI 事件，直接跳過
+    if (workspace.isClearing || e.isUiEvent) return;
+    
+    const isBlockChange = [
+        Blockly.Events.BLOCK_MOVE, 
+        Blockly.Events.BLOCK_CREATE, 
+        Blockly.Events.BLOCK_CHANGE, 
+        Blockly.Events.BLOCK_DELETE, 
+        Blockly.Events.VAR_CREATE, 
+        Blockly.Events.VAR_RENAME, 
+        Blockly.Events.VAR_DELETE
+    ].includes(e.type);
+    
+    if (isBlockChange) {
+        setDirty(true);
+    }
 });

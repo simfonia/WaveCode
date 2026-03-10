@@ -40,14 +40,9 @@ export const WaveCodeCompiler = {
     // 檢查是否有任何有效的 Oscillator 連接到喇叭
     const hasActiveOsc = allBlocks.some(b => b.type === 'audio_oscillator' && traceChain(b));
 
-    if (invoke && hasActiveOsc) {
-      try {
-        // 僅確保引擎啟動，但音量維持在 0 (靜音)
-        // 未來可在這裡傳送更複雜的結構建立指令
-        await invoke('send_float', { receiver: "vol", value: 0.0 });
-      } catch (err) { 
-        console.error("WaveCode 後端通訊失敗:", err); 
-      }
+    if (hasActiveOsc) {
+      console.log("WaveCode: 偵測到有效音訊鏈，準備演奏...");
+      // 未來可在這裡傳送更複雜的結構建立指令 (如音色定義)
     }
   }
 };

@@ -22,7 +22,7 @@
     
     // 分類名稱
     "CAT_AUDIO_TRAIN": "音訊電路",
-    "CAT_AUDIO_CMD": "音訊指令",
+    "CAT_AUDIO_CMD": "演奏指令",
     "CAT_LOGIC": "邏輯",
     "CAT_LOOPS": "迴圈",
     "CAT_MATH": "數學",
@@ -35,15 +35,15 @@
     "AUDIO_DAC_TRAIN": "主輸出 (DAC)",
     "AUDIO_DAC_TOOLTIP": "音訊傳送的終點，將聲音送往喇叭。",
 
-    // 音訊指令
-    "AUDIO_SET_FREQ": "設定控制 %1 的頻率為 %2 Hz",
-    "AUDIO_SET_FREQ_TOOLTIP": "設定指定 ID 振盪器的頻率。請確保 ID 與電路區定義的完全一致（區分大小寫）。",
+    // 演奏指令
+    "AUDIO_PLAY_NOTE": "演奏音符 頻率 %1 持續 %2 毫秒",
+    "AUDIO_PLAY_NOTE_TOOLTIP": "播放指定頻率與持續時間的音符。支援複音演奏，餘響不會被下一個音符切斷。",
     "AUDIO_NOTE": "音符 %1",
     "AUDIO_NOTE_TOOLTIP": "選取標準音樂音符並轉換為頻率。",
     "AUDIO_WAIT": "等待 %1 毫秒 (ms)",
     "AUDIO_WAIT_TOOLTIP": "暫停程式執行一段時間。",
-    "AUDIO_STOP": "stopAudio()",
-    "AUDIO_STOP_TOOLTIP": "立即停止所有發出的聲音。",
+    "AUDIO_STOP": "全部靜音",
+    "AUDIO_STOP_TOOLTIP": "立即關閉所有聲部的閘門並停止聲音。",
 
     "AUDIO_WAVE_SINE": "正弦波",
     "AUDIO_WAVE_SAW": "鋸齒波",

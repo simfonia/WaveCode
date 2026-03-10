@@ -1,14 +1,19 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use fundsp::hacker::*;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// WaveCode 音訊引擎核心 (基於 fundsp)
+const MAX_VOICES: usize = 16;
+
+struct Voice {
+    freq: Shared,
+    gate: Shared,
+}
+
 pub struct AudioEngine {
-    _stream: cpal::Stream, // 保持串流生命週期
-    freq: Shared,          // 頻率控制變數 (Shared 類型)
-    vol: Shared,           // 音量控制變數
-    active: Arc<AtomicBool>, // 引擎啟動狀態開關
+    _stream: cpal::Stream,
+    voices: Vec<Voice>,
+    next_voice: AtomicUsize,
+    master_vol: Shared, // 已消除 unused 警告
 }
 
 unsafe impl Sync for AudioEngine {}
@@ -21,34 +26,43 @@ impl AudioEngine {
         let config = device.default_output_config().map_err(|e| e.to_string())?;
         let sample_rate = config.sample_rate().0 as f64;
 
-        // 1. 建立控制變數 (預設頻率 440Hz, 靜音)
-        let freq = shared(440.0);
-        let vol = shared(0.0);
-        let active = Arc::new(AtomicBool::new(true));
-        let active_for_callback = Arc::clone(&active);
+        let mut voices = Vec::new();
+        for _ in 0..MAX_VOICES {
+            voices.push(Voice {
+                freq: shared(0.0),
+                gate: shared(0.0),
+            });
+        }
 
-        // 2. 建立 DSP 鏈 (正弦波 -> 裁切限制器 -> 左右聲道分離)
-        let mut dsp: Box<dyn AudioUnit> = Box::new(
-            (var(&freq) >> sine() >> clip_to(-1.0, 1.0)) * var(&vol) >> split::<U2>()
+        let master_vol = shared(0.0);
+
+        // 使用靜態展開的混音器
+        let v0 = &voices[0]; let v1 = &voices[1]; let v2 = &voices[2]; let v3 = &voices[3];
+        let v4 = &voices[4]; let v5 = &voices[5]; let v6 = &voices[6]; let v7 = &voices[7];
+        let v8 = &voices[8]; let v9 = &voices[9]; let v10 = &voices[10]; let v11 = &voices[11];
+        let v12 = &voices[12]; let v13 = &voices[13]; let v14 = &voices[14]; let v15 = &voices[15];
+
+        let m = |v: &Voice| (var(&v.freq) >> sine()) * (var(&v.gate) >> adsr_live(0.01, 0.2, 0.5, 0.5));
+
+        // 核心算式：16 聲部混音
+        let mut final_dsp: Box<dyn AudioUnit> = Box::new(
+            (m(v0) + m(v1) + m(v2) + m(v3) + m(v4) + m(v5) + m(v6) + m(v7) +
+             m(v8) + m(v9) + m(v10) + m(v11) + m(v12) + m(v13) + m(v14) + m(v15))
+            * var(&master_vol) >> clip_to(-1.0, 1.0) >> split::<U2>()
         );
-        dsp.set_sample_rate(sample_rate);
-        dsp.reset();
 
-        // 3. 啟動音訊串流
+        final_dsp.set_sample_rate(sample_rate);
+        final_dsp.reset();
+
         let stream = device.build_output_stream(
             &config.into(),
             move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                if !active_for_callback.load(Ordering::Acquire) {
-                    for sample in data.iter_mut() { *sample = 0.0; }
-                    return;
-                }
-                
                 for frame in data.chunks_mut(2) {
-                    let (l, r) = dsp.get_stereo();
+                    let (l, r) = final_dsp.get_stereo();
                     if frame.len() == 2 {
                         frame[0] = l as f32;
                         frame[1] = r as f32;
-                    } else if frame.len() == 1 {
+                    } else {
                         frame[0] = l as f32;
                     }
                 }
@@ -59,40 +73,44 @@ impl AudioEngine {
 
         stream.play().map_err(|e| e.to_string())?;
         
+        // 漸入啟動防爆音
+        let master_vol_clone = master_vol.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            master_vol_clone.set_value(0.2); 
+        });
+        
         Ok(AudioEngine { 
             _stream: stream, 
-            freq,
-            vol,
-            active 
+            voices,
+            next_voice: AtomicUsize::new(0),
+            master_vol,
         })
     }
 
-    /// 設定震盪器頻率
-    pub fn set_frequency(&self, value: f32) {
-        self.freq.set_value(value);
+    pub fn trigger_note(&self, freq: f32) -> usize {
+        if self.master_vol.value() < 0.01 {
+            self.master_vol.set_value(0.2);
+        }
+
+        let index = self.next_voice.fetch_add(1, Ordering::SeqCst) % MAX_VOICES;
+        let voice = &self.voices[index];
+        voice.gate.set_value(0.0);
+        voice.freq.set_value(freq);
+        voice.gate.set_value(1.0);
+        index
     }
 
-    /// 設定主音量
-    pub fn set_volume(&self, value: f32) {
-        self.vol.set_value(value);
-    }
-
-    /// 通用數值接收器 (相容前端指令)
-    pub fn send_float(&self, receiver: &str, value: f32) {
-        if receiver.contains("freq") {
-            self.set_frequency(value);
-        } else if receiver.contains("vol") {
-            self.set_volume(value);
+    pub fn release_voice(&self, index: usize) {
+        if index < MAX_VOICES {
+            self.voices[index].gate.set_value(0.0);
         }
     }
 
-    /// 停止 DSP 處理 (輸出絕對靜音)
-    pub fn stop_dsp(&self) { 
-        self.active.store(false, Ordering::Release);
-    }
-
-    /// 啟動 DSP 處理
-    pub fn start_dsp(&self) { 
-        self.active.store(true, Ordering::Release);
+    pub fn stop_all(&self) { 
+        self.master_vol.set_value(0.0);
+        for v in &self.voices {
+            v.gate.set_value(0.0);
+        }
     }
 }

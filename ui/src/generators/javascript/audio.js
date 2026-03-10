@@ -1,8 +1,8 @@
 /**
- * WaveCode Audio JavaScript Generators
+ * WaveCode Audio JavaScript Generators (Polyphonic Version)
  */
 
-// --- 1. 核心鏈條產生器 (不產出代碼，由 Compiler 分析) ---
+// --- 1. 核心鏈條產生器 ---
 
 Blockly.JavaScript.forBlock['audio_oscillator'] = function(block) {
   return ""; 
@@ -12,15 +12,14 @@ Blockly.JavaScript.forBlock['audio_dac'] = function(block) {
   return "";
 };
 
-// --- 2. 參數控制產生器 ---
+// --- 2. 演奏產生器 (對齊 Processing 邏輯) ---
 
-Blockly.JavaScript.forBlock['audio_set_frequency'] = function(block) {
-  const id = block.getFieldValue('ID');
+Blockly.JavaScript.forBlock['audio_play_note'] = function(block) {
   const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
-  return `await WaveCode.setFrequency(${freq}, '${id}');\n`;
+  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '500';
+  // 直接呼叫 API 層的 playNote，它會處理 trigger 與 release
+  return `await WaveCode.playNote(${freq}, ${dur});\n`;
 };
-
-Blockly.JavaScript.forBlock['audio_play_sine'] = Blockly.JavaScript.forBlock['audio_set_frequency'];
 
 Blockly.JavaScript.forBlock['audio_note'] = function(block) {
   const code = block.getFieldValue('NOTE');
