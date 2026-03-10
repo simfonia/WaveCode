@@ -1,0 +1,9 @@
+#N canvas 534 220 400 300 10;
+#X obj 50 20 inlet~;
+#X obj 50 70 *~ 0.5;
+#X obj 50 120 dac~;
+#X obj 150 70 r master_vol;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 1 0 2 1;
+#X connect 3 0 1 1;

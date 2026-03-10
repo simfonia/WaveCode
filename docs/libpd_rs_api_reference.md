@@ -1,106 +1,34 @@
-# libpd-rs 0.1.10 API 參考手冊 (WaveCode 實戰版)
+# libpd-rs 0.2.0 全方位 API 參考手冊 (穩定版)
 
-由於 `libpd-rs` 0.1.x 版本與現代 0.3.x 版本 API 差異較大，且線上文件不穩定，本手冊透過直接分析 `C:\Users\simfonia\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libpd-rs-0.1.10` 源碼彙整而成。
+WaveCode 核心已升級至 `libpd-rs 0.2.0`。本文件基於原始碼實測，記錄了所有已使用及未來計畫使用的 API 規格。
 
----
+## 1. 引擎生命週期與設定 (functions)
+- **`init()`**: 引擎基礎初始化。
+- **`initialize_audio(in, out, rate)`**: 配置音訊通道與取樣率。
+- **`open_patch(path)`**: 開啟指定的 `.pd` 檔案。傳回 `PatchFileHandle`。
+- **`close_patch(handle)`**: 關閉已開啟的 Patch。
+- **`get_dollar_zero(handle)`**: 取得該 Patch 的實例 ID (用於處理 `$0` 變數)。
+- **`add_to_search_paths(path)`**: 加入抽象物件與外部物件的搜尋路徑。
+- **`block_size()`**: 取得 Pd 的運算單位，預設為 `64`。
 
-## 1. 核心架構
-- **底層性質**：`libpd` 本質上是 C 語言寫的單例 (Singleton)，因此 Rust 封裝層主要透過 `PdGlobal` 結構體來管理生命週期。
-- **執行緒安全**：音訊回調執行緒與主執行緒同時存取 `libpd` 時，必須使用 `Arc<Mutex<PdGlobal>>` 進行保護。
+## 2. DSP 與處理 (functions::util & process)
+- **`util::dsp_on()`**: 啟動音訊運算。
+- **`util::dsp_off()`**: 停止音訊運算。
+- **`process::process_float(ticks, in_buf, out_buf)`**: 核心音訊處理回調。
 
----
+## 3. 訊息通訊 (functions::send)
+- **`send::send_float_to(receiver, value)`**: 發送單一數值。
+- **`send::send_message_to(receiver, msg, args)`**: 發送帶參數的訊息 (List)。
+  - `args`: `&[Atom]`。
+- **Atom 轉換**:
+  - `Atom::from(f32)`
+  - `Atom::from(String)`
 
-## 2. 初始化與配置 (convenience 模組)
-
-### 初始化引擎
-```rust
-use libpd_rs::convenience::PdGlobal;
-
-// 參數：(輸入聲道, 輸出聲道, 採樣率)
-// 回傳：Result<PdGlobal, Box<dyn Error>>
-let mut pd_instance = PdGlobal::init_and_configure(0, 2, 44100)?;
-```
-
-### 計算 Ticks
-在音訊回調中，需要將緩衝區長度轉換為 PD 的 Ticks (1 tick = 64 samples)。
-```rust
-use libpd_rs::convenience::calculate_ticks;
-
-let ticks = calculate_ticks(channels, data.len() as i32);
-```
-
----
-
-## 3. Patch 檔案管理
-
-### 開啟 Patch
-**注意**：0.1.10 版的 `PdGlobal::open_patch` 僅接受**一個參數**（完整路徑）。
-```rust
-pd_instance.open_patch("path/to/engine.pd")?;
-```
-
-### 關閉 Patch
-```rust
-pd_instance.close_patch()?;
-```
+## 4. Array 操作 (functions::array) - 計畫用於示波器
+- **`array_size(name)`**: 取得 Pd 陣列的長度。
+- **`resize_array(name, size)`**: 調整陣列長度。
+- **`read_float_array_from(name, offset, dest_buf, len)`**: 從 Pd 陣列讀取資料到 Rust。
+- **`write_float_array_to(name, offset, src_buf, len)`**: 從 Rust 寫入資料到 Pd 陣列。
 
 ---
-
-## 4. 音訊處理 (process 模組)
-
-### DSP 開關
-```rust
-pd_instance.activate_audio(true)?;  // 開啟
-pd_instance.activate_audio(false)?; // 關閉
-```
-
-### 處理音訊緩衝區
-在 `cpal` 或其他音訊驅動的回調函式中呼叫。
-```rust
-// 參數：(ticks, 輸入緩衝區, 輸出緩衝區)
-// 注意：即使沒有輸入，也要傳入空切片 &[]
-libpd_rs::process::process_float(ticks, &[], data);
-```
-
----
-
-## 5. 訊息通訊 (send 模組)
-
-### 發送數值 (Float)
-這是最常用的指令，用於控制頻率、音量等參數。
-```rust
-// 參數：(接收者名稱, 數值)
-libpd_rs::send::send_float_to("freq", 440.0)?;
-```
-
-### 發送 Bang (觸發)
-```rust
-libpd_rs::send::send_bang_to("trigger_name")?;
-```
-
-### 發送列表 (List)
-```rust
-// 尚未在 MVP 使用，但格式如下：
-libpd_rs::send::send_list_to("receiver", &[1.0, 2.0, 3.0])?;
-```
-
----
-
-## 6. 重要路徑提示
-在開發環境下（`cargo tauri dev`），工作目錄預設為 `src-tauri`。
-若要讀取根目錄資源，建議使用以下偵測邏輯：
-```rust
-let mut patch_path = std::env::current_dir()?;
-if patch_path.ends_with("src-tauri") {
-    patch_path.pop(); // 回到專案根目錄
-}
-patch_path.push("resources");
-patch_path.push("engine.pd");
-```
-
----
-
-## 7. 故障排除 (Troubleshooting)
-- **Error: unresolved import `PdHandle`**：0.1.10 版已移除 `PdHandle`，改用 `PdGlobal`。
-- **Error: cannot be sent between threads safely**：確保 `AudioEngine` 結構體實作了 `unsafe impl Send` 與 `unsafe impl Sync`。
-- **雜音或低頻嗡鳴**：在停止時，除了 `activate_audio(false)`，必須手動將音訊緩衝區清零（`sample = 0.0`）。
+*更新日期：2026-03-09 (對應版本 0.2.0)*

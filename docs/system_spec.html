@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>WaveCode 系統規格書</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: 'Consolas', monospace; }
+        .tech-stack { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
+        .tech-card { background: #ecf0f1; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; }
+        .diagram { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; font-family: monospace; overflow-x: auto; white-space: pre; }
+    </style>
+</head>
+<body>
+    <h1>WaveCode IDE 系統規格書 (Pure Rust Refactor)</h1>
+    
+    <section>
+        <h2>1. 專案架構概覽</h2>
+        <p>WaveCode 是一個基於 <strong>Tauri v2</strong> 框架的獨立音訊編程 IDE。它捨棄了外部依賴（如 Pure Data），採用 100% 原生 Rust 實作的音訊引擎。</p>
+        <div class="tech-stack">
+            <div class="tech-card"><strong>前端 (腦)</strong><br>Vite + Blockly + Version Control API</div>
+            <div class="tech-card"><strong>後端 (神經)</strong><br>Rust (Tauri v2 Commands)</div>
+            <div class="tech-card"><strong>音訊引擎 (身體)</strong><br>fundsp + cpal</div>
+        </div>
+    </section>
+
+    <section>
+        <h2>2. 核心技術機制：腦與身體分離</h2>
+        <p>WaveCode 採用「異步邏輯與同步渲染分離」的設計：</p>
+        <div class="diagram">
+[Blockly UI] 
+    |-- (編譯分析) --> [Compiler.js] -> (啟動引擎音量)
+    |-- (執行腳本) --> [WaveCodeAPI] -> (傳送頻率/演奏事件)
+           |
+           v
+[Tauri Commands] -> [AudioEngine (Rust)] -> [fundsp Graph] -> [Speaker]
+        </div>
+        <ul>
+            <li><strong>無鎖通訊</strong>：主執行緒透過 <code>Shared</code> 變數與音訊執行緒通訊，確保音訊輸出無跳轉 (Glitch-free)。</li>
+            <li><strong>版本管理 (Execution ID)</strong>：前端 <code>_execId</code> 確保多次點擊 Run 時，舊的演奏任務會自動中斷，杜絕音符重疊問題。</li>
+            <li><strong>NaN 防護盾</strong>：透過攔截 <code>setAttribute</code> 確保 Blockly 座標異常不會導致 UI 崩潰。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>3. 模組化設計</h2>
+        <ul>
+            <li><strong>ui/src/modules/api.js</strong>：封裝所有給積木呼叫的非同步指令與版本檢查。</li>
+            <li><strong>ui/src/modules/ui_utils.js</strong>：負責 NaN 防護、Minimap 初始化與 Resize 管理。</li>
+            <li><strong>src-tauri/src/engine.rs</strong>：定義 fundsp DSP 鏈條與無鎖控制變數。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>4. 音訊鏈擴充計畫 (Roadmap)</h2>
+        <ul>
+            <li><strong>複音混音器 (Voice Mixer)</strong>：支援同時播放多個音色。</li>
+            <li><strong>ADSR 包絡線</strong>：控制聲音的啟閉平滑度，避免生硬爆音。</li>
+            <li><strong>效果器鏈條</strong>：實作 Delay, Reverb 等 fundsp 原生效果。</li>
+        </ul>
+    </section>
+</body>
+</html>

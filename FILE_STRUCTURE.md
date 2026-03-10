@@ -1,39 +1,32 @@
-# WaveCode 檔案結構
+# WaveCode 專案結構 (File Structure)
 
-C:\Workspace\WaveCode\
-├── README.md               (專案簡介)
-├── GEMINI.md               (AI 規範)
-├── FILE_STRUCTURE.md       (本文檔)
-├── LICENSE                 (MIT 授權)
-├── .gitignore              (Git 忽略設定)
-├── .vscode/                (VS Code 開發設定)
-│   ├── launch.json         (F5 一鍵啟動設定)
-│   └── tasks.json          (Tauri 開發任務定義)
-├── resources/              (音訊引擎資源)
-│   └── engine.pd           (Pure Data 核心合成器腳本)
-├── log/                    (日誌與任務)
-│   ├── todo.md             (任務追蹤)
-│   ├── handover.md         (跨對話交接紀錄)
-│   └── work/               (每日開發日誌)
-├── docs/                   (技術文件)
-│   └── libpd_rs_api_reference.md (libpd-rs 0.1.10 實戰手冊)
-├── src-tauri/              (Rust 後端核心)
-│   ├── src/
-│   │   ├── main.rs         (進入點)
-│   │   ├── lib.rs          (Tauri 橋樑與指令)
-│   │   └── engine.rs       (音訊引擎實作)
-│   ├── Cargo.toml          (Rust 依賴管理)
-│   └── tauri.conf.json     (Tauri 應用程式配置)
-└── ui/                     (前端 Webview UI - Vite 架構)
-    ├── index.html          (主入口)
-    ├── package.json        (前端依賴管理)
-    ├── public/             (靜態資源 - 直接映射至根路徑)
-    │   ├── lib/            (本地 Blockly 核心庫)
-    │   ├── icons/          (UI 圖示資源)
-    │   └── favicon.ico     (網站圖示)
-    └── src/                (原始碼)
-        ├── main.js         (前端控制邏輯與 Blockly 初始化)
-        ├── style.css       (樣式表)
-        ├── blocks/         (積木定義 - 僅外觀與欄位)
-        ├── generators/     (產生器邏輯)
-        └── lang/           (國際化語系檔)
+## 根目錄
+- `src-tauri/`: Tauri 後端 (Rust)
+    - `src/main.rs`: 程式進入點
+    - `src/lib.rs`: Tauri 指令與狀態管理
+    - `src/engine.rs`: **核心音訊引擎 (fundsp 實作)**
+    - `Cargo.toml`: Rust 依賴管理 (fundsp, cpal)
+- `ui/`: 前端程式碼 (Vite + JavaScript)
+    - `src/main.js`: 前端主進入點，協調各模組
+    - `src/style.css`: IDE 樣式定義
+    - `src/blocks/`: Blockly 積木定義
+        - `audio.js`: **整合式音訊積木定義**
+    - `src/generators/`: Blockly 程式碼產生器
+        - `javascript/audio.js`: **整合式音訊產生器**
+    - `src/modules/`: 功能模組
+        - `api.js`: **API 層與腳本版本控制**
+        - `ui_utils.js`: **NaN 防護盾與插件初始化**
+        - `compiler.js`: **鏈式邏輯分析編譯器**
+    - `src/lang/`: i18n 語系檔 (zh-hant.js, en.js)
+    - `public/`: 靜態資源與第三方庫 (Blockly, 插件)
+- `resources/`: 應用程式資源
+    - `examples/`: 內建積木範例檔 (.wave)
+- `docs/`: 系統規格與開發文件
+    - `system_spec.html`: **系統規格說明書**
+- `log/`: 開發日誌與任務清單
+    - `todo.md`: 任務清單
+    - `handover.md`: 任務交接紀錄
+    - `details.md`: 技術實戰細節
+
+---
+*最後更新：2026-03-09 (Pure Rust Refactor)*

@@ -1,17 +1,24 @@
-# WaveCode (Blockly 風格的音樂編程 IDE)
+# WaveCode IDE
 
-WaveCode 是一個獨立的、高效能的原生 IDE，讓使用者透過視覺化積木（Blockly）學習合成器原理、數位音訊處理（DSP）與程式邏輯。
+WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合了 Blockly 的視覺化開發體驗與 Rust 原生 DSP 引擎的高效能，旨在提供低延遲、安全且直觀的音樂編程環境。
 
-## 核心願景
-- **極致效能**：利用 Rust 語言與 libpd 引擎，達成專業級的低延遲與穩定性。
-- **直觀教學**：將抽象的聲學原理（波形疊加、濾波、ADSR）轉化為可觸摸的積木與即時波形反饋。
+## 🚀 核心技術
+- **後端引擎**：Rust + [fundsp](https://github.com/SamiPerttu/fundsp) (Functional DSP)
+- **應用框架**：Tauri v2
+- **視覺編程**：Google Blockly
+- **音訊驅動**：cpal (Cross-Platform Audio Library)
 
-## 技術棧 (Technical Stack)
-- **IDE 框架**：[Tauri](https://tauri.app/) (Rust 后端 + Webview 前端)
-- **音訊引擎**：[libpd](https://github.com/libpd/libpd) (Pure Data 嵌入式引擎)
-- **開發語言**：Rust (Backend), JavaScript (Frontend)
-- **邏輯控制**：Blockly (產出指令流)
-- **視覺化**：原生 Rust 繪圖 (Raylib 或 wgpu) 結合 HTML5 Canvas
+## ✨ 主要特色
+- **Pure Rust DSP**：100% 原生 Rust 實作，確保系統穩定性與高效能。
+- **腦與身體分離架構**：前端負責積木邏輯與版本管理，後端負責實時音訊渲染。
+- **NaN 防護盾**：內建針對 Blockly 座標系統的防護，確保 IDE 介面流暢不噴錯。
+- **腳本版本控制**：支援非同步演奏指令的即時中斷與覆蓋，杜絕聲音重疊衝突。
 
-## 目前進度
-- [ ] 專案初始化與 MVP 規畫 (進行中)
+## 🛠️ 開發環境
+1. 安裝 Rust (Stable)
+2. 安裝 Node.js
+3. 執行 `npm install` (於 `ui/` 資料夾)
+4. 執行 `npm run tauri dev` (於根目錄)
+
+---
+*WaveCode - 讓音樂代碼化，讓創作視覺化。*
