@@ -17,6 +17,7 @@
         - `api.js`: **API 層與腳本版本控制**
         - `ui_utils.js`: **NaN 防護盾與插件初始化**
         - `compiler.js`: **鏈式邏輯分析編譯器**
+        - `visualizer.js`: **ADSR 視覺化、示波器與動畫管理員**
     - `src/lang/`: i18n 語系檔 (zh-hant.js, en.js)
     - `public/`: 靜態資源與第三方庫 (Blockly, 插件)
 - `resources/`: 應用程式資源
@@ -29,4 +30,4 @@
     - `details.md`: 技術實戰細節
 
 ---
-*最後更新：2026-03-09 (Pure Rust Refactor)*
+*最後更新：2026-03-10 (Polyphonic & Visualization)*

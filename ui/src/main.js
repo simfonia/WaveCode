@@ -9,6 +9,11 @@ import './generators/javascript/audio.js';
 import { UIUtils } from './modules/ui_utils.js';
 import { WaveCodeAPI } from './modules/api.js';
 import { WaveCodeCompiler } from './modules/compiler.js';
+import { Oscilloscope } from './modules/visualizer.js';
+import { WaveCodeToolbox } from './modules/toolbox.js';
+
+// 初始化示波器
+Oscilloscope.init('waveformCanvas');
 
 // 注入 NaN 防護盾
 UIUtils.injectNaNShield();
@@ -24,39 +29,6 @@ const scrollDragger = window.ScrollBlockDragger || (ScrollOptionsPlugin ? Scroll
 const scrollMetrics = window.ScrollMetricsManager || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollMetricsManager : undefined);
 
 // --- 2. 初始化 Blockly 工作區 ---
-const toolbox = {
-    'kind': 'categoryToolbox',
-    'contents': [
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_AUDIO_TRAIN}',
-            'style': 'audio_blocks',
-            'contents': [
-                { 'kind': 'block', 'type': 'audio_oscillator' },
-                { 'kind': 'block', 'type': 'audio_dac' }
-            ]
-        },
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_AUDIO_CMD}',
-            'style': 'audio_category',
-            'contents': [
-                { 'kind': 'block', 'type': 'audio_play_note', 'inputs': { 'FREQ': { 'shadow': { 'type': 'audio_note' } }, 'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
-                { 'kind': 'block', 'type': 'audio_stop' },
-                { 'kind': 'block', 'type': 'audio_note' },
-                { 'kind': 'block', 'type': 'audio_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } }
-            ]
-        },
-        { 'kind': 'sep' },
-        { 'kind': 'category', 'name': '%{BKY_CAT_LOGIC}', 'colour': '#5C81A6', 'contents': [{ 'kind': 'block', 'type': 'logic_compare' }, { 'kind': 'block', 'type': 'logic_operation' }, { 'kind': 'block', 'type': 'logic_boolean' }] },
-        { 'kind': 'category', 'name': '%{BKY_CAT_LOOPS}', 'colour': '#5CA65C', 'contents': [{ 'kind': 'block', 'type': 'controls_repeat_ext', 'inputs': { 'TIMES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } } } }, { 'kind': 'block', 'type': 'controls_whileUntil' }, { 'kind': 'block', 'type': 'controls_for' }] },
-        { 'kind': 'category', 'name': '%{BKY_CAT_MATH}', 'colour': '#5C68A6', 'contents': [{ 'kind': 'block', 'type': 'math_number' }, { 'kind': 'block', 'type': 'math_arithmetic' }, { 'kind': 'block', 'type': 'math_random_int' }] },
-        { 'kind': 'sep' },
-        { 'kind': 'category', 'name': '%{BKY_CAT_VARIABLES}', 'custom': 'VARIABLE', 'colour': '#A65C81' },
-        { 'kind': 'category', 'name': '%{BKY_CAT_FUNCTIONS}', 'custom': 'PROCEDURE', 'colour': '#9A5CA6' }
-    ]
-};
-
 const waveCodeTheme = Blockly.Theme.defineTheme('wavecode_theme', {
     'base': Blockly.Themes.Classic,
     'blockStyles': { 'audio_blocks': { 'colourPrimary': '#E67E22', 'colourSecondary': '#D35400', 'colourTertiary': '#A04000' } },
@@ -65,7 +37,7 @@ const waveCodeTheme = Blockly.Theme.defineTheme('wavecode_theme', {
 
 const blocklyDiv = document.getElementById('blocklyDiv');
 const workspace = Blockly.inject(blocklyDiv, {
-    toolbox: toolbox,
+    toolbox: WaveCodeToolbox,
     grid: { spacing: 20, length: 3, colour: '#333', snap: true },
     zoom: { controls: true, wheel: true, startScale: 1.0 },
     move: { scrollbars: true, drag: true, wheel: true },
@@ -79,9 +51,7 @@ let isDirty = false;
 let currentFilename = '';
 
 function setDirty(dirty) {
-    // 強力防禦：如果正在 clearing，絕對不准設為 dirty
     if (workspace.isClearing && dirty) return;
-    
     isDirty = dirty;
     const displayFilename = currentFilename || Blockly.Msg['WAVECODE_UNTITLED'] || '未命名專案';
     document.title = `${dirty ? '*' : ''}${displayFilename} - WaveCode IDE`;
@@ -101,16 +71,12 @@ function createDefaultBlocks() {
         const dac = workspace.newBlock('audio_dac');
         dac.initSvg(); dac.render(); dac.moveBy(350, 100);
         try { dac.outputConnection.connect(osc.getInput('NEXT').connection); } catch (e) {}
-        
-        // 延遲重設
         setTimeout(() => {
             workspace.isClearing = false;
             setDirty(false);
         }, 100);
     }, 50);
 }
-
-// --- 4. 檔案操作輔助 ---
 
 const xmlUtils = {
     textToDom: (text) => (Blockly.utils.xml.textToDom ? Blockly.utils.xml.textToDom(text) : Blockly.Xml.textToDom(text)),
@@ -127,18 +93,53 @@ async function checkUnsavedChanges() {
 // --- 5. 事件監聽器 ---
 
 document.getElementById('run-btn').addEventListener('click', async () => {
-    await WaveCodeAPI.reset();
+    const runBtn = document.getElementById('run-btn');
+    
+    // 1. 無論如何先停止舊腳本與音訊
+    await WaveCodeAPI.stop();
+    
+    // 2. 標記為執行中
+    runBtn.classList.add('is-running');
+    runBtn.title = Blockly.Msg['WAVECODE_STOP'] || '停止';
+    
+    const currentId = WaveCodeAPI.getCurrentId();
+    
+    // 3. 編譯與產出代碼
     await WaveCodeCompiler.compileAndRun(workspace);
     Blockly.JavaScript.init(workspace);
-    const code = Blockly.JavaScript.workspaceToCode(workspace);
+    const rawCode = Blockly.JavaScript.workspaceToCode(workspace);
+    
+    // 4. 注入環境與中斷檢查
+    const finalCode = `
+        const _id = WaveCode.getCurrentId();
+        try {
+            ${rawCode}
+        } catch (err) {
+            if (err !== 'Script cancelled') throw err;
+            // console.log('[Runtime] Script gracefully terminated.');
+        }
+    `;
+
     try {
         const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-        const executeLogic = new AsyncFunction(code);
+        const executeLogic = new AsyncFunction(finalCode);
         await executeLogic();
-    } catch (err) { if (err !== 'Script cancelled') console.error('腳本執行錯誤:', err); }
+    } catch (err) { 
+        if (err !== 'Script cancelled') console.error('腳本執行錯誤:', err); 
+    } finally {
+        // 只有當目前的 ID 依然是執行時的 ID，才恢復 UI 狀態
+        if (currentId === WaveCodeAPI.getCurrentId()) {
+            runBtn.classList.remove('is-running');
+            runBtn.title = Blockly.Msg['WAVECODE_RUN'] || '執行';
+        }
+    }
 });
 
-document.getElementById('stop-btn').addEventListener('click', () => WaveCodeAPI.stop());
+document.getElementById('stop-btn').addEventListener('click', async () => {
+    await WaveCodeAPI.stop();
+    document.getElementById('run-btn').classList.remove('is-running');
+    document.getElementById('run-btn').title = Blockly.Msg['WAVECODE_RUN'] || '執行';
+});
 
 document.getElementById('new-btn').addEventListener('click', async () => {
     if (await checkUnsavedChanges()) { 
@@ -169,11 +170,22 @@ document.getElementById('open-btn').addEventListener('click', async () => {
                 workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
                 currentFilename = path.split(/[\\/]/).pop(); 
-                
+
+                // 強制註冊樂器
+                workspace.getBlocksByType('audio_instrument').forEach(b => {
+                    const id = b.getFieldValue('ID');
+                    const visual = b.getField('VISUAL');
+                    if (id && visual && window.EnvelopeManager) {
+                        window.EnvelopeManager.register(id, visual);
+                        visual.render_();
+                    }
+                });
+
                 setTimeout(() => {
                     workspace.isClearing = false;
                     setDirty(false);
                 }, 100);
+
             }
         } catch (e) {}
     }
@@ -191,11 +203,22 @@ document.getElementById('examples-btn').addEventListener('click', async () => {
                 workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
                 currentFilename = path.split(/[\\/]/).pop(); 
-                
+
+                // 強制註冊樂器
+                workspace.getBlocksByType('audio_instrument').forEach(b => {
+                    const id = b.getFieldValue('ID');
+                    const visual = b.getField('VISUAL');
+                    if (id && visual && window.EnvelopeManager) {
+                        window.EnvelopeManager.register(id, visual);
+                        visual.render_();
+                    }
+                });
+
                 setTimeout(() => {
                     workspace.isClearing = false;
                     setDirty(false);
                 }, 100);
+
             }
         } catch (e) {}
     }
@@ -279,7 +302,6 @@ setTimeout(() => {
 }, 300);
 
 workspace.addChangeListener((e) => {
-    // 如果正在 clearing 或是 UI 事件，直接跳過
     if (workspace.isClearing || e.isUiEvent) return;
     
     const isBlockChange = [

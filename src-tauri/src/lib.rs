@@ -1,9 +1,10 @@
 mod engine;
-use engine::AudioEngine;
-use tauri::State;
+use engine::{AudioEngine, Component};
+use tauri::{State, Manager};
 use std::fs;
 use std::sync::Mutex;
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 /// 應用程式全域狀態
 struct AppState {
@@ -12,10 +13,16 @@ struct AppState {
 
 // --- WaveCode 複音指令集 ---
 
+/// 更新樂器配置 (Patch)
+#[tauri::command]
+fn update_patch(state: State<'_, AudioEngine>, patches: HashMap<String, Vec<Component>>) -> Result<(), String> {
+    state.update_patches(patches)
+}
+
 /// 觸發新音符，傳回聲部索引以供後續釋放
 #[tauri::command]
-fn trigger_note(state: State<'_, AudioEngine>, freq: f32) -> usize {
-    state.trigger_note(freq)
+fn trigger_note(state: State<'_, AudioEngine>, freq: f32, inst_id: String) -> usize {
+    state.trigger_note(freq, inst_id)
 }
 
 /// 釋放指定聲部，進入 ADSR Release 階段
@@ -75,10 +82,14 @@ pub fn run() {
     .plugin(tauri_plugin_log::Builder::default().build())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
-    .manage(AudioEngine::new().expect("音訊引擎啟動失敗"))
+    .setup(|app| {
+        let engine = AudioEngine::new(app.handle().clone()).expect("音訊引擎啟動失敗");
+        app.manage(engine);
+        Ok(())
+    })
     .manage(AppState { last_dir: Mutex::new(None) })
     .invoke_handler(tauri::generate_handler![
-        trigger_note, release_note, stop_audio,
+        update_patch, trigger_note, release_note, stop_audio,
         save_project, load_project, get_examples_path, get_last_dir
     ])
     .run(tauri::generate_context!())

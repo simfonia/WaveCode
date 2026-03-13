@@ -22,12 +22,35 @@
     
     // 分類名稱
     "CAT_AUDIO_TRAIN": "音訊電路",
-    "CAT_AUDIO_CMD": "演奏指令",
+    "CAT_AUDIO_CMD": "演奏指令 (舊)",
     "CAT_LOGIC": "邏輯",
     "CAT_LOOPS": "迴圈",
     "CAT_MATH": "數學",
     "CAT_VARIABLES": "變數",
     "CAT_FUNCTIONS": "函數",
+    "CAT_SOUND_SOURCES": "音源",
+    "CAT_INSTRUMENT_CONTROL": "樂器控制",
+    "CAT_EFFECTS": "音訊效果",
+    "CAT_PERFORMANCE": "演奏",
+
+    // 樂器定義 (C 型帽子模式)
+    "AUDIO_DEFINE_INSTRUMENT": "定義樂器 %1",
+    "AUDIO_INSTRUMENT_CHAIN": "%1",
+    "AUDIO_INSTRUMENT_TOOLTIP": "在此定義樂器的音訊鏈。您可以放入振盪器、ADSR、濾波器等組件。這是一個定義區塊，演奏指令會引用此處的設定。",
+
+    // 樂器組件
+    "AUDIO_COMP_OSC": "振盪器 %1",
+    "AUDIO_COMP_ADSR": "ADSR 包絡線 %1 A %2 D %3 S %4 R %5",
+    "AUDIO_COMP_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
+    "AUDIO_COMP_VOLUME": "音量 %1 %",
+
+    // 組件選項
+    "AUDIO_WAVE_SINE": "正弦波",
+    "AUDIO_WAVE_SAW": "鋸齒波",
+    "AUDIO_WAVE_SQUARE": "方波",
+    "AUDIO_WAVE_TRI": "三角波",
+    "AUDIO_FILTER_LP": "低通",
+    "AUDIO_FILTER_HP": "高通",
 
     // 音訊電路 (火車模式)
     "AUDIO_OSCILLATOR_TRAIN": "振盪器 (ID: %1) 波形 %2 ❯ 傳送到 %3",
@@ -36,8 +59,10 @@
     "AUDIO_DAC_TOOLTIP": "音訊傳送的終點，將聲音送往喇叭。",
 
     // 演奏指令
-    "AUDIO_PLAY_NOTE": "演奏音符 頻率 %1 持續 %2 毫秒",
-    "AUDIO_PLAY_NOTE_TOOLTIP": "播放指定頻率與持續時間的音符。支援複音演奏，餘響不會被下一個音符切斷。",
+    "AUDIO_PLAY_NOTE": "演奏音符 頻率 %1 持續 %2 毫秒 使用樂器 %3",
+    "AUDIO_PLAY_NOTE_ASYNC": "觸發音符 頻率 %1 持續 %2 毫秒 使用樂器 %3 (不等待)",
+    "AUDIO_PLAY_NOTE_TOOLTIP": "演奏一個音符並等待其持續時間結束才繼續執行下一個積木。",
+    "AUDIO_PLAY_NOTE_ASYNC_TOOLTIP": "觸發一個音符並立即繼續執行下一個積木，可用於同時發出多個音符（如和弦）。",
     "AUDIO_NOTE": "音符 %1",
     "AUDIO_NOTE_TOOLTIP": "選取標準音樂音符並轉換為頻率。",
     "AUDIO_WAIT": "等待 %1 毫秒 (ms)",
@@ -48,6 +73,17 @@
     "AUDIO_WAVE_SINE": "正弦波",
     "AUDIO_WAVE_SAW": "鋸齒波",
     "AUDIO_WAVE_SQUARE": "方波",
-    "AUDIO_WAVE_TRI": "三角波"
+    "AUDIO_WAVE_TRI": "三角波",
+
+    // 顏色定義 (對齊 #processing)
+    "SOUND_SOURCES_HUE": "#016c8d",
+    "INSTRUMENT_CONTROL_HUE": "#FF5722",
+    "EFFECTS_HUE": "#8E44AD",
+    "PERFORMANCE_HUE": "#E67E22",
+    "LOGIC_HUE": "#b198de",
+    "LOOPS_HUE": "#7fcd81",
+    "MATH_HUE": "#5C68A6",
+    "VARIABLES_HUE": "#ef9a9a",
+    "FUNCTIONS_HUE": "#d22f73"
   });
 })(Blockly);

@@ -14,51 +14,41 @@
     </style>
 </head>
 <body>
-    <h1>WaveCode IDE 系統規格書 (Pure Rust Refactor)</h1>
+    <h1>WaveCode IDE 系統規格書 (Polyphonic & Visualization)</h1>
     
     <section>
         <h2>1. 專案架構概覽</h2>
-        <p>WaveCode 是一個基於 <strong>Tauri v2</strong> 框架的獨立音訊編程 IDE。它捨棄了外部依賴（如 Pure Data），採用 100% 原生 Rust 實作的音訊引擎。</p>
+        <p>WaveCode 是一個基於 <strong>Tauri v2</strong> 框架的獨立音訊編程 IDE。它採用 100% 原生 Rust 實作的音訊引擎，具備低延遲、複音演奏與實時視覺化能力。</p>
         <div class="tech-stack">
-            <div class="tech-card"><strong>前端 (腦)</strong><br>Vite + Blockly + Version Control API</div>
-            <div class="tech-card"><strong>後端 (神經)</strong><br>Rust (Tauri v2 Commands)</div>
-            <div class="tech-card"><strong>音訊引擎 (身體)</strong><br>fundsp + cpal</div>
+            <div class="tech-card"><strong>前端 (腦)</strong><br>Vite + Blockly + SVG Visualization</div>
+            <div class="tech-card"><strong>後端 (神經)</strong><br>Tauri v2 + Emitter (Event Bus)</div>
+            <div class="tech-card"><strong>音訊引擎 (身體)</strong><br>fundsp + cpal (8-Voice Polyphony)</div>
         </div>
     </section>
 
     <section>
-        <h2>2. 核心技術機制：腦與身體分離</h2>
-        <p>WaveCode 採用「異步邏輯與同步渲染分離」的設計：</p>
-        <div class="diagram">
-[Blockly UI] 
-    |-- (編譯分析) --> [Compiler.js] -> (啟動引擎音量)
-    |-- (執行腳本) --> [WaveCodeAPI] -> (傳送頻率/演奏事件)
-           |
-           v
-[Tauri Commands] -> [AudioEngine (Rust)] -> [fundsp Graph] -> [Speaker]
-        </div>
+        <h2>2. 核心技術機制</h2>
         <ul>
-            <li><strong>無鎖通訊</strong>：主執行緒透過 <code>Shared</code> 變數與音訊執行緒通訊，確保音訊輸出無跳轉 (Glitch-free)。</li>
-            <li><strong>版本管理 (Execution ID)</strong>：前端 <code>_execId</code> 確保多次點擊 Run 時，舊的演奏任務會自動中斷，杜絕音符重疊問題。</li>
-            <li><strong>NaN 防護盾</strong>：透過攔截 <code>setAttribute</code> 確保 Blockly 座標異常不會導致 UI 崩潰。</li>
+            <li><strong>腦與身體分離</strong>：異步邏輯（JS）處理樂譜排程，同步渲染（Rust）處理物理波形。</li>
+            <li><strong>物理隔離複音架構</strong>：每個聲部具備獨立的 <code>gate</code> 物理開關與參數空間，徹底杜絕閒置聲部的雜訊滲漏。</li>
+            <li><strong>硬同步 (Hard Sync)</strong>：每次觸發音符時，相位重置為 0，確保波形連續性，消除切換爆音。</li>
+            <li><strong>實時示波器 (Oscilloscope)</strong>：採用磁滯升緣觸發 (Hysteresis Edge Trigger)，確保前端波形顯示靜止穩定。</li>
         </ul>
     </section>
 
     <section>
-        <h2>3. 模組化設計</h2>
+        <h2>3. 視覺化組件</h2>
         <ul>
-            <li><strong>ui/src/modules/api.js</strong>：封裝所有給積木呼叫的非同步指令與版本檢查。</li>
-            <li><strong>ui/src/modules/ui_utils.js</strong>：負責 NaN 防護、Minimap 初始化與 Resize 管理。</li>
-            <li><strong>src-tauri/src/engine.rs</strong>：定義 fundsp DSP 鏈條與無鎖控制變數。</li>
+            <li><strong>ADSR Field</strong>：內嵌於積木的 SVG 繪圖組件，具備動態黃色光點隨音符進度移動。</li>
+            <li><strong>Waveform Canvas</strong>：主介面頂部的 60FPS 示波器，顯示 Rust 引擎傳回的原始採樣點。</li>
         </ul>
     </section>
 
     <section>
-        <h2>4. 音訊鏈擴充計畫 (Roadmap)</h2>
+        <h2>4. 模組化設計</h2>
         <ul>
-            <li><strong>複音混音器 (Voice Mixer)</strong>：支援同時播放多個音色。</li>
-            <li><strong>ADSR 包絡線</strong>：控制聲音的啟閉平滑度，避免生硬爆音。</li>
-            <li><strong>效果器鏈條</strong>：實作 Delay, Reverb 等 fundsp 原生效果。</li>
+            <li><strong>ui/src/modules/visualizer.js</strong>：封裝 ADSR 欄位定義、動畫管理員與示波器繪製邏輯。</li>
+            <li><strong>src-tauri/src/engine.rs</strong>：實作具備 8 聲部輪替與物理斷路機制的音訊引擎。</li>
         </ul>
     </section>
 </body>
