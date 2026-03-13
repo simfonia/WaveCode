@@ -46,6 +46,18 @@ export const WaveCodeToolbox = {
         },
         {
             'kind': 'category',
+            'name': '%{BKY_CAT_TEXT}',
+            'colour': '%{BKY_TEXT_HUE}',
+            'contents': [
+                { 'kind': 'block', 'type': 'text' },
+                { 'kind': 'block', 'type': 'text_join' },
+                { 'kind': 'block', 'type': 'text_length' },
+                { 'kind': 'block', 'type': 'text_isEmpty' },
+                { 'kind': 'block', 'type': 'wc_text_print' }
+            ]
+        },
+        {
+            'kind': 'category',
             'name': '%{BKY_CAT_VARIABLES}',
             'custom': 'VARIABLE',
             'colour': '%{BKY_VARIABLES_HUE}'

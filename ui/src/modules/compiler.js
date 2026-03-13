@@ -23,7 +23,7 @@ export const WaveCodeCompiler = {
     const traceChain = (startBlock) => {
       let current = startBlock;
       while (current) {
-        if (current.disabled) return null;
+        if (!current.isEnabled()) return null;
         
         // 尋找下一個輸入連接 (火車嵌套模式)
         const nextInput = current.getInput('NEXT');
@@ -50,7 +50,7 @@ export const WaveCodeCompiler = {
       
       let current = instBlock.getInputTargetBlock('CHAIN');
       while (current) {
-        if (!current.disabled) {
+        if (current.isEnabled()) {
           if (current.type === 'audio_component_osc') {
             chain.push({ type: 'osc', wave: parseInt(current.getFieldValue('WAVE')) });
           } else if (current.type === 'audio_component_adsr') {

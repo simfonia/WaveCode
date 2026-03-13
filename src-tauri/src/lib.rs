@@ -37,6 +37,12 @@ fn stop_audio(state: State<'_, AudioEngine>) {
     state.stop_all();
 }
 
+/// 重啟音訊引擎 (用於解決系統睡眠喚醒後的時鐘同步問題)
+#[tauri::command]
+fn restart_audio(state: State<'_, AudioEngine>) -> Result<(), String> {
+    state.restart()
+}
+
 // --- 檔案操作指令 ---
 
 #[tauri::command]
@@ -89,7 +95,7 @@ pub fn run() {
     })
     .manage(AppState { last_dir: Mutex::new(None) })
     .invoke_handler(tauri::generate_handler![
-        update_patch, trigger_note, release_note, stop_audio,
+        update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, get_examples_path, get_last_dir
     ])
     .run(tauri::generate_context!())

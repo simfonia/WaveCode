@@ -6,50 +6,78 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 40px auto; padding: 20px; }
         h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #2980b9; margin-top: 30px; }
+        h2 { color: #2980b9; margin-top: 30px; border-left: 5px solid #2980b9; padding-left: 10px; }
         code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: 'Consolas', monospace; }
         .tech-stack { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
         .tech-card { background: #ecf0f1; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; }
-        .diagram { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; font-family: monospace; overflow-x: auto; white-space: pre; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; background: #2ecc71; color: white; }
     </style>
 </head>
 <body>
-    <h1>WaveCode IDE 系統規格書 (Polyphonic & Visualization)</h1>
+    <h1>WaveCode IDE 系統規格書 <span class="status-badge">Modular & Dynamic v2.0</span></h1>
     
     <section>
-        <h2>1. 專案架構概覽</h2>
-        <p>WaveCode 是一個基於 <strong>Tauri v2</strong> 框架的獨立音訊編程 IDE。它採用 100% 原生 Rust 實作的音訊引擎，具備低延遲、複音演奏與實時視覺化能力。</p>
+        <h2>1. 系統架構</h2>
+        <p>WaveCode 採用<strong>異步排程（JS）</strong>與<strong>實時渲染（Rust）</strong>分離的架構，解決了傳統 Web Audio 易受主執行緒阻塞的痛點。</p>
         <div class="tech-stack">
-            <div class="tech-card"><strong>前端 (腦)</strong><br>Vite + Blockly + SVG Visualization</div>
-            <div class="tech-card"><strong>後端 (神經)</strong><br>Tauri v2 + Emitter (Event Bus)</div>
-            <div class="tech-card"><strong>音訊引擎 (身體)</strong><br>fundsp + cpal (8-Voice Polyphony)</div>
+            <div class="tech-card"><strong>前端模組化</strong><br>區分積木定義 (Blocks)、產生器 (Generators) 與核心邏輯 (Modules)。</div>
+            <div class="tech-card"><strong>動態 DSP 引擎</strong><br>使用 <code>fundsp::Net</code> 實現執行時動態 Patching 與熱更新。</div>
+            <div class="tech-card"><strong>8 聲部複音</strong><br>具備輪替分配 (Round-robin) 與聲部物理隔離機制。</div>
         </div>
     </section>
 
     <section>
-        <h2>2. 核心技術機制</h2>
+        <h2>2. 核心技術實作</h2>
         <ul>
-            <li><strong>腦與身體分離</strong>：異步邏輯（JS）處理樂譜排程，同步渲染（Rust）處理物理波形。</li>
-            <li><strong>物理隔離複音架構</strong>：每個聲部具備獨立的 <code>gate</code> 物理開關與參數空間，徹底杜絕閒置聲部的雜訊滲漏。</li>
-            <li><strong>硬同步 (Hard Sync)</strong>：每次觸發音符時，相位重置為 0，確保波形連續性，消除切換爆音。</li>
-            <li><strong>實時示波器 (Oscilloscope)</strong>：採用磁滯升緣觸發 (Hysteresis Edge Trigger)，確保前端波形顯示靜止穩定。</li>
+            <li><strong>C 型樂器定義模型</strong>：對齊 #processing 創作邏輯，使用 C 型帽子積木封裝音源鏈。
+                <ul>
+                    <li>組件包含：振盪器、ADSR 包絡線、濾波器 (LP/HP)、音量控制。</li>
+                    <li>遞迴編譯：<code>WaveCodeCompiler</code> 遞迴掃描組件鏈並生成 Patch JSON 傳送至 Rust。</li>
+                </ul>
+            </li>
+            <li><strong>硬同步 (Hard Sync)</strong>：每次觸發音符時，強制呼叫 <code>unit.reset()</code> 重置震盪器相位與濾波器狀態，徹底消除爆音與直流偏移。</li>
+            <li><strong>腳本安樂死機制 (Euthanasia)</strong>：
+                <ul>
+                    <li>透過 <code>_execId</code> 版本號控制。</li>
+                    <li>在所有循環 (Repeat/While/For) 中注入 <code>isAlive(_id)</code> 檢查。</li>
+                    <li>非同步 API (Sleep/PlayNote) 在恢復執行前檢查版本，不符則拋出 <code>Script cancelled</code>。</li>
+                </ul>
+            </li>
+            <li><strong>批次鎖定 (Batch Locking)</strong>：在音訊回調的緩衝區層級進行 Mutex 鎖定，消除採樣點層級競爭，徹底解決機關槍雜訊。</li>
         </ul>
     </section>
 
     <section>
-        <h2>3. 視覺化組件</h2>
+        <h2>3. 視覺化系統規格</h2>
         <ul>
-            <li><strong>ADSR Field</strong>：內嵌於積木的 SVG 繪圖組件，具備動態黃色光點隨音符進度移動。</li>
-            <li><strong>Waveform Canvas</strong>：主介面頂部的 60FPS 示波器，顯示 Rust 引擎傳回的原始採樣點。</li>
+            <li><strong>Clipping 警報示波器</strong>：
+                <ul>
+                    <li>數據穿透：傳送未經過 <code>clamp</code> 的原始採樣數據至前端。</li>
+                    <li>越界繪圖：波形可繪製超出畫布邊界，模擬專業示波器過載現象。</li>
+                    <li>CLIP 告警：偵測到振幅 > 1.0 時，波形變紅並顯示紅色 "CLIP" 字樣。</li>
+                </ul>
+            </li>
+            <li><strong>ADSR Glow 效果</strong>：
+                <ul>
+                    <li>發光光點：使用 SVG Gaussian Blur 濾鏡建立發光動態球體。</li>
+                    <li>動態 Sustain：光點在延持階段會呈正弦波來回擺動，增加生命感。</li>
+                </ul>
+            </li>
         </ul>
     </section>
 
     <section>
-        <h2>4. 模組化設計</h2>
+        <h2>4. 模組化檔案規範</h2>
         <ul>
-            <li><strong>ui/src/modules/visualizer.js</strong>：封裝 ADSR 欄位定義、動畫管理員與示波器繪製邏輯。</li>
-            <li><strong>src-tauri/src/engine.rs</strong>：實作具備 8 聲部輪替與物理斷路機制的音訊引擎。</li>
+            <li><strong>積木定義</strong>：存放於 <code>ui/src/blocks/</code>，以功能模組命名 (如 <code>audio_instruments.js</code>)。</li>
+            <li><strong>產生器</strong>：存放於 <code>ui/src/generators/javascript/</code>，對應積木定義模組。</li>
+            <li><strong>命名空間</strong>：自定義積木統一使用 <code>wc_</code> 前綴 (如 <code>wc_text_print</code>)。</li>
+            <li><strong>i18n</strong>：所有標籤、提示與顏色數值 (Hues) 統一由 <code>lang/</code> 語系檔定義。</li>
         </ul>
     </section>
+
+    <footer style="margin-top: 50px; font-size: 0.8em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 10px;">
+        最後更新日期：2026-03-12 | WaveCode 開發團隊
+    </footer>
 </body>
 </html>

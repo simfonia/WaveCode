@@ -29,7 +29,6 @@ struct Voice {
     unit: Mutex<Box<dyn AudioUnit>>,
     queued_unit: Mutex<Option<Box<dyn AudioUnit>>>,
     reset_pending: AtomicBool,
-    // 紀錄目前聲部所屬的樂器 ID
     current_inst_id: Mutex<String>,
 }
 
@@ -40,12 +39,13 @@ struct WaveformPayload {
 }
 
 pub struct AudioEngine {
-    _stream: Option<cpal::Stream>,
+    stream: Mutex<Option<cpal::Stream>>,
+    app_handle: tauri::AppHandle,
     voices: Arc<Vec<Voice>>,
     next_voice: AtomicUsize,
     master_vol: Shared,
     patches: Arc<Mutex<HashMap<String, Patch>>>,
-    sample_rate: f64,
+    sample_rate: Arc<Mutex<f64>>,
 }
 
 unsafe impl Sync for AudioEngine {}
@@ -53,12 +53,6 @@ unsafe impl Send for AudioEngine {}
 
 impl AudioEngine {
     pub fn new(app_handle: tauri::AppHandle) -> Result<Self, String> {
-        let host = cpal::default_host();
-        let device = host.default_output_device().ok_or("找不到輸出裝置")?;
-        let config = device.default_output_config().map_err(|e| e.to_string())?;
-        let sample_rate = config.sample_rate().0 as f64;
-        let channels = config.channels() as usize;
-
         let mut voices = Vec::new();
         for _ in 0..MAX_VOICES {
             voices.push(Voice { 
@@ -73,9 +67,43 @@ impl AudioEngine {
         let voices = Arc::new(voices);
         let master_vol = shared(1.0);
         let patches = Arc::new(Mutex::new(HashMap::new()));
+        let sample_rate = Arc::new(Mutex::new(44100.0));
 
-        let voices_clone = Arc::clone(&voices);
-        let master_vol_clone = master_vol.clone();
+        let engine = AudioEngine { 
+            stream: Mutex::new(None), 
+            app_handle,
+            voices, 
+            next_voice: AtomicUsize::new(0), 
+            master_vol,
+            patches,
+            sample_rate,
+        };
+
+        engine.restart()?;
+        Ok(engine)
+    }
+
+    pub fn restart(&self) -> Result<(), String> {
+        // 先停止舊串流（如果有的話）
+        {
+            let mut stream_guard = self.stream.lock().unwrap();
+            *stream_guard = None;
+        }
+
+        let host = cpal::default_host();
+        let device = host.default_output_device().ok_or("找不到輸出裝置")?;
+        let config = device.default_output_config().map_err(|e| e.to_string())?;
+        let sr = config.sample_rate().0 as f64;
+        let channels = config.channels() as usize;
+
+        {
+            let mut sr_guard = self.sample_rate.lock().unwrap();
+            *sr_guard = sr;
+        }
+
+        let voices_clone = Arc::clone(&self.voices);
+        let master_vol_clone = self.master_vol.clone();
+        let app_handle_clone = self.app_handle.clone();
         
         let stream = device.build_output_stream(
             &config.into(),
@@ -130,26 +158,29 @@ impl AudioEngine {
                 }
 
                 if scope_buffer.len() >= 256 {
-                    let _ = app_handle.emit("waveform", WaveformPayload {
+                    let _ = app_handle_clone.emit("waveform", WaveformPayload {
                         data: scope_buffer[0..256].to_vec(),
                         clipped: has_clipped,
                     });
                 }
             },
-            |err| eprintln!("錯誤: {}", err),
+            |err| eprintln!("音訊串流錯誤: {}", err),
             None
         ).map_err(|e| e.to_string())?;
 
         stream.play().map_err(|e| e.to_string())?;
 
-        Ok(AudioEngine { 
-            _stream: Some(stream), 
-            voices, 
-            next_voice: AtomicUsize::new(0), 
-            master_vol,
-            patches,
-            sample_rate,
-        })
+        let mut stream_guard = self.stream.lock().unwrap();
+        *stream_guard = Some(stream);
+
+        // 重啟後清除聲部緩存，強制下次播放時重新構建單位
+        for v in self.voices.iter() {
+            if let Ok(mut id) = v.current_inst_id.lock() {
+                id.clear();
+            }
+        }
+
+        Ok(())
     }
 
     fn build_voice_unit(patch: &Patch, freq: &Shared, gate: &Shared, sample_rate: f64) -> Box<dyn AudioUnit> {
@@ -157,6 +188,7 @@ impl AudioEngine {
         let f_node = net.push(Box::new(var(freq)));
         let g_node = net.push(Box::new(var(gate)));
         let mut last_output = None;
+        let mut has_adsr = false;
 
         for comp in patch {
             match comp {
@@ -171,6 +203,7 @@ impl AudioEngine {
                     last_output = Some(osc_id);
                 },
                 Component::Adsr { a, d, s, r } => {
+                    has_adsr = true;
                     let adsr_id = net.push(Box::new(adsr_live(*a, *d, *s, *r)));
                     net.connect(g_node, 0, adsr_id, 0);
                     if let Some(prev) = last_output {
@@ -199,10 +232,17 @@ impl AudioEngine {
         }
 
         if let Some(final_node) = last_output {
-            let final_mul = net.push(Box::new(pass() * pass()));
-            net.connect(final_node, 0, final_mul, 0);
-            net.connect(g_node, 0, final_mul, 1);
-            net.pipe_output(final_mul);
+            let mut final_output_node = final_node;
+
+            // 如果沒有 ADSR，強制加上一個物理閘門，否則聲音停不下來
+            if !has_adsr {
+                let gate_mul_id = net.push(Box::new(pass() * pass()));
+                net.connect(final_output_node, 0, gate_mul_id, 0);
+                net.connect(g_node, 0, gate_mul_id, 1);
+                final_output_node = gate_mul_id;
+            }
+
+            net.pipe_output(final_output_node);
         } else {
             let silence = net.push(Box::new(dc(0.0)));
             net.pipe_output(silence);
@@ -219,14 +259,11 @@ impl AudioEngine {
             let mut patches = self.patches.lock().unwrap();
             *patches = new_patches;
         }
-        
-        // 點擊執行時，將所有聲部的樂器 ID 清空，強制下次 trigger 時重構（以套用新參數）
         for v in self.voices.iter() {
             if let Ok(mut id_guard) = v.current_inst_id.lock() {
                 id_guard.clear();
             }
         }
-        
         Ok(())
     }
 
@@ -234,7 +271,6 @@ impl AudioEngine {
         let index = self.next_voice.fetch_add(1, Ordering::SeqCst) % MAX_VOICES;
         let voice = &self.voices[index];
         
-        // 檢查樂器 ID 是否變更
         let mut build_needed = false;
         if let Ok(mut current_id) = voice.current_inst_id.lock() {
             if *current_id != inst_id {
@@ -246,7 +282,8 @@ impl AudioEngine {
         if build_needed {
             let patches = self.patches.lock().unwrap();
             if let Some(patch) = patches.get(&inst_id) {
-                let new_unit = Self::build_voice_unit(patch, &voice.freq, &voice.gate, self.sample_rate);
+                let sr = *self.sample_rate.lock().unwrap();
+                let new_unit = Self::build_voice_unit(patch, &voice.freq, &voice.gate, sr);
                 if let Ok(mut q) = voice.queued_unit.lock() {
                     *q = Some(new_unit);
                 }
@@ -267,6 +304,16 @@ impl AudioEngine {
     }
 
     pub fn stop_all(&self) { 
-        for v in self.voices.iter() { v.gate.set_value(0.0); }
+        for v in self.voices.iter() { 
+            v.gate.set_value(0.0); 
+            // 硬停止：立即替換為靜音單元，丟棄當前所有緩衝與 Release 狀態
+            if let Ok(mut q) = v.queued_unit.lock() {
+                *q = Some(Box::new(dc(0.0)));
+            }
+            // 清除當前樂器 ID 記錄，確保下次 trigger_note 會重新構建 DSP 鏈
+            if let Ok(mut id) = v.current_inst_id.lock() {
+                id.clear();
+            }
+        }
     }
 }

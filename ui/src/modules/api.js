@@ -129,6 +129,22 @@ export const WaveCodeAPI = {
         await WaveCodeAPI.reset();
     },
 
+    /**
+     * 重啟音訊引擎 (用於解決雜訊或時鐘不同步)
+     */
+    restartAudio: async () => {
+        if (invoke) {
+            try {
+                await invoke('restart_audio');
+                console.log("WaveCode: 音訊引擎已重啟");
+                // 重啟後需要重新傳送一次樂器配置
+                await WaveCodeAPI.setInstruments(WaveCodeAPI._instruments);
+            } catch (e) {
+                console.error("重啟音訊引擎失敗:", e);
+            }
+        }
+    },
+
     getInvoke: () => invoke
 };
 

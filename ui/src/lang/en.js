@@ -8,6 +8,7 @@
     "WAVECODE_OPEN": "Open Project",
     "WAVECODE_SAVE": "Save Project",
     "WAVECODE_SETTINGS": "Settings",
+    "WAVECODE_RESTART_AUDIO": "Restart Audio Engine",
     "WAVECODE_UNTITLED": "Untitled Project",
     "WAVECODE_UPDATE_CHECK": "Checking for updates...",
     "WAVECODE_UPDATE_AVAILABLE": "New version available!",
@@ -24,6 +25,7 @@
     "CAT_LOGIC": "Logic",
     "CAT_LOOPS": "Loops",
     "CAT_MATH": "Math",
+    "CAT_TEXT": "Text",
     "CAT_VARIABLES": "Variables",
     "CAT_FUNCTIONS": "Functions",
     "CAT_SOUND_SOURCES": "Sound Sources",
@@ -82,6 +84,9 @@
     "LOOPS_HUE": "#7fcd81",
     "MATH_HUE": "#5C68A6",
     "VARIABLES_HUE": "#ef9a9a",
-    "FUNCTIONS_HUE": "#d22f73"
+    "FUNCTIONS_HUE": "#d22f73",
+    "TEXT_HUE": "#6a8871",
+    "WC_TEXT_PRINT": "print %1",
+    "WC_TEXT_PRINT_TOOLTIP": "Output message to the browser console (F12)."
   });
 })(Blockly);

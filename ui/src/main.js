@@ -3,8 +3,18 @@
  */
 import './style.css';
 import './lang/zh-hant.js';
-import './blocks/audio.js';
-import './generators/javascript/audio.js';
+
+// --- 模組化積木定義 ---
+import './blocks/audio_instruments.js';
+import './blocks/audio_performance.js';
+import './blocks/audio_train.js';
+import './blocks/text.js';
+
+// --- 模組化產生器 ---
+import './generators/javascript/audio_instruments.js';
+import './generators/javascript/audio_performance.js';
+import './generators/javascript/text.js';
+import './generators/javascript/system.js';
 
 import { UIUtils } from './modules/ui_utils.js';
 import { WaveCodeAPI } from './modules/api.js';
@@ -66,11 +76,23 @@ function createDefaultBlocks() {
     workspace.isClearing = true;
     workspace.clear();
     setTimeout(() => {
-        const osc = workspace.newBlock('audio_oscillator');
-        osc.initSvg(); osc.render(); osc.moveBy(50, 100);
-        const dac = workspace.newBlock('audio_dac');
-        dac.initSvg(); dac.render(); dac.moveBy(350, 100);
-        try { dac.outputConnection.connect(osc.getInput('NEXT').connection); } catch (e) {}
+        const inst = workspace.newBlock('audio_instrument');
+        inst.setFieldValue('my_piano', 'ID');
+        inst.initSvg(); inst.render(); inst.moveBy(50, 50);
+        
+        // 建立內部組件鏈：Osc -> ADSR -> Vol
+        const osc = workspace.newBlock('audio_component_osc');
+        osc.initSvg(); osc.render();
+        inst.getInput('CHAIN').connection.connect(osc.previousConnection);
+
+        const adsr = workspace.newBlock('audio_component_adsr');
+        adsr.initSvg(); adsr.render();
+        osc.nextConnection.connect(adsr.previousConnection);
+
+        const vol = workspace.newBlock('audio_component_volume');
+        vol.initSvg(); vol.render();
+        adsr.nextConnection.connect(vol.previousConnection);
+
         setTimeout(() => {
             workspace.isClearing = false;
             setDirty(false);
@@ -94,32 +116,21 @@ async function checkUnsavedChanges() {
 
 document.getElementById('run-btn').addEventListener('click', async () => {
     const runBtn = document.getElementById('run-btn');
-    
-    // 1. 無論如何先停止舊腳本與音訊
     await WaveCodeAPI.stop();
-    
-    // 2. 標記為執行中
     runBtn.classList.add('is-running');
     runBtn.title = Blockly.Msg['WAVECODE_STOP'] || '停止';
-    
     const currentId = WaveCodeAPI.getCurrentId();
-    
-    // 3. 編譯與產出代碼
     await WaveCodeCompiler.compileAndRun(workspace);
     Blockly.JavaScript.init(workspace);
     const rawCode = Blockly.JavaScript.workspaceToCode(workspace);
-    
-    // 4. 注入環境與中斷檢查
     const finalCode = `
         const _id = WaveCode.getCurrentId();
         try {
             ${rawCode}
         } catch (err) {
             if (err !== 'Script cancelled') throw err;
-            // console.log('[Runtime] Script gracefully terminated.');
         }
     `;
-
     try {
         const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
         const executeLogic = new AsyncFunction(finalCode);
@@ -127,7 +138,6 @@ document.getElementById('run-btn').addEventListener('click', async () => {
     } catch (err) { 
         if (err !== 'Script cancelled') console.error('腳本執行錯誤:', err); 
     } finally {
-        // 只有當目前的 ID 依然是執行時的 ID，才恢復 UI 狀態
         if (currentId === WaveCodeAPI.getCurrentId()) {
             runBtn.classList.remove('is-running');
             runBtn.title = Blockly.Msg['WAVECODE_RUN'] || '執行';
@@ -142,10 +152,7 @@ document.getElementById('stop-btn').addEventListener('click', async () => {
 });
 
 document.getElementById('new-btn').addEventListener('click', async () => {
-    if (await checkUnsavedChanges()) { 
-        currentFilename = ''; 
-        createDefaultBlocks(); 
-    }
+    if (await checkUnsavedChanges()) { currentFilename = ''; createDefaultBlocks(); }
 });
 
 document.getElementById('save-btn').addEventListener('click', async () => {
@@ -166,12 +173,9 @@ document.getElementById('open-btn').addEventListener('click', async () => {
             const path = await open({ filters: [{ name: 'WaveCode', extensions: ['wave'] }], multiple: false });
             if (path) {
                 const content = await invoke('load_project', { path: path });
-                workspace.isClearing = true; 
-                workspace.clear();
+                workspace.isClearing = true; workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
                 currentFilename = path.split(/[\\/]/).pop(); 
-
-                // 強制註冊樂器
                 workspace.getBlocksByType('audio_instrument').forEach(b => {
                     const id = b.getFieldValue('ID');
                     const visual = b.getField('VISUAL');
@@ -180,12 +184,7 @@ document.getElementById('open-btn').addEventListener('click', async () => {
                         visual.render_();
                     }
                 });
-
-                setTimeout(() => {
-                    workspace.isClearing = false;
-                    setDirty(false);
-                }, 100);
-
+                setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100);
             }
         } catch (e) {}
     }
@@ -199,12 +198,9 @@ document.getElementById('examples-btn').addEventListener('click', async () => {
             const path = await open({ defaultPath: examplesPath, filters: [{ name: 'WaveCode', extensions: ['wave'] }], multiple: false });
             if (path) {
                 const content = await invoke('load_project', { path: path });
-                workspace.isClearing = true; 
-                workspace.clear();
+                workspace.isClearing = true; workspace.clear();
                 Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
                 currentFilename = path.split(/[\\/]/).pop(); 
-
-                // 強制註冊樂器
                 workspace.getBlocksByType('audio_instrument').forEach(b => {
                     const id = b.getFieldValue('ID');
                     const visual = b.getField('VISUAL');
@@ -213,19 +209,13 @@ document.getElementById('examples-btn').addEventListener('click', async () => {
                         visual.render_();
                     }
                 });
-
-                setTimeout(() => {
-                    workspace.isClearing = false;
-                    setDirty(false);
-                }, 100);
-
+                setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100);
             }
         } catch (e) {}
     }
 });
 
 // --- 6. 更新系統實作 ---
-
 let updateStatus = 'hidden'; 
 async function checkUpdate(manual = false) {
     const btn = document.getElementById('update-btn');
@@ -233,7 +223,6 @@ async function checkUpdate(manual = false) {
     updateStatus = 'checking';
     btn.classList.remove('update-hidden');
     btn.classList.add('update-spin');
-    btn.title = Blockly.Msg['WAVECODE_UPDATE_CHECK'] || '檢查更新中...';
     try {
         await new Promise(resolve => setTimeout(resolve, 2000));
         const hasUpdate = manual; 
@@ -241,7 +230,6 @@ async function checkUpdate(manual = false) {
             updateStatus = 'available';
             btn.classList.remove('update-spin');
             btn.classList.add('has-update', 'update-pulse');
-            btn.title = Blockly.Msg['WAVECODE_UPDATE_AVAILABLE'] || '有新版本可用';
         } else {
             updateStatus = 'hidden';
             btn.classList.remove('update-spin');
@@ -252,14 +240,42 @@ async function checkUpdate(manual = false) {
 }
 
 document.getElementById('update-btn').addEventListener('click', () => {
-    if (updateStatus === 'available' || updateStatus === 'ready') { }
-    else checkUpdate(true);
+    if (updateStatus !== 'available') checkUpdate(true);
 });
 
 setTimeout(() => checkUpdate(false), 1000);
 
-// --- 7. 介面 i18n ---
+// --- 7. 系統設定選單 ---
+const settingsBtn = document.getElementById('settings-btn');
+const settingsMenu = document.createElement('div');
+settingsMenu.className = 'dropdown-menu';
+settingsMenu.id = 'settings-menu';
+settingsMenu.innerHTML = `
+    <div class="dropdown-item" id="restart-audio-item">
+        <img src="/icons/published_with_changes_24dp_75FB4C.png">
+        <span data-i18n="WAVECODE_RESTART_AUDIO">重啟音訊</span>
+    </div>
+`;
+document.body.appendChild(settingsMenu);
 
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const rect = settingsBtn.getBoundingClientRect();
+    settingsMenu.style.top = `${rect.bottom + 5}px`;
+    settingsMenu.style.left = `${rect.left - 120}px`; // 稍微向左偏移以對齊
+    settingsMenu.classList.toggle('show');
+});
+
+document.addEventListener('click', () => {
+    settingsMenu.classList.remove('show');
+});
+
+document.getElementById('restart-audio-item').addEventListener('click', async () => {
+    settingsMenu.classList.remove('show');
+    await WaveCodeAPI.restartAudio();
+});
+
+// --- 8. 介面 i18n ---
 function applyI18n() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -276,14 +292,11 @@ document.getElementById('lang-selector').addEventListener('change', (e) => {
     const scriptId = 'lang-script';
     let script = document.getElementById(scriptId);
     if (script) script.remove();
-    
     script = document.createElement('script');
-    script.id = scriptId;
-    script.src = `/src/lang/${lang}.js`;
+    script.id = scriptId; script.src = `/src/lang/${lang}.js`;
     script.onload = () => {
-        applyI18n();
-        setDirty(isDirty);
-        if (workspace.getToolbox()) workspace.updateToolbox(toolbox);
+        applyI18n(); setDirty(isDirty);
+        if (workspace.getToolbox()) workspace.updateToolbox(WaveCodeToolbox);
     };
     document.body.appendChild(script);
 });
@@ -291,10 +304,8 @@ document.getElementById('lang-selector').addEventListener('change', (e) => {
 applyI18n();
 
 // --- 8. 啟動與初始化 ---
-
 const resizeObserver = new ResizeObserver(() => Blockly.svgResize(workspace));
 resizeObserver.observe(blocklyDiv);
-
 setTimeout(() => { 
     Blockly.svgResize(workspace); 
     UIUtils.initMinimap(workspace); 
@@ -303,18 +314,6 @@ setTimeout(() => {
 
 workspace.addChangeListener((e) => {
     if (workspace.isClearing || e.isUiEvent) return;
-    
-    const isBlockChange = [
-        Blockly.Events.BLOCK_MOVE, 
-        Blockly.Events.BLOCK_CREATE, 
-        Blockly.Events.BLOCK_CHANGE, 
-        Blockly.Events.BLOCK_DELETE, 
-        Blockly.Events.VAR_CREATE, 
-        Blockly.Events.VAR_RENAME, 
-        Blockly.Events.VAR_DELETE
-    ].includes(e.type);
-    
-    if (isBlockChange) {
-        setDirty(true);
-    }
+    const isBlockChange = [Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type);
+    if (isBlockChange) { setDirty(true); }
 });

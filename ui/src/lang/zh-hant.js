@@ -8,6 +8,7 @@
     "WAVECODE_OPEN": "開啟專案",
     "WAVECODE_SAVE": "儲存專案",
     "WAVECODE_SETTINGS": "系統設定",
+    "WAVECODE_RESTART_AUDIO": "重啟音訊引擎",
     "WAVECODE_UNTITLED": "未命名專案",
     "WAVECODE_UPDATE_CHECK": "正在檢查更新...",
     "WAVECODE_UPDATE_AVAILABLE": "發現新版本！點擊下載更新",
@@ -23,15 +24,16 @@
     // 分類名稱
     "CAT_AUDIO_TRAIN": "音訊電路",
     "CAT_AUDIO_CMD": "演奏指令 (舊)",
-    "CAT_LOGIC": "邏輯",
-    "CAT_LOOPS": "迴圈",
-    "CAT_MATH": "數學",
-    "CAT_VARIABLES": "變數",
-    "CAT_FUNCTIONS": "函數",
-    "CAT_SOUND_SOURCES": "音源",
+    "CAT_LOGIC": "邏輯判斷",
+    "CAT_LOOPS": "迴圈控制",
+    "CAT_MATH": "數學運算",
+    "CAT_TEXT": "文字處理",
+    "CAT_VARIABLES": "變數管理",
+    "CAT_FUNCTIONS": "自訂函數",
+    "CAT_SOUND_SOURCES": "建立音源",
     "CAT_INSTRUMENT_CONTROL": "樂器控制",
     "CAT_EFFECTS": "音訊效果",
-    "CAT_PERFORMANCE": "演奏",
+    "CAT_PERFORMANCE": "音樂演奏",
 
     // 樂器定義 (C 型帽子模式)
     "AUDIO_DEFINE_INSTRUMENT": "定義樂器 %1",
@@ -84,6 +86,9 @@
     "LOOPS_HUE": "#7fcd81",
     "MATH_HUE": "#5C68A6",
     "VARIABLES_HUE": "#ef9a9a",
-    "FUNCTIONS_HUE": "#d22f73"
+    "FUNCTIONS_HUE": "#d22f73",
+    "TEXT_HUE": "#6a8871",
+    "WC_TEXT_PRINT": "列印 %1",
+    "WC_TEXT_PRINT_TOOLTIP": "將訊息輸出至瀏覽器主控台 (F12)。"
   });
 })(Blockly);
