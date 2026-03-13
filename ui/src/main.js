@@ -21,9 +21,13 @@ import { WaveCodeAPI } from './modules/api.js';
 import { WaveCodeCompiler } from './modules/compiler.js';
 import { Oscilloscope } from './modules/visualizer.js';
 import { WaveCodeToolbox } from './modules/toolbox.js';
+import { KeyboardController } from './modules/keyboard_controller.js';
 
 // 初始化示波器
 Oscilloscope.init('waveformCanvas');
+
+// 初始化鍵盤演奏
+KeyboardController.init();
 
 // 注入 NaN 防護盾
 UIUtils.injectNaNShield();
