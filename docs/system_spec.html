@@ -11,73 +11,108 @@
         .tech-stack { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
         .tech-card { background: #ecf0f1; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; }
         .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; background: #2ecc71; color: white; }
+        .lib-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .lib-table th, .lib-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .lib-table th { background-color: #f8f9fa; }
     </style>
 </head>
 <body>
-    <h1>WaveCode IDE 系統規格書 <span class="status-badge">Modular & Dynamic v2.0</span></h1>
+    <h1>WaveCode 系統規格書 <span class="status-badge">Sampler V2 & Multi-Threading</span></h1>
     
     <section>
-        <h2>1. 系統架構</h2>
-        <p>WaveCode 採用<strong>異步排程（JS）</strong>與<strong>實時渲染（Rust）</strong>分離的架構，解決了傳統 Web Audio 易受主執行緒阻塞的痛點。</p>
-        <div class="tech-stack">
-            <div class="tech-card"><strong>前端模組化</strong><br>區分積木定義 (Blocks)、產生器 (Generators) 與核心邏輯 (Modules)。</div>
-            <div class="tech-card"><strong>動態 DSP 引擎</strong><br>使用 <code>fundsp::Net</code> 實現執行時動態 Patching 與熱更新。</div>
-            <div class="tech-card"><strong>8 聲部複音</strong><br>具備輪替分配 (Round-robin) 與聲部物理隔離機制。</div>
-        </div>
+        <h2>1. 核心技術棧 (Tech Stack)</h2>
+        <table class="lib-table">
+            <thead>
+                <tr>
+                    <th>函式庫</th>
+                    <th>語言</th>
+                    <th>主要用途</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>fundsp</code></td>
+                    <td>Rust</td>
+                    <td>DSP 運算核心，負責所有音訊節點 (OSC, Filter, Net) 的處理。</td>
+                </tr>
+                <tr>
+                    <td><code>cpal</code></td>
+                    <td>Rust</td>
+                    <td>跨平台音訊 I/O，負責與 Windows WASAPI 驅動直接對接。</td>
+                </tr>
+                <tr>
+                    <td><code>hound</code></td>
+                    <td>Rust</td>
+                    <td>WAV 檔案解碼器，支援 16/24/32-bit 取樣讀取。</td>
+                </tr>
+                <tr>
+                    <td><code>puremp3</code></td>
+                    <td>Rust</td>
+                    <td>純 Rust 實作的 MP3 解碼器，用於鋼琴音色庫的讀取。</td>
+                </tr>
+                <tr>
+                    <td><code>rayon</code></td>
+                    <td>Rust</td>
+                    <td>數據並行庫，用於程式啟動時利用多核心 CPU 進行背景音色並行載入。</td>
+                </tr>
+                <tr>
+                    <td><code>Tauri v2</code></td>
+                    <td>Rust/JS</td>
+                    <td>原生視窗容器與橋接層，處理檔案系統與前端指令通訊。</td>
+                </tr>
+                <tr>
+                    <td><code>Blockly</code></td>
+                    <td>JS</td>
+                    <td>視覺化編程介面。</td>
+                </tr>
+            </tbody>
+        </table>
     </section>
 
     <section>
-        <h2>2. 核心技術實作</h2>
+        <h2>2. 高品質取樣器技術 (Sampler v2)</h2>
         <ul>
-            <li><strong>C 型樂器定義模型</strong>：對齊 #processing 創作邏輯，使用 C 型帽子積木封裝音源鏈。
+            <li><strong>線性插值變速 (Linear Interpolation)</strong>：
                 <ul>
-                    <li>組件包含：振盪器、ADSR 包絡線、濾波器 (LP/HP)、音量控制。</li>
-                    <li>遞迴編譯：<code>WaveCodeCompiler</code> 遞迴掃描組件鏈並生成 Patch JSON 傳送至 Rust。</li>
+                    <li>自定義 <code>VariableSpeedPlayer</code> 節點，解決了變速播放時的數位鋸齒雜訊。</li>
+                    <li>支援動態比率 (Ratio) 調整，實現鋼琴、小提琴的多取樣音高映射。</li>
                 </ul>
             </li>
-            <li><strong>硬同步 (Hard Sync)</strong>：每次觸發音符時，強制呼叫 <code>unit.reset()</code> 重置震盪器相位與濾波器狀態，徹底消除爆音與直流偏移。</li>
-            <li><strong>腳本安樂死機制 (Euthanasia)</strong>：
+            <li><strong>預先載入與背景並行</strong>：
                 <ul>
-                    <li>透過 <code>_execId</code> 版本號控制。</li>
-                    <li>在所有循環 (Repeat/While/For) 中注入 <code>isAlive(_id)</code> 檢查。</li>
-                    <li>非同步 API (Sleep/PlayNote) 在恢復執行前檢查版本，不符則拋出 <code>Script cancelled</code>。</li>
+                    <li>程式啟動後自動建立背景執行緒掃描音色庫。</li>
+                    <li>利用 <code>rayon</code> 實現多執行緒並行解碼，數百個音檔可在 3 秒內完成加載。</li>
                 </ul>
             </li>
-            <li><strong>批次鎖定 (Batch Locking)</strong>：在音訊回調的緩衝區層級進行 Mutex 鎖定，消除採樣點層級競爭，徹底解決機關槍雜訊。</li>
+            <li><strong>音量標準化 (Normalization)</strong>：
+                <ul>
+                    <li>載入期自動執行 Peak Normalization。</li>
+                    <li>針對打擊樂 (Kick) 提供額外增益補償 (+1.5x)，平衡與 MP3 取樣間的響度差異。</li>
+                </ul>
+            </li>
         </ul>
     </section>
 
     <section>
-        <h2>3. 視覺化系統規格</h2>
+        <h2>3. 系統穩定性機制</h2>
         <ul>
-            <li><strong>Clipping 警報示波器</strong>：
-                <ul>
-                    <li>數據穿透：傳送未經過 <code>clamp</code> 的原始採樣數據至前端。</li>
-                    <li>越界繪圖：波形可繪製超出畫布邊界，模擬專業示波器過載現象。</li>
-                    <li>CLIP 告警：偵測到振幅 > 1.0 時，波形變紅並顯示紅色 "CLIP" 字樣。</li>
-                </ul>
-            </li>
-            <li><strong>ADSR Glow 效果</strong>：
-                <ul>
-                    <li>發光光點：使用 SVG Gaussian Blur 濾鏡建立發光動態球體。</li>
-                    <li>動態 Sustain：光點在延持階段會呈正弦波來回擺動，增加生命感。</li>
-                </ul>
-            </li>
+            <li><strong>重啟音訊引擎 (Rocket Launch)</strong>：解決 Windows 筆電睡眠喚醒後常見的 WASAPI 時鐘偏移雜訊。</li>
+            <li><strong>全域硬停止 (Hard Stop)</strong>：Stop 指令不僅關閉 Gate，還會立即將所有活躍聲部替換為靜音單元，切斷長 Release 尾音。</li>
+            <li><strong>'static 生命週期管理</strong>：使用 <code>Box::leak</code> 管理全域音色 Arc 引用，根除音訊執行緒非法記憶體存取的閃退 (Panic) 風險。</li>
         </ul>
     </section>
 
     <section>
-        <h2>4. 模組化檔案規範</h2>
+        <h2>4. 介面與 UX 規格</h2>
         <ul>
-            <li><strong>積木定義</strong>：存放於 <code>ui/src/blocks/</code>，以功能模組命名 (如 <code>audio_instruments.js</code>)。</li>
-            <li><strong>產生器</strong>：存放於 <code>ui/src/generators/javascript/</code>，對應積木定義模組。</li>
-            <li><strong>命名空間</strong>：自定義積木統一使用 <code>wc_</code> 前綴 (如 <code>wc_text_print</code>)。</li>
-            <li><strong>i18n</strong>：所有標籤、提示與顏色數值 (Hues) 統一由 <code>lang/</code> 語系檔定義。</li>
+            <li><strong>多取樣映射</strong>：選擇 <code>Piano (Multi)</code> 時，引擎自動根據頻率匹配最接近的錄音檔。</li>
+            <li><strong>系統設定選單</strong>：整合語系切換 (i18n) 與重啟功能，支援滑鼠懸停展開子選單。</li>
+            <li><strong>更新系統</strong>：具備逆時針旋轉與彈跳色彩漸變動畫，實時反應版本狀態。</li>
         </ul>
     </section>
 
     <footer style="margin-top: 50px; font-size: 0.8em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 10px;">
-        最後更新日期：2026-03-12 | WaveCode 開發團隊
+        最後更新日期：2026-03-14 | WaveCode 開發團隊
     </footer>
 </body>
 </html>

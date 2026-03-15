@@ -25,5 +25,8 @@ tauri = { version = "2.10.3", features = [] }
 tauri-plugin-log = "2"
 cpal = "0.15"
 fundsp = "0.20"
+hound = "3.5"
+puremp3 = "0.1"
+rayon = "1.10"
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-fs = "2.4.5"

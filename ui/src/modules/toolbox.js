@@ -78,7 +78,8 @@ export const WaveCodeToolbox = {
             'colour': '%{BKY_SOUND_SOURCES_HUE}',
             'contents': [
                 { 'kind': 'block', 'type': 'audio_instrument' },
-                { 'kind': 'block', 'type': 'audio_component_osc' }
+                { 'kind': 'block', 'type': 'audio_component_osc' },
+                { 'kind': 'block', 'type': 'audio_component_sampler' }
             ]
         },
 

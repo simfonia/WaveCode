@@ -42,6 +42,7 @@
 
     // 樂器組件
     "AUDIO_COMP_OSC": "振盪器 %1",
+    "AUDIO_COMP_SAMPLER": "取樣器 %1",
     "AUDIO_COMP_ADSR": "ADSR 包絡線 %1 A %2 D %3 S %4 R %5",
     "AUDIO_COMP_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
     "AUDIO_COMP_VOLUME": "音量 %1 %",

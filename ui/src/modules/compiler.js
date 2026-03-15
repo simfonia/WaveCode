@@ -53,6 +53,11 @@ export const WaveCodeCompiler = {
         if (current.isEnabled()) {
           if (current.type === 'audio_component_osc') {
             chain.push({ type: 'osc', wave: parseInt(current.getFieldValue('WAVE')) });
+          } else if (current.type === 'audio_component_sampler') {
+            chain.push({
+              type: 'sampler',
+              sample_id: current.getFieldValue('SAMPLE_ID')
+            });
           } else if (current.type === 'audio_component_adsr') {
             chain.push({
               type: 'adsr',

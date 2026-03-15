@@ -41,6 +41,35 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
+    "type": "audio_component_sampler",
+    "message0": "%{BKY_AUDIO_COMP_SAMPLER}",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "SAMPLE_ID",
+        "options": [
+          ["Drum: Kick", "Roland_TR-909_Bass_BT0A0D3"], 
+          ["Drum: Snare", "Roland_TR-909_Snare_ST0T3S3"], 
+          ["Drum: Clap", "Roland_TR-909_HANDCLP1"],
+          ["Drum: HH Closed", "Roland_TR-909_HiHatClosed_HHCD2"],
+          ["Drum: HH Open", "Roland_TR-909_HiHatOpen_HHOD6"],
+          ["Drum: Crash", "Roland_TR-909_Crash_CSHD8"],
+          ["Drum: Ride", "Roland_TR-909_RIDED8"],
+          ["Drum: Rimshot", "Roland_TR-909_Rimshot_RIM63"],
+          ["Drum: Tom High", "Roland_TR-909_TomHigh_HT7D3"],
+          ["Drum: Tom Mid", "Roland_TR-909_TomMid_MT7D3"],
+          ["Drum: Tom Low", "Roland_TR-909_TomLow_LT7D3"],
+          ["Piano (Multi)", "piano"], 
+          ["Violin Pizz (Multi)", "violin_pizz"],
+          ["Violin Sust (Multi)", "violin_sust"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}"
+  },
+  {
     "type": "audio_component_adsr",
     "message0": "%{BKY_AUDIO_COMP_ADSR}",
     "args0": [

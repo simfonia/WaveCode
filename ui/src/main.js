@@ -68,7 +68,7 @@ function setDirty(dirty) {
     if (workspace.isClearing && dirty) return;
     isDirty = dirty;
     const displayFilename = currentFilename || Blockly.Msg['WAVECODE_UNTITLED'] || '未命名專案';
-    document.title = `${dirty ? '*' : ''}${displayFilename} - WaveCode IDE`;
+    document.title = `${dirty ? '*' : ''}${displayFilename} - WaveCode`;
     const statusContainer = document.getElementById('file-status');
     if (statusContainer) {
         document.getElementById('display-filename').textContent = displayFilename;
@@ -221,52 +221,110 @@ document.getElementById('examples-btn').addEventListener('click', async () => {
 
 // --- 6. 更新系統實作 ---
 let updateStatus = 'hidden'; 
+const GITHUB_REPO = "https://github.com/simfonia/WaveCode";
+const CURRENT_VERSION = "0.1.0";
+
 async function checkUpdate(manual = false) {
     const btn = document.getElementById('update-btn');
-    if (!btn) return;
+    const img = btn.querySelector('img');
+    if (!btn || !img) return;
+
+    // --- 階段 1：檢查中 ---
     updateStatus = 'checking';
-    btn.classList.remove('update-hidden');
-    btn.classList.add('update-spin');
+    btn.classList.remove('update-hidden', 'update-bounce-pulse');
+    btn.classList.add('update-spin-ccw');
+    img.src = "/icons/sync_24dp_EA3323.png";
+    btn.title = "正在檢查更新...";
+
     try {
         await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // 模擬檢查結果：手動按則模擬發現更新，自動則模擬最新
         const hasUpdate = manual; 
+
         if (hasUpdate) {
+            // --- 階段 2：發現新版本 ---
             updateStatus = 'available';
-            btn.classList.remove('update-spin');
-            btn.classList.add('has-update', 'update-pulse');
+            btn.classList.remove('update-spin-ccw');
+            btn.classList.add('update-bounce-pulse');
+            img.src = "/icons/cloud_download_24dp_FE2F89.png";
+            btn.title = `發現新版本！點擊前往下載 (目前: ${CURRENT_VERSION})`;
         } else {
-            updateStatus = 'hidden';
-            btn.classList.remove('update-spin');
-            btn.classList.add('update-hidden');
-            if (manual) alert(Blockly.Msg['WAVECODE_UPDATE_NONE'] || '目前已是最新版本');
+            // --- 階段 3：目前已是最新 ---
+            updateStatus = 'latest';
+            btn.classList.remove('update-spin-ccw', 'update-bounce-pulse');
+            img.src = "/icons/published_with_changes_24dp_75FB4C.png";
+            btn.title = `WaveCode 已是最新版本 (${CURRENT_VERSION})`;
+            
+            // 如果是自動檢查，3秒後隱藏；如果是手動檢查，則保持顯示 10 秒
+            if (!manual) {
+                setTimeout(() => { if(updateStatus === 'latest') btn.classList.add('update-hidden'); }, 3000);
+            }
         }
-    } catch (e) { btn.classList.add('update-hidden'); }
+    } catch (e) { 
+        btn.classList.add('update-hidden'); 
+    }
 }
 
 document.getElementById('update-btn').addEventListener('click', () => {
-    if (updateStatus !== 'available') checkUpdate(true);
+    if (updateStatus === 'available') {
+        window.open(`${GITHUB_REPO}/releases`, '_blank');
+    } else if (updateStatus === 'latest') {
+        window.open(GITHUB_REPO, '_blank');
+    } else if (updateStatus === 'hidden' || updateStatus === 'latest') {
+        checkUpdate(true);
+    }
 });
 
 setTimeout(() => checkUpdate(false), 1000);
 
 // --- 7. 系統設定選單 ---
+let currentLang = 'zh-hant';
 const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.createElement('div');
 settingsMenu.className = 'dropdown-menu';
 settingsMenu.id = 'settings-menu';
 settingsMenu.innerHTML = `
     <div class="dropdown-item" id="restart-audio-item">
-        <img src="/icons/published_with_changes_24dp_75FB4C.png">
+        <img src="/icons/rocket_launch_24dp_FE2F89.png">
         <span data-i18n="WAVECODE_RESTART_AUDIO">重啟音訊</span>
+    </div>
+    <div class="dropdown-item has-submenu">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="/icons/language_24dp_FE2F89.png">
+            <span data-i18n="WAVECODE_LANG_SETTING">語言設定</span>
+        </div>
+        <span>▸</span>
+        <div class="submenu">
+            <div class="dropdown-item lang-item" data-lang="zh-hant" style="justify-content: flex-start;">
+                <span class="lang-check" style="width: 24px;"></span>
+                <span>正體中文</span>
+            </div>
+            <div class="dropdown-item lang-item" data-lang="en" style="justify-content: flex-start;">
+                <span class="lang-check" style="width: 24px;"></span>
+                <span>English</span>
+            </div>
+        </div>
     </div>
 `;
 document.body.appendChild(settingsMenu);
+
+function updateLangCheck(lang) {
+    document.querySelectorAll('.lang-check').forEach(el => {
+        el.innerHTML = '';
+    });
+    const selectedEl = document.querySelector(`.lang-item[data-lang="${lang}"] .lang-check`);
+    if (selectedEl) {
+        selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" style="width: 16px; height: 16px;">`;
+    }
+}
+updateLangCheck(currentLang);
 
 settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const rect = settingsBtn.getBoundingClientRect();
     settingsMenu.style.top = `${rect.bottom + 5}px`;
-    settingsMenu.style.left = `${rect.left - 120}px`; // 稍微向左偏移以對齊
+    settingsMenu.style.left = `${rect.left - 120}px`; 
     settingsMenu.classList.toggle('show');
 });
 
@@ -277,6 +335,35 @@ document.addEventListener('click', () => {
 document.getElementById('restart-audio-item').addEventListener('click', async () => {
     settingsMenu.classList.remove('show');
     await WaveCodeAPI.restartAudio();
+});
+
+function switchLanguage(lang) {
+    if (currentLang === lang) {
+        settingsMenu.classList.remove('show');
+        return;
+    }
+    currentLang = lang;
+    updateLangCheck(lang);
+    settingsMenu.classList.remove('show');
+    
+    const scriptId = 'lang-script';
+    let script = document.getElementById(scriptId);
+    if (script) script.remove();
+    script = document.createElement('script');
+    script.id = scriptId; 
+    script.src = `/src/lang/${lang}.js`;
+    script.onload = () => {
+        applyI18n(); 
+        setDirty(isDirty);
+        if (workspace.getToolbox()) workspace.updateToolbox(WaveCodeToolbox);
+    };
+    document.body.appendChild(script);
+}
+
+document.querySelectorAll('.lang-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        switchLanguage(e.currentTarget.dataset.lang);
+    });
 });
 
 // --- 8. 介面 i18n ---
@@ -290,20 +377,6 @@ function applyI18n() {
         if (Blockly.Msg[key]) el.title = Blockly.Msg[key];
     });
 }
-
-document.getElementById('lang-selector').addEventListener('change', (e) => {
-    const lang = e.target.value;
-    const scriptId = 'lang-script';
-    let script = document.getElementById(scriptId);
-    if (script) script.remove();
-    script = document.createElement('script');
-    script.id = scriptId; script.src = `/src/lang/${lang}.js`;
-    script.onload = () => {
-        applyI18n(); setDirty(isDirty);
-        if (workspace.getToolbox()) workspace.updateToolbox(WaveCodeToolbox);
-    };
-    document.body.appendChild(script);
-});
 
 applyI18n();
 

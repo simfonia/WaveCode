@@ -91,6 +91,7 @@ pub fn run() {
     .setup(|app| {
         let engine = AudioEngine::new(app.handle().clone()).expect("音訊引擎啟動失敗");
         app.manage(engine);
+
         Ok(())
     })
     .manage(AppState { last_dir: Mutex::new(None) })

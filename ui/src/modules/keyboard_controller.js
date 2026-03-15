@@ -7,6 +7,7 @@ import { WaveCodeAPI } from './api.js';
 const mtof = (note) => 440 * Math.pow(2, (note - 69) / 12);
 
 const KEY_MAP = {
+    // 第一行：白鍵與黑鍵交錯
     'q': 60, // C4
     '2': 61, // C#4
     'w': 62, // D4
@@ -24,6 +25,9 @@ const KEY_MAP = {
     'o': 74, // D5
     '0': 75, // D#5
     'p': 76, // E5
+    '[': 77, // F5
+    '=': 78, // F#5
+    ']': 79  // G5
 };
 
 export const KeyboardController = {

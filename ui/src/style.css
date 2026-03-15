@@ -166,6 +166,32 @@ h1 {
     color: white;
 }
 
+/* 子選單樣式 */
+.has-submenu {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submenu {
+    position: absolute;
+    top: -5px;
+    right: 100%; /* 顯示在左側 */
+    background-color: #252526;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    min-width: 140px;
+    padding: 5px 0;
+    display: none;
+    flex-direction: column;
+}
+
+.has-submenu:hover .submenu {
+    display: flex;
+}
+
 .dropdown-item img {
     width: 16px;
     height: 16px;
@@ -194,6 +220,25 @@ h1 {
 
 .update-hidden {
     display: none !important;
+}
+
+.update-spin-ccw {
+    animation: spin-ccw 2s linear infinite;
+}
+
+@keyframes spin-ccw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+.update-bounce-pulse {
+    animation: bounce-pulse 2s infinite;
+}
+
+@keyframes bounce-pulse {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); filter: brightness(1); }
+    40% { transform: translateY(-5px); filter: brightness(1.5) drop-shadow(0 0 5px #FE2F89); }
+    60% { transform: translateY(-3px); filter: brightness(1.2); }
 }
 
 .update-badge {

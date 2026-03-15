@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaveCode IDE</title>
+    <title>WaveCode</title>
     <style>
         /* 強制確保 Blockly SVG 可見 */
         .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 1000; }
@@ -16,7 +16,7 @@
         <header>
             <div class="header-left">
                 <img src="/icons/icon.png" class="app-logo" alt="Logo">
-                <h1>WaveCode IDE</h1>
+                <h1>WaveCode</h1>
             </div>
             <div id="file-status" class="file-status-container">
                 <span class="file-dirty-dot"></span>
@@ -33,10 +33,6 @@
                 <div class="sep"></div>
                 <div id="settings-btn" class="icon-btn" data-i18n-title="WAVECODE_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png"></div>
                 <div class="sep"></div>
-                <select id="lang-selector" class="dark-select">
-                    <option value="zh-hant" selected>正體中文</option>
-                    <option value="en">English</option>
-                </select>
                 <div id="update-btn" class="icon-btn update-hidden" data-i18n-title="WAVECODE_UPDATE_CHECK">
                     <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon">
                     <span class="update-badge"></span>

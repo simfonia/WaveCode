@@ -9,6 +9,7 @@ Blockly.JavaScript.forBlock['audio_instrument'] = function(block) {
 };
 
 Blockly.JavaScript.forBlock['audio_component_osc'] = function(block) { return ""; };
+Blockly.JavaScript.forBlock['audio_component_sampler'] = function(block) { return ""; };
 Blockly.JavaScript.forBlock['audio_component_adsr'] = function(block) { return ""; };
 Blockly.JavaScript.forBlock['audio_component_filter'] = function(block) { return ""; };
 Blockly.JavaScript.forBlock['audio_component_volume'] = function(block) { return ""; };
