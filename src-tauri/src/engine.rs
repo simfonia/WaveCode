@@ -125,13 +125,10 @@ impl AudioEngine {
         
         std::thread::spawn(move || {
             let sr = *sr_arc.lock().unwrap();
-            if let Ok(mut base_path) = std::env::current_dir() {
-                if base_path.ends_with("src-tauri") { base_path.pop(); }
-                base_path.push("resources");
-                base_path.push("samples");
-                if base_path.exists() {
-                    let mut files = Vec::new();
-                    Self::collect_files(base_path, &mut files);
+            let base_path = crate::utils::get_resource_path(&engine_handle, "samples");
+            if base_path.exists() {
+                let mut files = Vec::new();
+                Self::collect_files(base_path, &mut files);
                     
                     // 使用 Rayon 並行載入
                     let loaded_samples: Vec<(String, SampleBuffer)> = files.into_par_iter().filter_map(|path| {
@@ -150,7 +147,6 @@ impl AudioEngine {
                     println!("WaveCode: 背景載入完成 ({} 個音色)", count);
                     let _ = engine_handle.emit("samples_ready", count);
                 }
-            }
         });
         
         Ok(engine)
@@ -388,5 +384,9 @@ impl AudioEngine {
             if let Ok(mut q) = v.queued_unit.lock() { *q = Some(Box::new(dc(0.0))); }
             if let Ok(mut id) = v.current_inst_id.lock() { id.clear(); }
         }
+    }
+
+    pub fn set_master_volume(&self, val: f32) {
+        self.master_vol.set_value(val);
     }
 }

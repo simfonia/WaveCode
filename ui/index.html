@@ -3,46 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaveCode</title>
+    <title>WaveCode IDE</title>
+    <!-- 引入模組化樣式 -->
+    <link rel="stylesheet" href="/src/updater.css">
     <style>
         /* 強制確保 Blockly SVG 可見 */
         .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 1000; }
-        .blocklySvg { background-color: #1e1e1e !important; width: 100%; height: 100%; display: block; }
-        .blocklyMainBackground { fill: #1e1e1e !important; }
+        .blocklySvg { background-color: #050505 !important; width: 100%; height: 100%; display: block; }
     </style>
 </head>
 <body>
     <div id="app">
+        <div id="resizer-overlay"></div>
         <header>
             <div class="header-left">
-                <img src="/icons/icon.png" class="app-logo" alt="Logo">
+                <img src="/icons/icon.png" class="app-logo nyx-logo-icon" alt="Logo">
                 <h1>WaveCode</h1>
             </div>
-            <div id="file-status" class="file-status-container">
-                <span class="file-dirty-dot"></span>
-                <span id="display-filename">未命名專案</span>
-            </div>
             <div class="toolbar">
-                <div id="new-btn" class="icon-btn" data-i18n-title="WAVECODE_NEW"><img src="/icons/new_24dp_FE2F89.png"></div>
-                <div id="examples-btn" class="icon-btn" data-i18n-title="WAVECODE_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png"></div>
-                <div id="open-btn" class="icon-btn" data-i18n-title="WAVECODE_OPEN"><img src="/icons/load_project_24dp_FE2F89.png"></div>
-                <div id="save-btn" class="icon-btn" data-i18n-title="WAVECODE_SAVE"><img src="/icons/save_24dp_FE2F89.png"></div>
+                <div id="examples-btn" class="icon-btn" data-i18n-title="WAVECODE_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="open-btn" class="icon-btn" data-i18n-title="WAVECODE_OPEN"><img src="/icons/load_project_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="save-btn" class="icon-btn" data-i18n-title="WAVECODE_SAVE"><img src="/icons/save_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div class="sep"></div>
-                <div id="run-btn" class="icon-btn" data-i18n-title="WAVECODE_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png"></div>
-                <div id="stop-btn" class="icon-btn" data-i18n-title="WAVECODE_STOP"><img src="/icons/no_sound_24dp_FE2F89.png"></div>
+                <div id="run-btn" class="icon-btn" data-i18n-title="WAVECODE_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png" class="nyx-icon-green"></div>
+                <div id="stop-btn" class="icon-btn" data-i18n-title="WAVECODE_STOP"><img src="/icons/no_sound_24dp_FE2F89.png" class="nyx-icon-red"></div>
                 <div class="sep"></div>
-                <div id="settings-btn" class="icon-btn" data-i18n-title="WAVECODE_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png"></div>
+                <div class="gain-control">
+                    <img src="/icons/start_audio_24dp_FE2F89.png" class="nyx-icon-dim" style="width:18px; opacity:0.5;">
+                    <input type="range" id="master-gain" min="0" max="2" step="0.01" value="1.0" title="總輸出增益">
+                    <span id="gain-value">1.0</span>
+                </div>
+                <div class="sep"></div>
+                <div id="settings-btn" class="icon-btn" data-i18n-title="WAVECODE_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div class="sep"></div>
                 <div id="update-btn" class="icon-btn update-hidden" data-i18n-title="WAVECODE_UPDATE_CHECK">
-                    <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon">
+                    <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon nyx-icon-green">
                     <span class="update-badge"></span>
                 </div>
             </div>
         </header>
+        <nav id="mdi-tab-bar">
+            <div id="tabs-container">
+                <!-- Tabs will be injected here -->
+                <div id="add-tab-btn" class="icon-btn" title="新增分頁">
+                    <img src="/icons/music_note_add_24dp_FE2F89.png" class="nyx-icon-purple">
+                </div>
+            </div>
+        </nav>
         <main>
-            <div id="blocklyDiv"></div>
-            <div id="stage">
-                <canvas id="waveformCanvas"></canvas>
+            <div id="workspace-container">
+                <!-- Multiple blockly divs will be created here -->
+            </div>
+            <div id="panel-resizer" title="拖動以調整寬度"></div>
+            <div id="stage-panel">
+                <!-- Oscilloscope Section -->
+                <div class="panel-section" id="waveform-section">
+                    <div class="section-header">
+                        <img src="/icons/published_with_changes_24dp_75FB4C.png" class="nyx-icon-green" style="width:16px;">
+                        <span data-i18n="WAVECODE_OSCILLOSCOPE">即時示波器</span>
+                    </div>
+                    <canvas id="waveformCanvas"></canvas>
+                </div>
+
+                <!-- Smart Tabs Section -->
+                <div class="panel-section" id="smart-tabs-section">
+                    <div class="smart-tabs-header">
+                        <div class="tab-btn active" data-tab="visual-help">
+                            <img src="/icons/wand_stars_24dp_FE2F89.png" class="nyx-icon-purple">
+                            <span data-i18n="WAVECODE_HELP_TITLE">輔助說明</span>
+                        </div>
+                        <div class="tab-btn" data-tab="live-code">
+                            <img src="/icons/code_24dp_FE2F89.png" class="nyx-icon-blue">
+                            <span data-i18n="WAVECODE_TAB_CODE">指令鏈</span>
+                        </div>
+                    </div>
+
+                    <div class="smart-tabs-body">
+                        <div id="visual-help" class="tab-pane active">
+                            <div id="help-placeholder" class="help-placeholder">
+                                <img src="/icons/auto_stories_24dp_FE2F89.png" class="nyx-icon-dim" style="width: 48px; height: 48px; opacity: 0.5;">
+                                <p data-i18n="WAVECODE_HELP_HINT">點擊積木以查看說明</p>
+                            </div>
+                            <div id="block-help-content" style="display:none;">
+                                <h3 id="help-title"></h3>
+                                <div id="help-preview"></div>
+                                <p id="help-desc"></p>
+                            </div>
+                        </div>
+                        <div id="live-code" class="tab-pane">
+                            <pre><code id="generated-code"></code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Section -->
+                <div class="panel-section" id="log-section">
+                    <div class="section-header">
+                        <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-neon" style="width:16px;">
+                        <span data-i18n="WAVECODE_STAGE_LOG">執行日誌</span>
+                        <div class="header-actions">
+                            <div id="clear-log-btn" class="mini-btn" title="清除日誌">
+                                <img src="/icons/clear_log_24dp_FE2F89.png" class="nyx-icon-neon" style="width:16px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div id="log-container"></div>
+                    </div>
+                </div>
+
+                <!-- Toggle Handle -->
+                <div id="stage-toggle" title="切換面板">
+                    <span class="arrow">▶</span>
+                </div>
             </div>
         </main>
     </div>

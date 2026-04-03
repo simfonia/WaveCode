@@ -16,6 +16,14 @@
     "WAVECODE_UPDATE_READY": "更新已就緒，點擊重啟套用",
     "WAVECODE_UPDATE_NONE": "目前已是最新版本",
     
+    // UI 標籤
+    "WAVECODE_OSCILLOSCOPE": "即時示波器",
+    "WAVECODE_HELP_TITLE": "輔助說明",
+    "WAVECODE_TAB_CODE": "指令鏈 (Live Code)",
+    "WAVECODE_STAGE_LOG": "執行日誌",
+    "WAVECODE_HELP_HINT": "點擊積木以查看說明",
+    "WAVECODE_LANG_SETTING": "語言設定",
+    
     // 通用訊息
     "MSG_WARNING": "警告",
     "MSG_UNSAVED_CHANGES": "目前的變更尚未儲存，確定要放棄嗎？",
@@ -38,7 +46,7 @@
     // 樂器定義 (C 型帽子模式)
     "AUDIO_DEFINE_INSTRUMENT": "定義樂器 %1",
     "AUDIO_INSTRUMENT_CHAIN": "%1",
-    "AUDIO_INSTRUMENT_TOOLTIP": "在此定義樂器的音訊鏈。您可以放入振盪器、ADSR、濾波器等組件。這是一個定義區塊，演奏指令會引用此處的設定。",
+    "AUDIO_INSTRUMENT_TOOLTIP": "在此定義樂器的音訊鏈。您可以放入振盪器、ADSR、濾過器等組件。這是一個定義區塊，演奏指令會引用此處的設定。",
 
     // 樂器組件
     "AUDIO_COMP_OSC": "振盪器 %1",

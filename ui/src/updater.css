@@ -1,0 +1,45 @@
+/* WaveCode Updater Styles (Aligned with #nyx) */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.bounce-gradient {
+    animation: bounce 0.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px #FE2F89);
+}
+
+/* 更新按鈕樣式調整 */
+#update-btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.update-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    background-color: #EA3323;
+    border-radius: 50%;
+    border: 2px solid var(--nyx-header-bg);
+    display: none;
+}
+
+.has-update .update-badge {
+    display: block;
+}
+
+.update-hidden {
+    display: none;
+}

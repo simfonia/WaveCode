@@ -1,0 +1,134 @@
+/* WaveCode MDI Styles (Aligned with #nyx) */
+
+#mdi-tab-bar {
+    height: 36px;
+    background-color: var(--nyx-bg-panel);
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    border-bottom: 1px solid var(--nyx-border);
+    gap: 5px;
+    user-select: none;
+    z-index: 2000;
+}
+
+#tabs-container {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 2px;
+    flex: 1;
+}
+
+/* 隱藏滾動條但保持功能 */
+#tabs-container::-webkit-scrollbar {
+    height: 2px;
+}
+#tabs-container::-webkit-scrollbar-thumb {
+    background: var(--nyx-border);
+}
+
+.mdi-tab {
+    min-width: 120px;
+    max-width: 200px;
+    height: 28px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--nyx-border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    color: var(--nyx-text-dim);
+    font-size: 12px;
+}
+
+.mdi-tab:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--nyx-text);
+}
+
+.mdi-tab.active {
+    background-color: var(--nyx-bg-dark);
+    border-top: 2px solid var(--nyx-purple);
+    color: var(--nyx-text);
+    height: 30px;
+}
+
+.mdi-tab .tab-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+.mdi-tab .tab-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mdi-tab .tab-close {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.mdi-tab:hover .tab-close {
+    opacity: 0.5;
+}
+
+.mdi-tab .tab-close:hover {
+    background-color: var(--nyx-red);
+    color: white;
+    opacity: 1 !important;
+}
+
+/* 檔案變動標記 (獨立圓點) */
+.mdi-tab .dirty-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: var(--nyx-purple-glow);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--nyx-purple-glow);
+    flex-shrink: 0; /* 確保不被壓縮 */
+    display: none;
+    margin-right: -4px; /* 稍微靠近標題 */
+}
+
+.mdi-tab.is-dirty .dirty-indicator {
+    display: block;
+}
+
+#add-tab-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    margin-bottom: 2px;
+}
+
+#add-tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#add-tab-btn img {
+    width: 18px;
+    height: 18px;
+}

@@ -16,6 +16,14 @@
     "WAVECODE_UPDATE_READY": "Update ready, click to restart",
     "WAVECODE_UPDATE_NONE": "Already up to date",
     
+    // UI Labels
+    "WAVECODE_OSCILLOSCOPE": "Oscilloscope",
+    "WAVECODE_HELP_TITLE": "Help",
+    "WAVECODE_TAB_CODE": "Live Code",
+    "WAVECODE_STAGE_LOG": "Execution Log",
+    "WAVECODE_HELP_HINT": "Click a block to see help",
+    "WAVECODE_LANG_SETTING": "Language Setting",
+
     "MSG_WARNING": "Warning",
     "MSG_UNSAVED_CHANGES": "Current changes are not saved. Discard anyway?",
     "MSG_NEW_PROJECT_CONFIRM": "Are you sure you want to create a new project? This will clear all current blocks.",

@@ -1,10 +1,16 @@
 mod engine;
+mod utils;
+
 use engine::{AudioEngine, Component};
 use tauri::{State, Manager};
 use std::fs;
 use std::sync::Mutex;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use std::process::Command;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 /// 應用程式全域狀態
 struct AppState {
@@ -43,7 +49,13 @@ fn restart_audio(state: State<'_, AudioEngine>) -> Result<(), String> {
     state.restart()
 }
 
-// --- 檔案操作指令 ---
+/// 設定總輸出音量
+#[tauri::command]
+fn set_master_volume(state: State<'_, AudioEngine>, val: f32) {
+    state.set_master_volume(val);
+}
+
+// --- 檔案與資源操作指令 ---
 
 #[tauri::command]
 async fn save_project(app_state: State<'_, AppState>, xml_content: String, path: String) -> Result<(), String> {
@@ -68,18 +80,90 @@ async fn load_project(app_state: State<'_, AppState>, path: String) -> Result<St
 }
 
 #[tauri::command]
-async fn get_last_dir(app_state: State<'_, AppState>) -> Result<Option<String>, String> {
-    let last_dir = app_state.last_dir.lock().unwrap();
-    Ok(last_dir.as_ref().map(|p| p.to_string_lossy().into_owned()))
+async fn list_examples(app_handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let examples_dir = utils::get_resource_path(&app_handle, "examples");
+    
+    let mut result = Vec::new();
+    if let Ok(entries) = fs::read_dir(examples_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            let path = entry.path();
+            if path.is_dir() {
+                let category = path.file_name().unwrap().to_str().unwrap().to_string();
+                let mut items = Vec::new();
+                if let Ok(sub_entries) = fs::read_dir(&path) {
+                    for sub_entry in sub_entries.filter_map(|e| e.ok()) {
+                        let sub_path = sub_entry.path();
+                        let ext = sub_path.extension().and_then(|s| s.to_str()).unwrap_or("");
+                        if ext == "wave" || ext == "xml" {
+                            items.push(serde_json::json!({
+                                "name": sub_path.file_stem().unwrap().to_str().unwrap(),
+                                "path": sub_path.to_str().unwrap()
+                            }));
+                        }
+                    }
+                }
+                if !items.is_empty() {
+                    result.push(serde_json::json!({ "category": category, "items": items }));
+                }
+            } else {
+                let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+                if ext == "wave" || ext == "xml" {
+                    result.push(serde_json::json!({
+                        "name": path.file_stem().unwrap().to_str().unwrap(),
+                        "path": path.to_str().unwrap()
+                    }));
+                }
+            }
+        }
+    }
+    Ok(serde_json::json!(result))
 }
 
 #[tauri::command]
-async fn get_examples_path() -> Result<String, String> {
-    let mut path = std::env::current_dir().map_err(|e| e.to_string())?;
-    if path.ends_with("src-tauri") { path.pop(); }
-    path.push("resources");
-    path.push("examples");
-    Ok(path.to_string_lossy().into_owned())
+async fn get_doc_content(app_handle: tauri::AppHandle, filename: String) -> Result<String, String> {
+    let docs_dir = utils::get_resource_path(&app_handle, "docs");
+    let full_path = docs_dir.join(&filename);
+    
+    if full_path.exists() {
+        return fs::read_to_string(full_path).map_err(|e| e.to_string());
+    }
+    
+    // 嘗試不同語系後綴
+    let lang_path = docs_dir.join(filename.replace(".html", "_zh-hant.html"));
+    if lang_path.exists() {
+        return fs::read_to_string(lang_path).map_err(|e| e.to_string());
+    }
+
+    Err(format!("Help file not found: {}", filename))
+}
+
+#[tauri::command]
+async fn open_samples_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
+    let samples_dir = utils::get_resource_path(&app_handle, "samples");
+    if samples_dir.exists() {
+        #[cfg(windows)]
+        {
+            Command::new("explorer")
+                .arg(samples_dir.to_str().unwrap())
+                .creation_flags(0x08000000)
+                .spawn()
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn open_url(_app_handle: tauri::AppHandle, url: String) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        Command::new("cmd")
+            .args(&["/c", "start", "", &url])
+            .creation_flags(0x08000000)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -91,13 +175,13 @@ pub fn run() {
     .setup(|app| {
         let engine = AudioEngine::new(app.handle().clone()).expect("音訊引擎啟動失敗");
         app.manage(engine);
-
         Ok(())
     })
     .manage(AppState { last_dir: Mutex::new(None) })
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
-        save_project, load_project, get_examples_path, get_last_dir
+        save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
+        set_master_volume
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
