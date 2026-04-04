@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>進階合成技術：加法合成原理 - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #016c8d; border-bottom: 3px solid #016c8d; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #74b9ff; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .math-box { text-align: center; font-size: 1.3em; background: #141417; padding: 20px; border-radius: 12px; margin: 25px 0; font-family: 'Fira Code', monospace; color: #74b9ff; border: 1px solid #3d3d45; }
+        .concept-card { padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #016c8d; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        strong { color: #016c8d; }
+    </style>
+</head>
+<body>
+    <h1>進階音色設計：加法合成原理</h1>
+    <p>除了使用基礎波形，WaveCode 的 <strong>fundsp 引擎</strong> 允許我們透過「傅立葉級數 (Fourier Series)」的概念，利用多個正弦波疊加來打造極其複雜的音色。這稱為 <strong>加法合成 (Additive Synthesis)</strong>。</p>
+
+    <div class="concept-card">
+        <h2>1. 諧波與泛音列 (Harmonics)</h2>
+        <p>自然界中的聲音（如鋼琴或小提琴）並非純粹的頻率。它們是由一個「基頻」以及許多「倍頻」組合而成的。</p>
+        <ul>
+            <li><strong>1 倍頻 (Fundamental)</strong>：決定您聽到的音高。</li>
+            <li><strong>2, 3, 4... 倍頻 (Overtones)</strong>：決定聲音的「厚度」與「音質」。</li>
+        </ul>
+        <p>WaveCode 預計在未來的更新中加入「諧波合成器」積木，讓您能透過調整各階倍頻的振幅來手工繪製音色。</p>
+    </div>
+
+    <div class="concept-card">
+        <h2>2. 非整數倍率與金屬質感</h2>
+        <p>當疊加的頻率不是基頻的整數倍時，會產生「不諧和」的聽感：</p>
+        <ul>
+            <li><strong>整數倍率</strong>：產生和諧、溫暖的管風琴或銅管音色。</li>
+            <li><strong>非整數倍率 (如 1.414 或 2.718)</strong>：產生具有金屬感、鐘聲或工業噪音般的質感。</li>
+        </ul>
+    </div>
+
+    <h2>物理與數學的交界</h2>
+    <p>在音訊程式碼中，我們實際上是在計算空氣壓力的隨時間變化函數：</p>
+    <div class="math-box">
+        y(t) = A₁·sin(2πf₁t) + A₂·sin(2πf₂t) + ...
+    </div>
+    <p>在 WaveCode 的 Rust 引擎中，這類運算被高度優化，即使疊加數十個振盪器，依然能保持極低的延遲與純淨的音質。</p>
+
+    <div style="background: rgba(1, 108, 141, 0.1); padding: 20px; border-radius: 12px; margin-top: 30px; border-left: 6px solid #016c8d; color: #81ecec;">
+        <strong>性能提示：</strong> Rust 引擎能輕鬆處理大量的並行運算。在 WaveCode 中，每個樂器定義都獨立運行在自己的數位訊號鏈中，這確保了複雜音色不會干擾到整體的系統穩定度。
+    </div>
+</body>
+</html>

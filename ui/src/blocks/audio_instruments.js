@@ -20,6 +20,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}",
     "hat": "cap",
     "tooltip": "%{BKY_AUDIO_INSTRUMENT_TOOLTIP}",
+    "helpUrl": "sound_sources",
     "extensions": ["audio_instrument_dropdown_sync"]
   },
 
@@ -82,6 +83,7 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
+    "helpUrl": "adsr",
     "extensions": ["audio_adsr_visual_sync"]
   },
   {
@@ -98,7 +100,8 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_EFFECTS_HUE}"
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "helpUrl": "effects"
   },
   {
     "type": "audio_component_volume",

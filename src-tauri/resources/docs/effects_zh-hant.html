@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>音訊效果器 - WaveCode 說明文件</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #a29bfe; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .block-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #8E44AD; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #fdcb6e; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .important { background-color: rgba(142, 68, 173, 0.1); border-left: 4px solid #8E44AD; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #d63031; }
+        .tip { background-color: rgba(116, 185, 255, 0.1); border-left: 4px solid #3498db; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #81ecec; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 10px; }
+        .range { color: #a0a0a0; font-size: 0.9em; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>音訊效果器 (Audio Effects)</h1>
+    <p>效果器能讓聲音產生質變。在 WaveCode 中，您可以將效果器積木放在「定義樂器」內，直接整合進 DSP 訊號鏈中。</p>
+
+    <div class="important">
+        <strong>串接順序決定音色：</strong> 效果器是「由上而下」串接的。例如：先放「濾波器」再放「音量」，濾波後的訊號會被調整音量；若順序顛倒，則是對調整過音量的訊號進行濾波。
+    </div>
+
+    <div class="block-box">
+        <h2>1. 濾波器 (Filter)</h2>
+        <p>修飾聲音的明暗度。WaveCode 提供高效能的低通與高通濾波。</p>
+        <ul>
+            <li><strong>類型</strong>：
+                <ul>
+                    <li><strong>低通 (Low Pass)</strong>：保留低音，濾除高音。讓聲音變悶、變暖。</li>
+                    <li><strong>高通 (High Pass)</strong>：保留高音，濾除低音。讓聲音變尖細、變薄。</li>
+                </ul>
+            </li>
+            <li><strong>頻率 (Frequency)</strong> <span class="range">[20 - 20000 Hz]</span>：切斷點。</li>
+            <li><strong>Q 值 (Resonance)</strong> <span class="range">[0.1 - 10.0]</span>：共振峰。數值越大，在截止點產生的強調越明顯。</li>
+        </ul>
+    </div>
+
+    <div class="block-box">
+        <h2>2. 音量與總增益 (Volume)</h2>
+        <p>控制訊號的強弱。建議在訊號鏈的最末端放置音量積木，以防止因振盪器與濾波器疊加產生的破音。</p>
+        <ul>
+            <li><strong>百分比 (%)</strong> <span class="range">[0% - 500%]</span>：預設為 80%。若超過 100% 可能會導致 Clipping。</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <strong>視覺監測：</strong> 觀察示波器畫面。如果波形出現紅色的「CLIP」警告，代表您的音量或濾波器參數設定過高，請降低音量以獲得更乾淨的音質。
+    </div>
+
+    <div class="block-box">
+        <h2>3. 延遲與混響 (即將實作)</h2>
+        <p>WaveCode 正在持續移植更多效果組件，包含：</p>
+        <ul>
+            <li><strong>Delay</strong>：重複的回聲。</li>
+            <li><strong>Reverb</strong>：大空間的殘響感。</li>
+            <li><strong>Waveshaper</strong>：數位失真效果。</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <strong>小秘訣：</strong> 在 WaveCode 中，您不需在 draw 迴圈中頻繁更新參數，除非您想實作動態的動態掃描。定義好樂器鏈後，引擎會全權接手低延遲的運算。
+    </div>
+</body>
+</html>

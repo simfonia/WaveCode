@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>建立音源 - WaveCode 說明文件</title>
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #fe2f89; border-bottom: 3px solid #fe2f89; padding-bottom: 10px; font-weight: 800; letter-spacing: -0.5px; }
+        h2 { color: #a29bfe; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        h3 { color: #74b9ff; margin-top: 25px; }
+        .block-box { margin-bottom: 25px; padding: 20px; background: #141417; border-radius: 12px; border-left: 6px solid #fe2f89; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #fab1a0; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.95em; }
+        .important { background-color: rgba(234, 51, 35, 0.1); border-left: 4px solid #ea3323; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #ff7675; }
+        .tip { background-color: rgba(116, 185, 255, 0.1); border-left: 4px solid #74b9ff; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #81ecec; }
+        .custom-section { background-color: #1e1e24; padding: 25px; border-radius: 15px; border: 1px solid #3d3d45; margin-top: 50px; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 10px; }
+        strong { color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>建立音源 (Sound Sources)</h1>
+    <p>WaveCode 使用高效能的 <strong>Rust (fundsp) 音訊引擎</strong>。在開始演奏前，您必須先「定義樂器」來建立音訊訊號鏈。每個樂器定義都具備 8 聲部複音能力，支援複雜的和弦演奏。</p>
+
+    <div class="block-box">
+        <h2>1. 定義樂器 (Instrument Definition)</h2>
+        <p>這是一個<strong>帽子積木 (Cap Block)</strong>，是所有聲音的起點。您需要在此設定樂器的「ID 名稱」（例如：<code>my_piano</code>）。</p>
+        <p>在 WaveCode 中，您不需手動初始化引擎，只要放置此積木並正確連接組件，引擎便會自動構建對應的 DSP 電路。</p>
+        <div class="important">
+            <strong>核心邏輯：</strong> 演奏指令（如「演奏音符」）會透過此 ID 來尋找對應的音色設定。
+        </div>
+    </div>
+
+    <div class="block-box">
+        <h2>2. 振盪器 (Oscillator)</h2>
+        <p>最基礎的減法合成音源，負責產生原始波形。支援：</p>
+        <ul>
+            <li><strong>正弦波 (Sine)</strong>：純淨的單一頻率，適合長笛或基礎低音。</li>
+            <li><strong>鋸齒波 (Saw)</strong>：明亮且富含諧波，適合弦樂或經典合成器 Lead。</li>
+            <li><strong>方波 (Square)</strong>：中空且厚實，適合管樂或 8-bit 電玩音效。</li>
+            <li><strong>三角波 (Triangle)</strong>：介於正弦與方波之間，溫和而不刺耳。</li>
+        </ul>
+    </div>
+
+    <div class="block-box">
+        <h2>3. ADSR 包絡線 (Envelope)</h2>
+        <p>控制聲音隨時間變化的「能量形狀」。WaveCode 的 ADSR 具備<strong>即時視覺化動畫</strong>，演奏時光點會同步跳動。</p>
+        <ul>
+            <li><strong>A (Attack) 起音</strong>：從靜音達到最大音量的時間（秒）。</li>
+            <li><strong>D (Decay) 衰減</strong>：達到峰值後降至「維持音量」所需的時間。</li>
+            <li><strong>S (Sustain) 維持</strong>：按住琴鍵（Hold）期間保持的音量比例 (0.0 ~ 1.0)。</li>
+            <li><strong>R (Release) 釋音</strong>：放開琴鍵後，聲音完全消失所需的時間。</li>
+        </ul>
+        <div class="tip">
+            <strong>複音隔離：</strong> WaveCode 在每個聲部的 ADSR 末端設有「物理閘門」，確保在 Release 結束後該聲部絕對靜音，防止背景雜訊滲漏。
+        </div>
+    </div>
+
+    <div class="block-box">
+        <h2>4. 濾波器 (Filter)</h2>
+        <p>用於修剪聲音的頻譜特徵，創造動態感。</p>
+        <ul>
+            <li><strong>低通 (Low Pass)</strong>：保留低頻、削弱高頻，讓聲音變悶。</li>
+            <li><strong>高通 (High Pass)</strong>：保留高頻、削弱低頻，讓聲音變尖細。</li>
+            <li><strong>Q 值 (Resonance)</strong>：在截止頻率處產生的共振峰，數值越大，過濾效果越明顯且具備「電子感」。</li>
+        </ul>
+    </div>
+
+    <div class="block-box">
+        <h2>5. 取樣器 (Sampler)</h2>
+        <p>載入真實樂器的錄音檔。WaveCode 內建了專業的 Roland TR-909 鼓組樣本與多層次鋼琴/小提琴樣本。</p>
+        <div class="important">
+            <strong>資源位置：</strong> 內建樣本存放於 <code>src-tauri/resources/samples/</code>。若要使用自訂樣本，請將檔案放入該目錄並重新啟動程式。
+        </div>
+    </div>
+
+    <div class="custom-section">
+        <h2>視覺化診斷：示波器與 FFT</h2>
+        <p>右側面板的<strong>即時分析儀</strong>提供兩種觀察模式：</p>
+        <ul>
+            <li><strong>示波器 (Waveform)</strong>：觀察波形在時間上的變化。當聲音發生「破音 (Clipping)」時，波形會變紅並發出警告。</li>
+            <li><strong>頻譜圖 (FFT)</strong>：觀察聲音在頻率空間的分佈，協助您理解濾波器與諧波的運作。</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <strong>性能提示：</strong> WaveCode 限制最多同時播放 8 個聲部。若超過限制，引擎會自動回收最早啟動的聲部，以確保音訊流不產生延遲與爆音。
+    </div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>ADSR 包絡線指南 - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #FF5722; border-bottom: 3px solid #FF5722; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #FF5722; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .example { background: rgba(255, 193, 7, 0.1); padding: 15px; border-left: 4px solid #ffc107; margin: 15px 0; font-family: 'Fira Code', monospace; color: #ffeaa7; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #141417; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d45; }
+        th { background-color: #2d3436; color: #fff; }
+        .param { font-weight: bold; color: #E67E22; }
+    </style>
+</head>
+<body>
+    <h1>ADSR 包絡線 (Envelope)</h1>
+    <p>ADSR 是合成器中控制聲音「能量隨時間演變」的核心工具。它決定了一個音符從按下的瞬間到完全靜音之間的音量曲線。</p>
+
+    <div class="type-box">
+        <h2>1. 參數詳細解析</h2>
+        <table>
+            <thead>
+                <tr><th>參數</th><th>中文名稱</th><th>功能說明</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><span class="param">A</span> (Attack)</td><td>起音時間</td><td>從靜音達到最大音量的秒數。數值越小，聲音越清脆（如鋼琴）；數值越大，聲音越柔和（如小提琴）。</td></tr>
+                <tr><td><span class="param">D</span> (Decay)</td><td>衰減時間</td><td>達到峰值音量後，降至「維持音量」所需的秒數。</td></tr>
+                <tr><td><span class="param">S</span> (Sustain)</td><td>維持音量</td><td>按住按鍵（Hold）期間保持的音量比例 (0.0 - 1.0)。若設為 0，則聲音會迅速消失（如打擊樂）。</td></tr>
+                <tr><td><span class="param">R</span> (Release)</td><td>釋放時間</td><td>放開按鍵後，聲音完全消失所需的秒數。這決定了聲音的「餘韻」。</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>2. 視覺化回饋</h2>
+        <p>在 WaveCode 中，ADSR 積木具備<strong>動態光點動畫</strong>：</p>
+        <ul>
+            <li><strong>靜止狀態</strong>：顯示您設定的參數曲線。</li>
+            <li><strong>演奏狀態</strong>：黃色光點會沿著曲線移動，顯示當前聲音正處於哪一個階段。</li>
+            <li><strong>長按模式</strong>：若您使用 PC 鍵盤長按音符，光點會停留在 Sustain 階段，直到您放開按鍵才進入 Release。</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. 經典音色配方建議 (秒)</h2>
+        <ul>
+            <li><strong>水晶鋼琴 (E-Piano)</strong>：起音極快，長餘韻。
+                <div class="example">A: 0.01, D: 0.2, S: 0.3, R: 1.2</div>
+            </li>
+            <li><strong>管絃樂墊 (Synth Pad)</strong>：慢起音，高維持音量。
+                <div class="example">A: 0.8, D: 1.5, S: 0.7, R: 2.0</div>
+            </li>
+            <li><strong>電子鼓 (Drum)</strong>：極短衰減，不維持。
+                <div class="example">A: 0.005, D: 0.1, S: 0.0, R: 0.05</div>
+            </li>
+        </ul>
+    </div>
+
+    <div style="background: rgba(255, 87, 34, 0.1); padding: 15px; border-radius: 8px; border-left: 5px solid #FF5722; color: #fab1a0;">
+        <strong>專家提示：</strong> 如果發現多個音符重疊時有雜訊，可以嘗試微幅增加 Attack 時間（如 0.01s），這能有效消除波形起始點的物理切斷聲 (Click Noise)。
+    </div>
+</body>
+</html>

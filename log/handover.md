@@ -31,3 +31,24 @@
 2. 待辦重點：
    * 消除正弦波快速演奏時的細微雜訊。
    * 恢復 16 聲部負載測試。
+
+
+==================================================
+## 2026-04-03 
+
+### 1. 實作 FFT 頻譜分析儀與示波器優化
+    * 將示波器畫面拆分為波形與 FFT 兩欄，修正置中問題並加入高解析度螢幕支援。
+    * 後端加入 FFT 計算 (`engine.rs`, `rustfft`)，更新 `WaveformPayload` 結構。
+    * 前端 (`visualizer.js`) 繪製 FFT 長條圖，限制顯示範圍至約 10kHz 並採用多彩漸層。
+### 2. ADSR 動畫與鍵盤輸入整合
+    * 為 `\` 鍵新增 MIDI note 對應。
+    * 實作 `EnvelopeManager` 的 `startHold`/`endHold` 模式，使 PC 鍵盤長按音符時 ADSR 光點無限期停留在 Sustain
+階段，直到放開按鍵才進入 Release。
+    * `KeyboardController` 已更新以同步觸發 `EnvelopeManager` 的 `triggerStart`/`triggerEnd`。
+### 3. 對齊 HarmoNyx (#nyx) 輔助說明系統
+    * 成功複製 HarmoNyx 的 HTML 說明文件至 WaveCode 的 `resources/docs/`。
+    * 實作 `UIUtils.updateVisualHelp`，支援側邊面板顯示內部 HTML 說明。
+    * 更新 `MDIManager` 以正確監聽積木選取事件，觸發說明顯示。
+    * 在 `main.js` 註冊右鍵選單的「說明」選項。
+    * 為「定義樂器」、「ADSR」、「濾鏡」積木添加 `helpUrl` 屬性。
+

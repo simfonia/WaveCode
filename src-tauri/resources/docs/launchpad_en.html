@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MIDI and Launchpad Control Guide - WaveCode</title>
+    <style>
+        :root { --theme-color: #5B67E7; }
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--theme-color); border-left: 10px solid var(--theme-color); padding-left: 15px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 10px; margin-top: 40px; }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .block-ref { font-weight: bold; color: var(--theme-color); }
+        .note { background: rgba(255, 193, 7, 0.1); border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0; color: #ffeaa7; border-radius: 4px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #141417; }
+        th, td { border: 1px solid #3d3d45; padding: 12px; text-align: left; }
+        th { background: #2d3436; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>MIDI and Launchpad Control</h1>
+    <p>The <strong>WaveCode Engine</strong> features a robust <strong>Rust-based MIDI implementation</strong>. It supports standard MIDI communication and is optimized for the Novation Launchpad series, enabling real-time interaction between hardware and software.</p>
+
+    <h2>1. Setup</h2>
+    <p class="block-ref">Init MIDI</p>
+    <ul>
+        <li><strong>Input</strong>: Set the index of the MIDI input device (Launchpad is usually 0).</li>
+        <li><strong>Output</strong>: Set the index of the MIDI output device. This must be set correctly to control Launchpad LEDs.</li>
+    </ul>
+    <div class="note">Tip: Check the device list printed in the <strong>Rust Terminal</strong> after running to find the correct indices for your hardware.</div>
+
+    <h2>2. Handling Input</h2>
+    <p class="block-ref">When MIDI Note ON / OFF received</p>
+    <p>Triggered when a key on the hardware is pressed or released. These events are processed on a dedicated high-priority thread in the <strong>WaveCode Engine</strong> to ensure minimal latency.</p>
+
+    <h2>3. Controlling LEDs (Output)</h2>
+    <p>Send MIDI Note messages to the Launchpad to control its LED colors. WaveCode uses <strong>Rust's asynchronous I/O</strong> to manage these messages efficiently.</p>
+
+    <h2>Common Colors for Launchpad S</h2>
+    <table>
+        <thead>
+            <tr><th>Color</th><th>Full Brightness</th><th>Medium Brightness</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Red</td><td>15</td><td>13</td></tr>
+            <tr><td>Amber</td><td>63</td><td>29</td></tr>
+            <tr><td>Green</td><td>60</td><td>28</td></tr>
+            <tr><td>Yellow</td><td>62</td><td>-</td></tr>
+            <tr><td>Off</td><td>0</td><td>-</td></tr>
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Expert Tip:</strong> You can combine Launchpad input with <strong>fundsp effect parameters</strong> to create a physical synth console.
+    </div>
+</body>
+</html>

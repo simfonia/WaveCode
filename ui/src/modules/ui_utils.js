@@ -111,15 +111,7 @@ export const UIUtils = {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
                 const tabId = btn.getAttribute('data-tab');
-                const header = btn.closest('.smart-tabs-header');
-                const body = btn.closest('#smart-tabs-section').querySelector('.smart-tabs-body');
-                
-                header.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                body.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                const targetPane = body.querySelector(`#${tabId}`);
-                if (targetPane) targetPane.classList.add('active');
+                this.switchSmartTab(tabId);
             };
         });
 
@@ -137,6 +129,24 @@ export const UIUtils = {
         if (clearLogBtn) clearLogBtn.onclick = clearLog;
 
         return { appendLog, clearLog };
+    },
+
+    /**
+     * 程式化切換側邊面板分頁
+     */
+    switchSmartTab: (tabId) => {
+        const section = document.getElementById('smart-tabs-section');
+        if (!section) return;
+
+        const btn = section.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        const pane = section.querySelector(`#${tabId}`);
+        if (!btn || !pane) return;
+
+        section.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        section.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        pane.classList.add('active');
     },
 
     /**
@@ -239,5 +249,94 @@ export const UIUtils = {
                 block.setEnabled(!isOrphan);
             }
         });
+    },
+
+    /**
+     * 更新側邊面板的視覺輔助說明 (#nyx 對齊版)
+     */
+    updateVisualHelp: async (block, lang) => {
+        const placeholder = document.getElementById('help-placeholder');
+        const content = document.getElementById('block-help-content');
+        const titleEl = document.getElementById('help-title');
+        const descEl = document.getElementById('help-desc');
+        const previewEl = document.getElementById('help-preview');
+        const invoke = window.WaveCode?.getInvoke ? window.WaveCode.getInvoke() : null;
+
+        if (!placeholder || !content) return;
+
+        if (!block) {
+            placeholder.style.display = 'flex';
+            content.style.display = 'none';
+            window._currentHelpBlockId = null;
+            return;
+        }
+
+        // 效能優化：避免重複更新同一積木
+        if (window._currentHelpBlockId === block.id) return;
+        window._currentHelpBlockId = block.id;
+
+        placeholder.style.display = 'none';
+        content.style.display = 'block';
+
+        // 1. 標題與 ID
+        titleEl.style.display = 'flex';
+        titleEl.style.alignItems = 'center';
+        titleEl.style.justifyContent = 'space-between';
+        titleEl.style.fontFamily = "'Fira Code', monospace";
+        titleEl.style.fontSize = '12px';
+        titleEl.innerHTML = `<span style="color: var(--nyx-purple-glow); opacity: 0.8;">ID: &lt;${block.type}&gt;</span>`;
+
+        // 2. 處理 Help URL
+        const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+        previewEl.innerHTML = '';
+        previewEl.style.display = 'none';
+
+        if (url && url !== '' && invoke) {
+            const isExternal = url.startsWith('http');
+
+            // 外部開啟按鈕
+            const linkIcon = document.createElement('img');
+            linkIcon.src = '/icons/assistant_navigation_24dp_FE2F89.png';
+            linkIcon.className = 'nyx-icon-neon';
+            linkIcon.style.width = '16px';
+            linkIcon.style.cursor = 'pointer';
+            linkIcon.title = '開啟外部說明';
+            linkIcon.onclick = () => {
+                const targetUrl = isExternal ? url : `${url}_${lang}.html`;
+                invoke('open_url', { url: targetUrl });
+            };
+            titleEl.appendChild(linkIcon);
+
+            // 內嵌說明 (僅限內部文件)
+            if (!isExternal) {
+                try {
+                    const docFilename = `${url}_${lang}.html`;
+                    console.log(`[HelpSystem] Attempting to load help document: ${docFilename}`);
+                    const docContent = await invoke('get_doc_content', { filename: docFilename });
+
+                    const iframe = document.createElement('iframe');
+                    iframe.style.width = '100%';
+                    iframe.style.height = '280px';
+                    iframe.style.border = 'none';
+                    iframe.style.backgroundColor = '#fff';
+                    iframe.style.borderRadius = '4px';
+                    iframe.srcdoc = docContent;
+
+                    previewEl.appendChild(iframe);
+                    previewEl.style.display = 'block';
+                    previewEl.style.marginBottom = '15px';
+                } catch (err) {
+                    console.warn('Failed to load doc:', err);
+                }
+            }
+        }
+
+        // 3. Tooltip 摘要
+        let tooltip = block.getTooltip();
+        if (typeof tooltip === 'function') tooltip = tooltip();
+        descEl.style.fontSize = '13px';
+        descEl.style.lineHeight = '1.6';
+        descEl.style.color = 'var(--nyx-text)';
+        descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '<i>(此積木暫無詳細說明)</i>';
     }
 };

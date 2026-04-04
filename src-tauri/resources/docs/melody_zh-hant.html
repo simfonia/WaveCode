@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>旋律清單編寫指南</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; }
+        h1 { color: #E67E22; }
+        h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .type-box { margin-bottom: 20px; padding: 15px; background: #FFF8F2; border-radius: 8px; border-left: 5px solid #E67E22; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; color: #d35400; font-weight: bold; }
+        .example { background: #fffbe6; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; font-family: monospace; white-space: pre; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>旋律清單編寫指南</h1>
+    <p>「演奏旋律清單」積木使用一種簡化的文字格式。它支援單一音符、已定義的和弦名稱，以及強大的連結線功能。</p>
+
+    <div class="type-box">
+        <h2>1. 音名與八度表示 (Note Names)</h2>
+        <p>音符由<strong>音名 (A-G)</strong>、<strong>升降號 (#/b)</strong> 與 <strong>八度數字 (0-9)</strong> 組成：</p>
+        <ul>
+            <li><strong>基本格式</strong>：如 <code>C4</code> (中央 C)、<code>G#3</code> (升 G)、<code>Bb5</code> (降 B)。</li>
+            <li><strong>不分大小寫</strong>：<code>c4</code> 與 <code>C4</code> 相同。</li>
+            <li><strong>八度範圍</strong>：標準 MIDI 範圍為 0 到 9，預設通常為 4。</li>
+            <li><strong>省略八度</strong>：若只寫 <code>C</code>，則會套用當前預設的八度。</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>2. 時值代碼對照表 (Duration Codes)</h2>
+        <table>
+            <tr>
+                <th>代碼</th>
+                <th>名稱</th>
+                <th>拍數 (4/4)</th>
+            </tr>
+            <tr><td><code>W</code></td><td>全音符</td><td>4 拍</td></tr>
+            <tr><td><code>H</code></td><td>二分音符</td><td>2 拍</td></tr>
+            <tr><td><code>Q</code></td><td>四分音符</td><td>1 拍</td></tr>
+            <tr><td><code>E</code></td><td>八分音符</td><td>0.5 拍</td></tr>
+            <tr><td><code>S</code></td><td>十六分音符</td><td>0.25 拍</td></tr>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>2. 進階符號</h2>
+        <ul>
+            <li><strong>休止符 <code>R</code></strong>：如 <code>RQ</code> (休止一拍)。</li>
+            <li><strong>附點 <code>.</code></strong>：時值增加 50%。如 <code>Q.</code> (1.5 拍)。</li>
+            <li><strong>三連音 <code>_T</code></strong>：時值縮短為 2/3。如 <code>Q_T</code>。</li>
+            <li><strong>連結線 <code>+</code></strong>：累加多個時值。如 <code>H.+E</code> (三拍半)。</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. 排隊播放機制</h2>
+        <p>在桌面版中，旋律積木具備<strong>自動排隊</strong>功能：</p>
+        <ul>
+            <li>如果你連續放置多個「演奏旋律」積木，它們會一段接一段順序播放，而不會疊在一起。</li>
+            <li>你可以利用這個特性，將長篇樂曲拆解成多個積木來管理。</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>4. 範例</h2>
+        <div class="example">
+// 混合單音與和弦
+C4Q D4E E4E CM7H
+
+// 複雜節奏 (三拍半)
+C4H.+E  G4Q</div>
+    </div>
+</body>
+</html>

@@ -70,13 +70,34 @@ const toolbarManager = new ToolbarManager(null, stageUI);
 const mdiManager = new MDIManager(toolbarManager, blocklyOptions);
 toolbarManager.mdiManager = mdiManager;
 
-// 曝露全域函式供分頁管理器使用
-window.updateVisualHelp = updateVisualHelp;
+// 將 UIUtils 的功能暴露到全域供 MDIManager 使用
+window.updateVisualHelp = UIUtils.updateVisualHelp;
 
 toolbarManager.onWorkspaceChanged = () => {
     debouncedUpdateLiveCode();
     debouncedOrphanUpdate();
 };
+
+// --- 【關鍵修復】註冊右鍵說明選單 (#nyx 對齊) ---
+setTimeout(() => {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    ['blockHelp', 'help', 'block_help'].forEach(id => { try { registry.unregister(id); } catch (e) {} });
+    registry.register({
+        displayText: () => '說明',
+        preconditionFn: (scope) => (scope.block && scope.block.helpUrl) ? 'enabled' : 'hidden',
+        callback: (scope) => {
+            const block = scope.block;
+            const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+            const lang = toolbarManager.currentLang;
+            const targetUrl = url.startsWith('http') ? url : `${url}_${lang}.html`;
+            const invoke = WaveCodeAPI.getInvoke();
+            if (invoke) invoke('open_url', { url: targetUrl });
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+        id: 'wavecode_unique_help',
+        weight: 100,
+    });
+}, 1000);
 
 // --- 4. 輔助功能監聽 ---
 let liveCodeTimeout;
@@ -98,41 +119,6 @@ function debouncedOrphanUpdate() {
         const workspace = toolbarManager.workspace;
         if (workspace) UIUtils.updateOrphanBlocks(workspace);
     }, 100);
-}
-
-async function updateVisualHelp(block, lang) {
-    const placeholder = document.getElementById('help-placeholder');
-    const content = document.getElementById('block-help-content');
-    const titleEl = document.getElementById('help-title');
-    const descEl = document.getElementById('help-desc');
-    const previewEl = document.getElementById('help-preview');
-    if (!placeholder || !content) return;
-
-    if (!block) {
-        placeholder.style.display = 'flex';
-        content.style.display = 'none';
-        return;
-    }
-
-    placeholder.style.display = 'none';
-    content.style.display = 'block';
-
-    titleEl.innerHTML = `ID: &lt;${block.type}&gt;`;
-    
-    // WaveCode 目前主要依賴 Tooltip 作為說明
-    let tooltip = block.getTooltip();
-    if (typeof tooltip === 'function') tooltip = tooltip();
-    descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '<i>(此積木暫無詳細說明)</i>';
-
-    // 如果積木有視覺化 (FieldADSR)，可以在這裡預覽
-    previewEl.innerHTML = '';
-    const visualField = block.getField('VISUAL');
-    if (visualField) {
-        // 這裡可以考慮複製一個 SVG 元素過來，但目前先保持空白或顯示圖示
-        previewEl.innerHTML = '<img src="/icons/waves_24dp_75FB4C.png" class="nyx-icon-green" style="width:48px; opacity:0.5;">';
-    } else {
-        previewEl.innerHTML = '<img src="/icons/auto_stories_24dp_FE2F89.png" class="nyx-icon-purple" style="width:48px; opacity:0.5;">';
-    }
 }
 
 // --- 5. 系統啟動 ---

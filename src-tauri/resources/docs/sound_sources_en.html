@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sound Source Blocks Guide - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #016c8d; border-bottom: 3px solid #016c8d; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .block-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #016c8d; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .important { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #ffeaa7; }
+        .tip { background-color: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #74b9ff; }
+        .custom-section { background-color: #141417; padding: 20px; border-radius: 10px; border: 1px dashed #3d3d45; margin-top: 40px; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Sound Source Creation</h1>
+    <p>This is the laboratory of sound. In <strong>WaveCode</strong>, all sounds are defined as <strong>fundsp nodes</strong> within the <strong>Rust-based audio engine</strong>. Each instrument supports <strong>8-voice polyphony</strong>, ensuring smooth performance for complex harmonies.</p>
+
+    <div class="block-box">
+        <h2>1. Init fundsp Audio Engine</h2>
+        <p><strong>The master switch for all audio features.</strong> Place this block at the very top of your <code>setup</code> block. It initializes the <strong>WaveCode Engine</strong> and prepares output channels.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>2. Define Instrument (Container)</h2>
+        <p>A <strong>Hat block</strong> used to encapsulate all settings for one instrument. This creates a dedicated signal chain in the <strong>fundsp graph</strong>.</p>
+        <div class="important">
+            <strong>Note:</strong> A container can only have one primary sound source (Waveform, Sampler, or Synth). Lower blocks will overwrite previous ones.
+        </div>
+    </div>
+
+    <div class="block-box">
+        <h2>3. Set Waveform</h2>
+        <p>Basic oscillators. Supports <code>Sine</code>, <code>Square</code>, <code>Triangle</code>, and <code>Sawtooth</code> waveforms.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>4. Set ADSR</h2>
+        <p>Controls the "energy shape" of each of the 8 polyphonic voices. Must be placed inside an Instrument container.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>5. Melodic Sampler</h2>
+        <p>Uses real instrument recordings. The <strong>WaveCode Engine</strong> automatically selects the nearest sample and performs high-quality pitch shifting in real-time.</p>
+    </div>
+
+    <div class="custom-section">
+        <h2>Using Custom Samples</h2>
+        <p>WaveCode supports loading your own audio files (<code>.wav</code>, <code>.mp3</code>, <code>.aiff</code>).</p>
+
+        <div class="important">
+            <strong>Quick Open:</strong> Click <strong>Settings > Open Sound Samples Folder</strong> to manage your assets.
+        </div>
+    </div>
+
+    <div class="tip">
+        <strong>Expert Tip:</strong> Parameter changes in WaveCode are processed at the sample level thanks to <strong>fundsp</strong>, ensuring glitch-free real-time modulation.
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Synthesis Guide - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #016c8d; border-bottom: 3px solid #016c8d; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 30px; }
+        .concept-card { padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #016c8d; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .important { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>Advanced Timbre Design</h1>
+    <p>Go beyond basic waveforms using <strong>Additive Synthesis</strong> in WaveCode. Our <strong>Rust-powered audio engine</strong> uses <strong>fundsp nodes</strong> to build complex harmonic stacks that remain mathematically precise and sonically rich.</p>
+
+    <div class="important">
+        <strong>Engine Performance:</strong> Every custom synth defined in WaveCode automatically benefits from <strong>8-voice polyphony</strong>, allowing you to play rich, multi-layered textures without voice stealing.
+    </div>
+
+    <div class="concept-card">
+        <h2>1. Harmonic Synthesis</h2>
+        <p>Stack frequencies using integer multiples of the fundamental frequency. This is the foundation for simulating natural acoustic timbres such as strings, brass, or woodwinds. By adjusting the amplitude of each harmonic, you can shape the brightness and "nasality" of the sound.</p>
+    </div>
+
+    <div class="concept-card">
+        <h2>2. Custom Additive Synth</h2>
+        <p>Break the integer rule! WaveCode allows you to define non-integer frequency ratios (e.g., 1.414, 2.718). This is essential for creating inharmonic textures like metallic bells, industrial pads, or complex cinematic sound effects. Each partial is treated as an independent oscillator node within the <strong>fundsp signal graph</strong>.</p>
+    </div>
+
+    <div class="concept-card">
+        <h2>3. Optimization Tips</h2>
+        <p>While the <strong>Rust engine</strong> is extremely efficient, adding hundreds of oscillators to a single instrument can increase CPU load. We recommend using up to 16 partials for a good balance between complexity and performance.</p>
+    </div>
+</body>
+</html>

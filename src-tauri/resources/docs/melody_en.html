@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Melody List Guide - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #E67E22; border-bottom: 3px solid #E67E22; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #E67E22; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .example { background: rgba(255, 193, 7, 0.1); padding: 15px; border-left: 4px solid #ffc107; margin: 15px 0; font-family: 'Fira Code', monospace; color: #ffeaa7; border-radius: 4px; white-space: pre; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #141417; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d45; }
+        th { background-color: #2d3436; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>Melody List Writing Guide</h1>
+    <p>The "Play Melody List" block in WaveCode uses a simplified text format. It supports single notes, chord names, and powerful Tie features.</p>
+
+    <div class="type-box">
+        <h2>1. Note Names & Octaves</h2>
+        <p>A note consists of a <strong>Note Name (A-G)</strong>, <strong>Accidentals (#/b)</strong>, and an <strong>Octave (0-9)</strong>:</p>
+        <ul>
+            <li><strong>Format</strong>: e.g., <code>C4</code> (Middle C), <code>G#3</code> (G sharp), <code>Bb5</code> (B flat).</li>
+            <li><strong>Case Insensitive</strong>: <code>c4</code> is the same as <code>C4</code>.</li>
+            <li><strong>Octave Range</strong>: Standard MIDI range 0 to 9 (default is 4).</li>
+            <li><strong>Omitted Octave</strong>: Writing just <code>C</code> will use the current default octave.</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>2. Duration Codes</h2>
+        <table>
+            <thead>
+                <tr><th>Code</th><th>Name</th><th>Beats (4/4)</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>W</code></td><td>Whole</td><td>4</td></tr>
+                <tr><td><code>H</code></td><td>Half</td><td>2</td></tr>
+                <tr><td><code>Q</code></td><td>Quarter</td><td>1</td></tr>
+                <tr><td><code>E</code></td><td>Eighth</td><td>0.5</td></tr>
+                <tr><td><code>S</code></td><td>16th</td><td>0.25</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>3. Modifiers</h2>
+        <ul>
+            <li><strong>Rest <code>R</code></strong>: e.g., <code>RQ</code> (Wait 1 beat).</li>
+            <li><strong>Dotted <code>.</code></strong>: +50% length. e.g., <code>Q.</code> (1.5 beats).</li>
+            <li><strong>Triplet <code>_T</code></strong>: 2/3 length. e.g., <code>Q_T</code>.</li>
+            <li><strong>Tie <code>+</code></strong>: Sum durations. e.g., <code>H.+E</code> (3.5 beats).</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>4. Sequential Playback</h2>
+        <p>In WaveCode, melody blocks <strong>automatically queue</strong>. If you place multiple blocks, they will play one after another instead of overlapping.</p>
+    </div>
+</body>
+</html>

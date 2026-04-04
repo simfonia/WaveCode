@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>音樂演奏 - WaveCode 說明文件</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #e67e22; border-bottom: 3px solid #e67e22; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #e67e22; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .performance-note { font-style: italic; color: #a0a0a0; font-size: 0.9em; margin-top: 10px; }
+        .tip { background-color: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #fdcb6e; }
+    </style>
+</head>
+<body>
+    <h1>音樂演奏：驅動合成器發聲</h1>
+    <p>「音樂演奏」積木是將程式邏輯轉化為聽覺饗宴的關鍵。WaveCode 採用<strong>全自動聲部管理 (Auto-Voice Allocation)</strong>，您只需指定音高與時值，引擎便會自動為您分配閒置的聲部進行播放。</p>
+
+    <div class="type-box">
+        <h2>1. 演奏音符 (Play Note)</h2>
+        <p><strong>參數</strong>：頻率 (Hz)、持續時間 (ms)、樂器 ID</p>
+        <p>這是最常用的積木。它會啟動指定的樂器 ID，演奏對應的頻率，並在時間結束後自動釋放聲部（進入 Release 階段）。</p>
+        <div class="performance-note">提示：此積木具備「阻塞 (Blocking)」特性，會等待音符播完才執行下一個積木。</div>
+    </div>
+
+    <div class="type-box">
+        <h2>2. 觸發音符 - 不等待 (Trigger Note Async)</h2>
+        <p><strong>參數</strong>：頻率 (Hz)、持續時間 (ms)、樂器 ID</p>
+        <p>與前者不同，它會「立即」啟動聲音並繼續執行後續的積木邏輯。這對於實作<strong>和弦 (Chords)</strong> 或快速重疊的音效非常有用。</p>
+        <div class="performance-note">範例：連續放置三個此積木，可以同時發出三個不同頻率的聲音，組成三和弦。</div>
+    </div>
+
+    <div class="type-box">
+        <h2>3. 關於頻率與音名</h2>
+        <p>WaveCode 支援兩種指定音高的方式：</p>
+        <ul>
+            <li><strong>原始頻率</strong>：直接輸入 Hz 數值（如 440 代表 A4）。</li>
+            <li><strong>音符轉換器</strong>：搭配「音符」積木，可以直觀地選擇 C4、F#5 等音樂符號，系統會自動轉換為精確的頻率數值。</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <strong>安樂死機制 (Auto-Cleanup)：</strong> 當您點擊工具列的「停止」或重新點擊「執行」時，舊的播放任務會立即被中斷，所有運算中的聲部會被強制歸零。這確保了您的實驗環境永遠是乾淨且即時的。
+    </div>
+
+    <h2>4. 鍵盤即時演奏 (PC Keyboard)</h2>
+    <p>WaveCode 支援使用電腦鍵盤（QWERTY...）進行即時演奏。當您按下鍵盤時，會觸發 <code>EnvelopeManager</code> 的即時動畫。配合示波器，您可以直觀地觀察不同按鍵持續時間對 ADSR 波形的影響。</p>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mixed Source Help - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #016c8d; border-bottom: 3px solid #016c8d; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 30px; }
+        .block-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #016c8d; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .tip { background-color: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #74b9ff; }
+        .important { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #ffeaa7; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Mixed Source</h1>
+    <p>The <strong>Mixed Source</strong> block in WaveCode combines a stable oscillator with textured noise. Powered by the <strong>Rust-based fundsp engine</strong>, it provides a rich foundation for creating "organic" or "analog" synth sounds.</p>
+
+    <div class="important">
+        <strong>Engine Performance:</strong> Like all WaveCode sound sources, the Mixed Source supports <strong>8-voice polyphony</strong>, allowing for complex, noisy chord textures without dropouts.
+    </div>
+
+    <div class="block-box">
+        <h2>Parameters</h2>
+        <ul>
+            <li><strong>Wave</strong>: Provides the stable base pitch (Sine or Saw).</li>
+            <li><strong>Noise</strong>: Provides texture (White or Pink noise).</li>
+            <li><strong>Mix Level (Noise %)</strong>: The percentage of noise in the final mix. High values are great for percussion or wind-like effects.</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <h2>Advanced: Creating Lo-Fi Tones</h2>
+        <p>Mixed Source provides the foundation. To achieve a true Lo-Fi effect, add these effects in sequence:</p>
+        <ol>
+            <li><strong>Mixed Source</strong> (Wave + 10% Noise)</li>
+            <li><strong>Pitch-Mod</strong>: Use "Jitter" mode to add instability.</li>
+            <li><strong>Auto-Filter</strong>: Add dynamic breathing to the frequency spectrum.</li>
+        </ol>
+    </div>
+</body>
+</html>

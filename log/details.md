@@ -69,3 +69,33 @@
     - Rust 端傳送「未經過 clamp 的原始數據」與 `clipped` 旗標給前端。
     - 前端示波器在 `clipped` 為真時將波形變紅並顯示「CLIP」警訊。
     - 學生可以直觀看到波形被 Hard Clamp (-1.0 ~ 1.0) 切平的現象，作為 Compressor/Limiter 課程的基礎。
+
+
+## 2026-04-03 
+
+### 1. FFT 頻譜分析儀與示波器優化
+    * **後端 (Rust `engine.rs`)**:
+        * 引入 `rustfft` 庫，實作 256 點 FFT 計算。`WaveformPayload` 結構體新增 `fft` 欄位。
+        * `Cargo.toml` 加入 `rustfft` 依賴。
+    * **前端 (JavaScript `visualizer.js`)**:
+        * `drawFFT` 函式透過 `_fftData.slice(0, displayBins)` 限制顯示頻率範圍（約 10kHz）。
+        * 使用 HSL 色彩模型為頻譜長條動態生成顏色，並添加頂部高亮。
+        * `resize()` 函式處理 Canvas 解析度與顯示大小，修正置中問題。
+    * **HTML/CSS**: `index.html` 拆分示波器為雙欄；`style.css` 更新視覺化容器樣式。
+### 2. ADSR 動畫與鍵盤輸入整合
+    * **`FieldADSR` 類別**：新增 `startHold()` 和 `endHold()` 方法，支援長按 Sustain。
+    *   **`EnvelopeManager`**: 新增 `triggerStart(id)` 和 `triggerEnd(id)` 方法。
+    *   **`KeyboardController`**:
+        *   `KEY_MAP` 加入 `\` 鍵 (MIDI note 81)。
+        *   `handleKeyDown` 呼叫 `EnvelopeManager.triggerStart()`。
+        *   `handleKeyUp` 呼叫 `EnvelopeManager.triggerEnd()`。
+### 3. 輔助說明系統對齊 (#nyx)
+    * **文件遷移**: 成功從 HarmoNyx 複製說明文件至 WaveCode `resources/docs/`。
+    * **前端整合 (`ui_utils.js`, `mdi_manager.js`, `main.js`)**:
+        * `UIUtils.updateVisualHelp` 實現 Iframe 內嵌顯示本地 HTML 說明。
+        * `MDIManager` 的 `workspace.addChangeListener` 邏輯已調整，能捕捉 `Blockly.Events.SELECTED` 或 `UI`
+事件，觸發 `UIUtils.updateVisualHelp`。
+        * `main.js` 註冊了 BlocklyContextMenuRegistry 的「說明」選項。
+    *   **積木定義 (`audio_instruments.js`)**: 為「定義樂器」、「ADSR」、「濾鏡」積木添加 `helpUrl` 屬性。
+### 4. 日誌與結構更新
+    * 更新 `FILE_STRUCTURE.md` 以反映新增的 FFT 功能、MDI 管理員、後端工具類及 ADSR 持續模式等變動。

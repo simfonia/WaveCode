@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADSR Envelope Guide - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #FF5722; border-bottom: 3px solid #FF5722; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #FF5722; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .example { background: rgba(255, 193, 7, 0.1); padding: 15px; border-left: 4px solid #ffc107; margin: 15px 0; font-family: 'Fira Code', monospace; color: #ffeaa7; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #141417; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d45; }
+        th { background-color: #2d3436; color: #fff; }
+        .param { font-weight: bold; color: #E67E22; }
+        .important { background: rgba(255, 87, 34, 0.1); padding: 15px; border-radius: 8px; border-left: 5px solid #FF5722; color: #fab1a0; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>ADSR Envelope</h1>
+    <p>In <strong>WaveCode</strong>, the ADSR envelope is a core component of the <strong>Rust-based fundsp engine</strong>. It defines the volume (or filter) curve for each of the <strong>8 polyphonic voices</strong> from the moment a note starts until it ends.</p>
+
+    <div class="type-box">
+        <h2>1. Parameter Definitions</h2>
+        <table>
+            <thead>
+                <tr><th>Parameter</th><th>Name</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><span class="param">A</span> (Attack)</td><td>Attack</td><td>The time it takes for the sound to reach its peak level. Small values create percussive hits; large values create slow fades.</td></tr>
+                <tr><td><span class="param">D</span> (Decay)</td><td>Decay</td><td>The time it takes for the sound to drop from the peak to the Sustain level.</td></tr>
+                <tr><td><span class="param">S</span> (Sustain)</td><td>Sustain</td><td>The constant volume level held while a key is pressed (0.0 - 1.0).</td></tr>
+                <tr><td><span class="param">R</span> (Release)</td><td>Release</td><td>The time it takes for the sound to fade to silence after the key is released.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="important">
+        <strong>Engine Logic:</strong> Because <strong>WaveCode</strong> uses <strong>fundsp nodes</strong>, these parameters are updated at the sample level, ensuring ultra-smooth transitions without digital clicking.
+    </div>
+
+    <div class="type-box">
+        <h2>2. Common Sound Presets</h2>
+        <ul>
+            <li><strong>Piano</strong>: Very fast attack, moderate sustain, moderate release.
+                <div class="example">A: 0.01, D: 0.3, S: 0.4, R: 1.0</div>
+            </li>
+            <li><strong>Strings</strong>: Slow attack (fade-in), high sustain, slow release (long tail).
+                <div class="example">A: 0.5, D: 1.0, S: 0.8, R: 1.5</div>
+            </li>
+            <li><strong>Drums</strong>: Instant attack, fast decay, zero sustain.
+                <div class="example">A: 0.005, D: 0.1, S: 0.0, R: 0.1</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. Visual Feedback</h2>
+        <p>In WaveCode, you can observe the real-time status of the envelope via the <strong>visual chart</strong> on the block. A yellow light point will dance according to the playback progress of each voice.</p>
+    </div>
+</body>
+</html>

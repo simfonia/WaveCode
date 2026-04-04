@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WaveCode Engine & Stage Guide</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #2C3E50; border-bottom: 3px solid #2C3E50; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #2C3E50; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #141417; }
+        th, td { border-bottom: 1px solid #3d3d45; padding: 12px; text-align: left; }
+        th { background-color: #2d3436; color: white; }
+        .code-var { font-family: monospace; font-weight: bold; color: #e74c3c; }
+        .important { background-color: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #74b9ff; }
+    </style>
+</head>
+<body>
+    <h1>WaveCode Engine & Stage Control</h1>
+    <p>The <strong>WaveCode Engine</strong> is built on the <strong>Rust</strong> programming language and the <strong>fundsp</strong> audio processing library. It provides high-performance, real-time audio synthesis alongside a visual performance stage.</p>
+
+    <div class="important">
+        <strong>Stage Interaction:</strong> The stage is not just for visualization; it acts as a global communication hub between your code and external hardware (MIDI/Serial).
+    </div>
+
+    <div class="type-box">
+        <h2>1. Global Programmable Variables</h2>
+        <p>Access and control these system variables in the <code>draw</code> loop or event handlers to create dynamic performances.</p>
+        <table>
+            <thead><tr><th>Variable</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><span class="code-var">waveScale</span></td><td>float</td><td>Amplitude multiplier for the waveform visualization.</td></tr>
+                <tr><td><span class="code-var">fgHue</span></td><td>float</td><td>Foreground color hue (HSB 0-255).</td></tr>
+                <tr><td><span class="code-var">masterGain</span></td><td>float</td><td>The main output volume control in decibels (dB).</td></tr>
+                <tr><td><span class="code-var">adsrA/D/S/R</span></td><td>float</td><td>Real-time envelope parameters affecting all active voices.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>2. Keyboard Interaction</h2>
+        <p>Use your PC keyboard as a musical instrument. The following shortcuts are built-in:</p>
+        <ul>
+            <li><strong>[ ↑ / ↓ ]</strong>: Shift current octave up or down.</li>
+            <li><strong>[ ← / → ]</strong>: Cycle through defined instrument containers.</li>
+            <li><strong>[ Backspace ]</strong>: Reset octave to default (Octave 4).</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. Technical Foundation</h2>
+        <p>Under the hood, every sound source in <strong>WaveCode</strong> is a <strong>fundsp Node</strong>. These nodes are compiled into a signal processing graph that runs on a dedicated high-priority audio thread. This architecture ensures that even during heavy visual rendering, the sound remains clean and jitter-free.</p>
+    </div>
+</body>
+</html>

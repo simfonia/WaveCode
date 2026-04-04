@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Launchpad S 開發手冊 - WaveCode</title>
+<style>
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; padding: 25px; max-width: 800px; margin: 0 auto; background-color: #050505; color: #dfe6e9; }
+    h1, h2, h3 { color: #5B67E7; border-bottom: 2px solid #3d3d45; padding-bottom: 10px; margin-top: 40px; }
+    code { background-color: #2d3436; color: #74b9ff; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; }
+    pre { background-color: #1a1a20; color: #ecf0f1; padding: 15px; border-radius: 8px; border-left: 5px solid #5B67E7; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .note { background-color: rgba(255, 193, 7, 0.1); border-left: 5px solid #ffc107; padding: 15px; margin: 15px 0; color: #ffeaa7; border-radius: 4px; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #141417; }
+    th, td { border: 1px solid #3d3d45; padding: 12px; text-align: left; }
+    th { background-color: #5B67E7; color: white; }
+    tr:nth-child(even) { background-color: #0f0f12; }
+</style>
+</head>
+<body>
+
+<h1>Launchpad S 開發手冊 (WaveCode)</h1>
+<p>本文件彙整自 <em>Launchpad S Programmer's Reference Manual</em>，旨在協助開發者將 Launchpad S 整合至 WaveCode 系統中。</p>
+
+<h2>1. 通訊基礎</h2>
+<ul>
+    <li><strong>協定</strong>: MIDI over USB (Full Speed USB 2.0)</li>
+    <li><strong>驅動</strong>: Class Compliant (隨插即用，無需驅動)</li>
+    <li><strong>MIDI Channel</strong>: 預設使用 <strong>Channel 1</strong> (Status Byte: <code>0x90</code> Note On, <code>0xB0</code> CC)</li>
+</ul>
+
+<h2>2. 按鍵佈局與 MIDI 對應</h2>
+<p>Launchpad S 有兩種主要的佈局模式：<strong>X-Y Layout (Layout 1)</strong> 與 Drum Rack Layout。本專案建議採用 <strong>X-Y Layout</strong> 作為標準開發模式。</p>
+
+<h3>2.1 X-Y Layout (預設模式)</h3>
+<p>在此模式下，8x8 網格按鈕發送 MIDI <strong>Note On</strong> 訊息。每個按鈕的 Note Number 計算公式為：</p>
+<pre>Note = (Row * 16) + Column</pre>
+<ul>
+    <li><strong>Row</strong>: 0-7 (由上而下)</li>
+    <li><strong>Column</strong>: 0-7 (由左而右)</li>
+    <li><strong>Grid (0,0)</strong>: Note 0 (<code>0x00</code>)</li>
+    <li><strong>Grid (7,7)</strong>: Note 119 (<code>0x77</code>)</li>
+</ul>
+
+<h3>2.2 功能按鍵</h3>
+<table>
+    <thead>
+        <tr>
+            <th>區域</th>
+            <th>訊息類型</th>
+            <th>數值範圍</th>
+            <th>說明</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>頂部圓形按鈕</strong> (Top Row)</td>
+            <td>Control Change (CC)</td>
+            <td>104 - 111 (<code>0x68</code> - <code>0x6F</code>)</td>
+            <td>由左至右對應 Automap/Live 等控制</td>
+        </tr>
+        <tr>
+            <td><strong>右側圓形按鈕</strong> (Side Column)</td>
+            <td>Note On</td>
+            <td>8, 24, 40, ..., 120</td>
+            <td>視為 Grid 的第 8 行 (Column 8)</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>3. LED 燈光控制</h2>
+<p>要控制 Launchpad S 的 LED，需向其發送與按鈕對應的 Note On (網格/側邊) 或 CC (頂部) 訊息。<strong>Velocity (力度) 值決定顏色與亮度</strong>。</p>
+
+<h3>3.1 顏色編碼 (Velocity Value)</h3>
+<p>顏色由 Red (Bit 0-1) 與 Green (Bit 4-5) 混合而成。常用代碼如下：</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>顏色</th>
+            <th>亮度: 低 (Low)</th>
+            <th>亮度: 中 (Med)</th>
+            <th>亮度: 全亮 (Full)</th>
+            <th>說明</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>關閉 (Off)</strong></td>
+            <td>12 (<code>0x0C</code>)</td>
+            <td>-</td>
+            <td>0 (<code>0x00</code>)</td>
+            <td>清除燈號</td>
+        </tr>
+        <tr>
+            <td><strong>紅色 (Red)</strong></td>
+            <td>13 (<code>0x0D</code>)</td>
+            <td>-</td>
+            <td>15 (<code>0x0F</code>)</td>
+            <td>Bit 0-1</td>
+        </tr>
+        <tr>
+            <td><strong>琥珀色 (Amber)</strong></td>
+            <td>29 (<code>0x1D</code>)</td>
+            <td>-</td>
+            <td>63 (<code>0x3F</code>)</td>
+            <td>Red + Green</td>
+        </tr>
+        <tr>
+            <td><strong>綠色 (Green)</strong></td>
+            <td>28 (<code>0x1C</code>)</td>
+            <td>-</td>
+            <td>60 (<code>0x3C</code>)</td>
+            <td>Bit 4-5</td>
+        </tr>
+        <tr>
+            <td><strong>黃色 (Yellow)</strong></td>
+            <td>-</td>
+            <td>-</td>
+            <td>62 (<code>0x3E</code>)</td>
+            <td>Full Red + Full Green</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="note">
+    <strong>閃爍模式 (Flashing):</strong> 若需讓 LED 閃爍，可參照手冊設定 Buffer (Double Buffering) 模式。一般情況下，發送靜態顏色即可滿足大部分需求。
+</div>
+
+<h3>3.2 全局控制指令 (System Commands)</h3>
+<ul>
+    <li><strong>Reset / 關閉所有燈號</strong>: 發送 <code>CC 0</code>, Value <code>0</code> (Channel 1)</li>
+    <li><strong>開啟所有燈號 (測試用)</strong>: 發送 <code>CC 0</code>, Value <code>127</code> (Channel 1)</li>
+</ul>
+
+<h2>4. 開發建議</h2>
+<h3>4.1 積木設計方向</h3>
+<ul>
+    <li><strong>監聽輸入</strong>: 使用現有的 <code>midi_on_note</code> (監聽網格與右側按鈕) 與 <code>midi_on_controller_change</code> (監聽頂部按鈕)。</li>
+    <li><strong>燈光回饋</strong>: 需實作 <code>midi_send_note</code> 與 <code>midi_send_cc</code> 積木。</li>
+    <li><strong>座標轉換</strong>: 建議提供一個「X-Y 轉 Note」的輔助積木 (<code>Note = Y*16 + X</code>)，方便使用者直觀控制 8x8 矩陣。</li>
+</ul>
+
+<h3>4.2 範例程式邏輯 (虛擬碼)</h3>
+<pre>
+// 按下按鈕時亮綠燈
+void noteOn(channel, pitch, velocity) {
+    if (velocity > 0) { // 按下
+        sendNoteOn(channel, pitch, 60); // 60 = Full Green
+    } else { // 放開
+        sendNoteOn(channel, pitch, 0);  // 0 = Off
+    }
+}
+</pre>
+
+</body>
+</html>

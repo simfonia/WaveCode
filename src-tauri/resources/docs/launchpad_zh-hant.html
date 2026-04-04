@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>MIDI 與 Launchpad 控制說明</title>
+    <style>
+        :root { --theme-color: #5B67E7; }
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--theme-color); border-left: 10px solid var(--theme-color); padding-left: 15px; }
+        h2 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 30px; }
+        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
+        .block-ref { font-weight: bold; color: var(--theme-color); }
+        .note { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #F5F6FF; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>MIDI 與 Launchpad 控制</h1>
+    <p>本系統支援標準 MIDI 通訊，特別針對 Novation Launchpad 系列進行了優化，讓您可以輕鬆實現硬體與程式的即時互動。</p>
+
+    <h2>1. 基礎設定</h2>
+    <p class="block-ref">啟動 MIDI 監聽</p>
+    <ul>
+        <li><strong>輸入 (Input)</strong>: 設定 MIDI 輸入裝置的索引（通常 Launchpad 為 0）。</li>
+        <li><strong>輸出 (Output)</strong>: 設定 MIDI 輸出裝置的索引。若要讓 Launchpad 亮燈，必須正確設定此項。</li>
+    </ul>
+    <div class="note">提示：執行程式後，請查看 Processing 控制台 (Console) 輸出的裝置列表，確認正確的編號。</div>
+
+    <h2>2. 接收訊號 (Input)</h2>
+    <p class="block-ref">當收到 MIDI 音符 ON / OFF</p>
+    <p>當您按下或放開硬體上的按鍵時會觸發。系統會自動將 <code>channel</code> (頻道)、<code>pitch</code> (鍵號) 與 <code>velocity</code> (力度) 存入對應變數中。</p>
+
+    <p class="block-ref">當收到 MIDI CC 控制訊號</p>
+    <p>用於監聽旋鈕或頂部功能鍵。通常用於切換模式或控制音量/效果參數。</p>
+
+    <h2>3. 傳送訊號與控制燈光 (Output)</h2>
+    <p>透過向 Launchpad 傳送音符訊號，可以控制其 LED 燈光的顏色。</p>
+    
+    <p class="block-ref">傳送 MIDI 音符</p>
+    <ul>
+        <li><strong>開啟 (ON)</strong>: 讓指定位置的燈亮起。</li>
+        <li><strong>關閉 (OFF)</strong>: 讓燈熄滅。</li>
+        <li><strong>力度 (Velocity)</strong>: 在 Launchpad 上，力度值決定了顏色（例如：15=紅, 60=綠, 62=黃）。</li>
+    </ul>
+
+    <h2>4. Launchpad 專用工具</h2>
+    <p class="block-ref">Launchpad 座標轉鍵號</p>
+    <p>Launchpad 的 8x8 網格座標範圍為 (0,0) 到 (7,7)，其中 <strong>(0,0) 為左上角第一顆按鈕</strong>。此積木會自動根據公式 <code>Note = Y * 16 + X</code> 轉換為正確的 MIDI 鍵號，方便您精確定位特定按鈕。</p>
+
+    <h2>Launchpad S 常用顏色表</h2>
+    <table>
+        <tr><th>顏色</th><th>全亮 (Full)</th><th>中亮 (Medium)</th></tr>
+        <tr><td>紅色 (Red)</td><td>15</td><td>13</td></tr>
+        <tr><td>琥珀色 (Amber)</td><td>63</td><td>29</td></tr>
+        <tr><td>綠色 (Green)</td><td>60</td><td>28</td></tr>
+        <tr><td>黃色 (Yellow)</td><td>62</td><td>-</td></tr>
+        <tr><td>關閉 (Off)</td><td>0</td><td>-</td></tr>
+    </table>
+</body>
+</html>

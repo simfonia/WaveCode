@@ -12,14 +12,17 @@ pub fn get_resource_base(app_handle: &tauri::AppHandle) -> PathBuf {
         }
     }
 
-    // 2. 開發環境：使用更強健的當前目錄偵測法
+    // 2. 開發環境：偵測 src-tauri/resources (現在資源統一放在這裡)
     if let Ok(mut dev_path) = std::env::current_dir() {
-        // 如果是在 src-tauri 目錄下執行 (如 cargo tauri dev)，往上跳一層
-        if dev_path.ends_with("src-tauri") {
-            dev_path.pop();
-        }
-        
-        let target = dev_path.join("resources");
+        // 如果是在專案根目錄，進入 src-tauri
+        let target = if dev_path.ends_with("WaveCode") {
+            dev_path.join("src-tauri").join("resources")
+        } else if dev_path.ends_with("src-tauri") {
+            dev_path.join("resources")
+        } else {
+            dev_path.join("resources")
+        };
+
         if target.exists() {
             return target;
         }

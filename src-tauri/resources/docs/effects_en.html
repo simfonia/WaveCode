@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Effects Help - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 30px; }
+        .block-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #8E44AD; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .important { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #ffeaa7; }
+        .tip { background-color: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #74b9ff; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        .range { color: #888; font-size: 0.9em; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Audio Effects</h1>
+    <p>In <strong>WaveCode</strong>, effects are implemented as <strong>fundsp nodes</strong> that run on a high-priority <strong>Rust audio thread</strong>. These effects can be placed inside an Instrument Definition to affect its <strong>8-voice polyphonic output</strong>, or in the <code>setup</code> block as Global effects.</p>
+
+    <div class="important">
+        <strong>Signal Chain Logic:</strong> The <strong>fundsp engine</strong> processes nodes in a linear signal chain. The order of blocks determines the final sound texture.
+    </div>
+
+    <div class="block-box">
+        <h2>1. Filter (MoogFilter)</h2>
+        <p>A high-quality <strong>Rust implementation</strong> of the classic Moog low-pass filter. Shapes the brightness and resonance of the sound.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>2. Delay & Reverb</h2>
+        <p>Advanced spatial nodes that add depth. Delay creates precise echoes, while Reverb simulates acoustic environments through a complex matrix of reflections.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>3. Pitch-Mod & Vibrato</h2>
+        <p>Uses LFO nodes to modulate frequency. <strong>Vibrato</strong> creates musical rhythmic movement, while <strong>Jitter</strong> adds high-speed random instability for a Lo-Fi analog feel.</p>
+    </div>
+
+    <div class="block-box">
+        <h2>4. Dynamics (Compressor & Limiter)</h2>
+        <p>The <strong>WaveCode Engine</strong> includes a master limiter by default, but you can add your own dynamics nodes to control individual instrument punch and prevent digital clipping.</p>
+    </div>
+
+    <div class="tip">
+        <strong>Expert Tip:</strong> Because <strong>WaveCode</strong> uses <strong>fundsp</strong>, you can modulate almost any effect parameter in real-time without introducing audible "zipper noise" or glitches.
+    </div>
+</body>
+</html>

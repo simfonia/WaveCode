@@ -1,0 +1,132 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="audio_instrument" id="p[q-Tgr1qc!U?-_I@4`5" x="10" y="10">
+    <field name="ID">piano</field>
+    <statement name="CHAIN">
+      <block type="audio_component_osc" id="osc1">
+        <field name="WAVE">0</field>
+        <next>
+          <block type="audio_component_adsr" id="adsr1">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.3</field>
+            <field name="R">2</field>
+            <next>
+              <block type="audio_component_volume" id="vol1">
+                <field name="VOL">100</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="audio_instrument" id="/gq}lgj_t4tJnlWZMW-F" x="10" y="210">
+    <field name="ID">violin</field>
+    <statement name="CHAIN">
+      <block type="audio_component_osc" id="A/l1rEq*~Vy2}hFh{6_5">
+        <field name="WAVE">3</field>
+        <next>
+          <block type="audio_component_adsr" id="UazG])y`M|KeTe(TRe=#">
+            <field name="A">0.5</field>
+            <field name="D">0</field>
+            <field name="S">1</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="audio_component_volume" id="i2SR(o~1)/kNv/@lDvNE">
+                <field name="VOL">100</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="audio_play_note" id="Dmj^Uxw5lMr0yq%z@y?^" x="10" y="410">
+    <field name="INSTRUMENT">piano</field>
+    <value name="FREQ">
+      <block type="audio_note" id=")~:YQ0_#gD]HZyQ[Px#P">
+        <field name="NOTE">261.63</field>
+      </block>
+    </value>
+    <value name="DUR">
+      <block type="math_number" id="NStrfS2^X#bQ]#)$xMtc">
+        <field name="NUM">2000</field>
+      </block>
+    </value>
+    <next>
+      <block type="audio_play_note" id="Q2#?m$HR(7|,0|rV;djb">
+        <field name="INSTRUMENT">violin</field>
+        <value name="FREQ">
+          <block type="audio_note" id="+|Qh!@|zKfy|(SKYX2gh">
+            <field name="NOTE">329.63</field>
+          </block>
+        </value>
+        <value name="DUR">
+          <block type="math_number" id="Zq$Hg:?ZVhrTBWksVF)a">
+            <field name="NUM">2000</field>
+          </block>
+        </value>
+        <next>
+          <block type="audio_play_note" id="D$4Gj/+TY9iwTHJ1fF|8">
+            <field name="INSTRUMENT">violin</field>
+            <value name="FREQ">
+              <block type="audio_note" id="8Pi9{oUkKaGIc#lJmx*,">
+                <field name="NOTE">392.00</field>
+              </block>
+            </value>
+            <value name="DUR">
+              <block type="math_number" id="q;mPbWBuHTCts)PMO)io">
+                <field name="NUM">2000</field>
+              </block>
+            </value>
+            <next>
+              <block type="audio_play_note_async" id="V[:VI5J`F;,27x*kVE+@">
+                <field name="INSTRUMENT">piano</field>
+                <value name="FREQ">
+                  <shadow type="audio_note" id="x@TisZDMn:wV6?ks#[T*">
+                    <field name="NOTE">261.63</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="math_number" id="XyhcNIl3bp2AYPyXF~wS">
+                    <field name="NUM">2000</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="audio_play_note_async" id="L`c1Dx:JUd%!)%w/L5eX">
+                    <field name="INSTRUMENT">piano</field>
+                    <value name="FREQ">
+                      <shadow type="audio_note" id="GlZ|.O8,CnOY6%j,)ycS">
+                        <field name="NOTE">329.63</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="math_number" id="7`Py@.rV=TCOD3!%hkb4">
+                        <field name="NUM">2000</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="audio_play_note_async" id="`:YB%53{:xf|@@J+%x3{">
+                        <field name="INSTRUMENT">piano</field>
+                        <value name="FREQ">
+                          <shadow type="audio_note" id=".v`E9!m:0)ssj3pT$=z$">
+                            <field name="NOTE">392.00</field>
+                          </shadow>
+                        </value>
+                        <value name="DUR">
+                          <shadow type="math_number" id="N[_`h[*jS##o;E)cGHox">
+                            <field name="NUM">2000</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

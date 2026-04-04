@@ -73,25 +73,44 @@ export class MDIManager {
             
             // 點擊積木更新輔助說明 (對齊 HarmoNyx)
             let targetBlockId = null;
-            if (e.type === Blockly.Events.UI && (e.element === 'click' || e.element === 'selected')) {
-                targetBlockId = e.blockId || e.newValue;
+            
+            // 捕捉不同版本的選取事件
+            if (e.type === 'selected' || e.type === (Blockly.Events.SELECTED || 'selected')) {
+                targetBlockId = e.newElementId;
+            } else if (e.type === Blockly.Events.UI) {
+                if (e.element === 'selected' || e.element === 'click') {
+                    targetBlockId = e.blockId || e.newValue;
+                }
             }
 
             if (targetBlockId && this.activeTabId === tabId) {
+                // 選取了新積木，顯示說明
                 if (helpResetTimeout) {
                     clearTimeout(helpResetTimeout);
                     helpResetTimeout = null;
                 }
                 const block = workspace.getBlockById(targetBlockId);
-                if (block && window.updateVisualHelp) {
-                    window.updateVisualHelp(block, this.toolbarManager.currentLang);
+                if (block) {
+                    UIUtils.updateVisualHelp(block, this.toolbarManager.currentLang);
+                    // 自動切換至輔助說明分頁
+                    UIUtils.switchSmartTab('visual-help');
                 }
-            } else if (this.activeTabId === tabId && (e.type === 'selected' || e.type === 'click' || (e.type === Blockly.Events.UI && e.element === 'selected'))) {
-                if (helpResetTimeout) clearTimeout(helpResetTimeout);
-                helpResetTimeout = setTimeout(() => {
-                    if (window.updateVisualHelp) window.updateVisualHelp(null);
-                    helpResetTimeout = null;
-                }, 200);
+            } else if (this.activeTabId === tabId) {
+                // 可能是取消選取事件
+                const isDeselect = (e.type === 'selected' || e.type === (Blockly.Events.SELECTED || 'selected')) && !e.newElementId;
+                const isUICancel = (e.type === Blockly.Events.UI && (e.element === 'selected' || e.element === 'click') && !e.blockId && !e.newValue);
+                
+                if (isDeselect || isUICancel) {
+                    if (helpResetTimeout) clearTimeout(helpResetTimeout);
+                    helpResetTimeout = setTimeout(() => {
+                        // 再次檢查目前是否真的沒有選取積木，避免快速切換造成的閃爍
+                        const currentSelection = Blockly.selected;
+                        if (!currentSelection) {
+                            UIUtils.updateVisualHelp(null);
+                        }
+                        helpResetTimeout = null;
+                    }, 200);
+                }
             }
         });
 
@@ -209,6 +228,19 @@ export class MDIManager {
 
     updateActiveTabDirty(isDirty) {
         this.updateTabDirty(this.activeTabId, isDirty);
+    }
+
+    /**
+     * 更新所有分頁的語言 (對齊 #nyx)
+     */
+    updateLanguage() {
+        this.tabs.forEach(tab => {
+            if (tab.workspace && tab.workspace.getToolbox()) {
+                // 這裡通常由 ToolbarManager 統一處理 Toolbox 更新，
+                // 但我們可以在此確保工作區重繪以套用新的 Msg 內容
+                Blockly.svgResize(tab.workspace);
+            }
+        });
     }
 
     async closeTab(tabId) {

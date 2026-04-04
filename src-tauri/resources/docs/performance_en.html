@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Performance Blocks Guide - WaveCode</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
+        h1 { color: #E67E22; border-bottom: 3px solid #E67E22; padding-bottom: 10px; font-weight: 800; }
+        h2 { color: #fab1a0; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #E67E22; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        code { background: #2d3436; color: #74b9ff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .important { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>Performance: Triggering Sounds</h1>
+    <p>WaveCode performance blocks bridge your logic to the high-performance <strong>Rust-based fundsp engine</strong>. We use a professional <strong>Note On/Off</strong> architecture, fully compatible with external MIDI controllers and internal sequencers.</p>
+
+    <div class="important">
+        <strong>High-Performance Polyphony:</strong> The WaveCode engine supports <strong>8-voice polyphony</strong> for each instrument definition. This allows complex chords and overlapping notes to play smoothly without cutting each other off.
+    </div>
+
+    <div class="type-box">
+        <h2>1. Synth Start (Note On)</h2>
+        <p>Instantiates a sound node in the <strong>fundsp signal chain</strong> and triggers the <strong>Attack</strong> phase of the ADSR envelope. The sound will sustain its energy according to your settings until a corresponding "Stop" command is received.</p>
+    </div>
+
+    <div class="type-box">
+        <h2>2. Synth Stop (Note Off)</h2>
+        <p>Signals the active voice to enter the <strong>Release</strong> phase. The sound will naturally fade out based on your Release time (R), ensuring a smooth musical transition instead of an abrupt click.</p>
+    </div>
+
+    <div class="type-box">
+        <h2>3. Status Detection & Exit</h2>
+        <ul>
+            <li><strong>Is any melody playing?</strong>: Checks the status of the internal sequence buffer. Returns true if any notes are still queued or being processed.</li>
+            <li><strong>Exit Program</strong>: Gracefully shuts down the <strong>WaveCode Engine</strong> and closes the stage window. It is recommended to use this after detecting that all melodies have finished playing.</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>4. Real-time Node Control</h2>
+        <p>Because WaveCode is powered by <strong>fundsp</strong>, parameter changes (like frequency or volume) are processed at the sample level, allowing for ultra-smooth sweeps and glitch-free performance.</p>
+    </div>
+</body>
+</html>

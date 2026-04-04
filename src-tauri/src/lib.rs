@@ -154,11 +154,23 @@ async fn open_samples_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn open_url(_app_handle: tauri::AppHandle, url: String) -> Result<(), String> {
+async fn open_url(app_handle: tauri::AppHandle, url: String) -> Result<(), String> {
     #[cfg(windows)]
     {
+        let target = if url.starts_with("http") {
+            url
+        } else {
+            // 如果不是 http 開頭，視為本地說明文件，解析完整路徑
+            let docs_dir = utils::get_resource_path(&app_handle, "docs");
+            let full_path = docs_dir.join(&url);
+            if !full_path.exists() {
+                return Err(format!("Help file not found: {}", url));
+            }
+            full_path.to_str().unwrap_or("").to_string()
+        };
+
         Command::new("cmd")
-            .args(&["/c", "start", "", &url])
+            .args(&["/c", "start", "", &target])
             .creation_flags(0x08000000)
             .spawn()
             .map_err(|e| e.to_string())?;
