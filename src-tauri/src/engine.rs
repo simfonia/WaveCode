@@ -7,9 +7,10 @@ use std::collections::HashMap;
 use tauri::Emitter;
 use std::path::{Path, PathBuf};
 use rayon::prelude::*;
+use rustfft::{FftPlanner, num_complex::Complex};
 
 const MAX_VOICES: usize = 8; 
-
+const FFT_SIZE: usize = 256;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum Component {
@@ -39,6 +40,7 @@ struct Voice {
 #[derive(Serialize, Clone)]
 struct WaveformPayload {
     data: Vec<f32>,
+    fft: Vec<f32>,
     clipped: bool,
 }
 
@@ -232,11 +234,14 @@ impl AudioEngine {
         let master_vol_clone = self.master_vol.clone();
         let app_handle_clone = self.app_handle.clone();
         
+        let mut planner = FftPlanner::new();
+        let fft = planner.plan_fft_forward(FFT_SIZE);
+        
         let stream = device.build_output_stream(
             &config.into(),
             move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                 for sample in data.iter_mut() { *sample = 0.0; }
-                let mut scope_buffer = Vec::with_capacity(256);
+                let mut scope_buffer = Vec::with_capacity(FFT_SIZE);
                 let mut triggered = false; let mut armed = false; let mut has_clipped = false;
                 for frame in data.chunks_mut(channels) {
                     let mut sum = 0.0;
@@ -251,11 +256,23 @@ impl AudioEngine {
                     if final_raw.abs() > 1.0 { has_clipped = true; }
                     let clipped = final_raw.clamp(-1.0, 1.0);
                     for sample in frame.iter_mut() { *sample = clipped; }
+                    
                     if !triggered { if final_raw < -0.01 { armed = true; } if armed && final_raw > 0.01 { triggered = true; } }
-                    if triggered && scope_buffer.len() < 256 { scope_buffer.push(final_raw); }
+                    if triggered && scope_buffer.len() < FFT_SIZE { scope_buffer.push(final_raw); }
                 }
-                if triggered && scope_buffer.len() >= 256 {
-                    let _ = app_handle_clone.emit("waveform", WaveformPayload { data: scope_buffer[0..256].to_vec(), clipped: has_clipped });
+
+                if triggered && scope_buffer.len() >= FFT_SIZE {
+                    let mut buffer: Vec<Complex<f32>> = scope_buffer.iter().map(|&v| Complex::new(v, 0.0)).collect();
+                    fft.process(&mut buffer);
+                    let fft_data: Vec<f32> = buffer[0..FFT_SIZE/2].iter()
+                        .map(|c| (c.norm() / (FFT_SIZE as f32 / 2.0)).sqrt())
+                        .collect();
+
+                    let _ = app_handle_clone.emit("waveform", WaveformPayload { 
+                        data: scope_buffer[0..FFT_SIZE].to_vec(), 
+                        fft: fft_data,
+                        clipped: has_clipped 
+                    });
                 }
             },
             |err| eprintln!("{}", err), None

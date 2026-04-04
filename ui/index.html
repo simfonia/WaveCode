@@ -60,9 +60,12 @@
                 <div class="panel-section" id="waveform-section">
                     <div class="section-header">
                         <img src="/icons/published_with_changes_24dp_75FB4C.png" class="nyx-icon-green" style="width:16px;">
-                        <span data-i18n="WAVECODE_OSCILLOSCOPE">即時示波器</span>
+                        <span data-i18n="WAVECODE_OSCILLOSCOPE">即時分析儀</span>
                     </div>
-                    <canvas id="waveformCanvas"></canvas>
+                    <div id="visualizer-container" style="display: flex; height: 120px; gap: 4px; padding: 4px;">
+                        <canvas id="waveformCanvas" style="flex: 1; background: #050505; border-radius: 4px;"></canvas>
+                        <canvas id="fftCanvas" style="flex: 1; background: #050505; border-radius: 4px;"></canvas>
+                    </div>
                 </div>
 
                 <!-- Smart Tabs Section -->

@@ -17,6 +17,7 @@ export class FieldADSR extends Blockly.Field {
         this._startTime = 0;
         this._isPlaying = false;
         this._duration = 0;
+        this._isHolding = false;
     }
 
     isSerializable() { return false; }
@@ -84,12 +85,33 @@ export class FieldADSR extends Blockly.Field {
         this._duration = noteDuration / 1000;
         this._startTime = performance.now();
         this._isPlaying = true;
+        this._isHolding = false;
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
 
+    startHold() {
+        this._startTime = performance.now();
+        this._isPlaying = true;
+        this._isHolding = true;
+        this._duration = 999; // 預設極大，直到 endHold
+        if (this.dot_) this.dot_.setAttribute('opacity', 1);
+        if (!this._animationId) this.animate_();
+    }
+
+    endHold() {
+        if (this._isPlaying && this._isHolding) {
+            this._isHolding = false;
+            const now = performance.now();
+            const elapsedSinceStart = (now - this._startTime) / 1000;
+            // 將 _duration 設為目前的偏移量，讓動畫進入 Release 階段
+            this._duration = Math.max(elapsedSinceStart - (this.A + this.D), 0);
+        }
+    }
+
     stopAnimation() {
         this._isPlaying = false;
+        this._isHolding = false;
         if (this.dot_) this.dot_.setAttribute('opacity', 0);
         if (this._animationId) {
             cancelAnimationFrame(this._animationId);
@@ -104,8 +126,10 @@ export class FieldADSR extends Blockly.Field {
             return;
         }
         this.render_();
-        const elapsed = (performance.now() - this._startTime) / 1000;
-        if (elapsed > (this.A + this.D + this._duration + this.R + 0.2)) {
+        const now = performance.now();
+        const elapsed = (now - this._startTime) / 1000;
+        const totalDuration = this.A + this.D + (this._isHolding ? 999 : this._duration) + this.R;
+        if (!this._isHolding && elapsed > totalDuration + 0.2) {
             this._isPlaying = false;
         }
         this._animationId = requestAnimationFrame(() => this.animate_());
@@ -127,7 +151,8 @@ export class FieldADSR extends Blockly.Field {
         this.bgPath_.setAttribute('d', points.join(' '));
 
         if (this._isPlaying && this.dot_) {
-            const elapsed = (performance.now() - this._startTime) / 1000;
+            const now = performance.now();
+            const elapsed = (now - this._startTime) / 1000;
             let dotX = padding, dotY = h - padding;
             if (elapsed < this.A) {
                 const p = this.A > 0 ? elapsed / this.A : 1;
@@ -135,9 +160,8 @@ export class FieldADSR extends Blockly.Field {
             } else if (elapsed < this.A + this.D) {
                 const p = this.D > 0 ? (elapsed - this.A) / this.D : 1;
                 dotX += elapsed * scaleX; dotY = padding + (p * (1 - this.S) * innerH);
-            } else if (elapsed < this.A + this.D + this._duration) {
-                // 3. Sustain 階段：在 0.5 的寬度內來回移動 (正弦波擺動)
-                const osc = Math.sin(elapsed * 12) * 0.15; // 擺動幅度 0.15
+            } else if (this._isHolding || elapsed < this.A + this.D + this._duration) {
+                const osc = Math.sin(elapsed * 12) * 0.15; 
                 dotX += (this.A + this.D + 0.25 + osc) * scaleX; 
                 dotY = h - padding - (this.S * innerH);
             } else if (elapsed < this.A + this.D + this._duration + this.R) {
@@ -167,44 +191,66 @@ export const EnvelopeManager = {
     },
 
     trigger(id, duration) {
-        if (this._registry.has(id)) {
+        if (id && this._registry.has(id)) {
             this._registry.get(id).forEach(f => f.playAnimation(duration));
         } else {
-            this._registry.forEach(list => {
-                list.forEach(f => f.playAnimation(duration));
-            });
+            this._registry.forEach(list => list.forEach(f => f.playAnimation(duration)));
+        }
+    },
+
+    triggerStart(id) {
+        if (id && this._registry.has(id)) {
+            this._registry.get(id).forEach(f => f.startHold());
+        } else {
+            this._registry.forEach(list => list.forEach(f => f.startHold()));
+        }
+    },
+
+    triggerEnd(id) {
+        if (id && this._registry.has(id)) {
+            this._registry.get(id).forEach(f => f.endHold());
+        } else {
+            this._registry.forEach(list => list.forEach(f => f.endHold()));
         }
     },
 
     stopAll() {
-        this._registry.forEach(list => {
-            list.forEach(f => f.stopAnimation());
-        });
+        this._registry.forEach(list => list.forEach(f => f.stopAnimation()));
     }
 };
 
 window.EnvelopeManager = EnvelopeManager;
 
 /**
- * 即時示波器 (Oscilloscope) - 支援 Clipping 警告
+ * 即時分析儀 (Visualizer) - 包含示波器與頻譜
  */
 export const Oscilloscope = {
     canvas: null,
+    fftCanvas: null,
     ctx: null,
+    fftCtx: null,
     _data: [],
+    _fftData: [],
     _isClipped: false,
 
     init(canvasId) {
         this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) return;
+        this.fftCanvas = document.getElementById('fftCanvas');
+        if (!this.canvas || !this.fftCanvas) return;
         this.ctx = this.canvas.getContext('2d');
+        this.fftCtx = this.fftCanvas.getContext('2d');
         
+        // 確保繪圖解析度正確
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
         let lastUpdateTime = 0;
 
         if (window.__TAURI__) {
             window.__TAURI__.event.listen('waveform', (event) => {
                 const payload = event.payload;
                 this._data = payload.data || [];
+                this._fftData = payload.fft || [];
                 this._isClipped = payload.clipped || false;
                 lastUpdateTime = performance.now();
                 this.draw();
@@ -212,24 +258,37 @@ export const Oscilloscope = {
         }
 
         setInterval(() => {
-            if (performance.now() - lastUpdateTime > 100 && this._data.length > 0) {
+            if (performance.now() - lastUpdateTime > 100 && (this._data.length > 0 || this._fftData.length > 0)) {
                 this._data = [];
+                this._fftData = [];
                 this._isClipped = false;
                 this.clear();
             }
         }, 50);
     },
 
-    clear() {
-        if (!this.ctx) return;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        this.ctx.clearRect(0, 0, w, h);
+    resize() {
+        const rect = this.canvas.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
         
+        const fftRect = this.fftCanvas.getBoundingClientRect();
+        this.fftCanvas.width = fftRect.width * window.devicePixelRatio;
+        this.fftCanvas.height = fftRect.height * window.devicePixelRatio;
+    },
+
+    clear() {
+        if (!this.ctx || !this.fftCtx) return;
+        const w = this.canvas.width, h = this.canvas.height;
+        const fw = this.fftCanvas.width, fh = this.fftCanvas.height;
+
+        this.ctx.clearRect(0, 0, w, h);
+        this.fftCtx.clearRect(0, 0, fw, fh);
+        
+        // 繪製零位水平線 (示波器)
         this.ctx.beginPath();
         this.ctx.strokeStyle = '#2ecc71';
-        this.ctx.globalAlpha = 0.3;
-        this.ctx.lineWidth = 2;
+        this.ctx.globalAlpha = 0.2;
         this.ctx.moveTo(0, h / 2);
         this.ctx.lineTo(w, h / 2);
         this.ctx.stroke();
@@ -237,21 +296,21 @@ export const Oscilloscope = {
     },
 
     draw() {
-        if (!this.ctx) return;
+        if (!this.ctx || !this.fftCtx) return;
+        this.drawWaveform();
+        this.drawFFT();
+    },
+
+    drawWaveform() {
         const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-
-        if (!this._data.length) {
-            this.clear();
-            return;
-        }
-
+        const w = this.canvas.width, h = this.canvas.height;
         ctx.clearRect(0, 0, w, h);
+
+        if (!this._data.length) return;
 
         ctx.beginPath();
         ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#2ecc71';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * window.devicePixelRatio;
         ctx.lineJoin = 'round';
 
         const sliceWidth = w / this._data.length;
@@ -259,7 +318,7 @@ export const Oscilloscope = {
 
         for (let i = 0; i < this._data.length; i++) {
             const v = this._data[i];
-            const y = (h / 2) - (v * h / 2);
+            const y = (h / 2) - (v * h / 2); // 零點在中間
 
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
@@ -270,17 +329,44 @@ export const Oscilloscope = {
 
         if (this._isClipped) {
             ctx.fillStyle = '#e74c3c';
-            ctx.font = 'bold 16px Arial';
+            ctx.font = `bold ${14 * window.devicePixelRatio}px Inter`;
             ctx.textAlign = 'right';
-            ctx.fillText('CLIP', w - 10, 25);
+            ctx.fillText('CLIP', w - 10, 20 * window.devicePixelRatio);
+        }
+    },
+
+    drawFFT() {
+        const ctx = this.fftCtx;
+        const w = this.fftCanvas.width, h = this.fftCanvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (!this._fftData.length) return;
+
+        // --- 頻率範圍調整位置 ---
+        // 說明：FFT_SIZE 為 256，對應 0 ~ Nyquist (約 22050Hz)。
+        // 這裡取前 60 個 Bins，大約對應 0 ~ 10,000Hz (10kHz)。
+        // 如果想看到更寬或更窄，請修改下面的 60。
+        const displayBins = 60; 
+        const dataToDraw = this._fftData.slice(0, displayBins);
+        // -----------------------
+
+        const barWidth = w / dataToDraw.length;
+        
+        for (let i = 0; i < dataToDraw.length; i++) {
+            const val = dataToDraw[i] * h * 1.2; // 稍微拉高增益讓視覺更強烈
+            const x = i * barWidth;
+            const y = h - val;
+
+            // 多彩呈現：根據頻率位置 (i) 決定顏色 (HSL: 200藍 -> 280紫 -> 330粉)
+            const hue = 200 + (i / dataToDraw.length) * 130;
+            ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
             
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = 'rgba(231, 76, 60, 0.5)';
-            ctx.beginPath();
-            ctx.moveTo(0, 2); ctx.lineTo(w, 2);
-            ctx.moveTo(0, h - 2); ctx.lineTo(w, h - 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // 繪製帶有圓角的長條 (或是簡單矩形)
+            ctx.fillRect(x, y, barWidth - 1, val);
+            
+            // 加入頂部高亮，增加質感
+            ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
+            ctx.fillRect(x, y, barWidth - 1, 2 * window.devicePixelRatio);
         }
     }
 };

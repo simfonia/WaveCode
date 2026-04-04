@@ -114,17 +114,30 @@ body.resizing-panel {
 .mini-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; margin-left: auto; }
 .mini-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
 
-/* Waveform Section (Oscilloscope) */
+/* Visualizer Section (Oscilloscope & FFT) */
 #waveform-section {
-    height: 150px;
-    background-color: #000;
+    min-height: 160px;
+    background-color: var(--nyx-bg-dark);
     position: relative;
     border-bottom: 1px solid var(--nyx-border);
+    display: flex;
+    flex-direction: column;
 }
-#waveformCanvas {
-    width: 100%;
+#visualizer-container {
+    flex: 1;
+    display: flex;
+    padding: 8px;
+    gap: 8px;
+    box-sizing: border-box;
+    background-color: #050505;
+}
+#waveformCanvas, #fftCanvas {
+    flex: 1;
     height: 100%;
+    min-width: 0;
     display: block;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
 }
 
 /* Smart Tabs Section (Help / Code) */

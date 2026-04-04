@@ -2,6 +2,7 @@
  * WaveCode Keyboard Controller - 電腦鍵盤演奏模組 (對齊 SynthBlockly Stage)
  */
 import { WaveCodeAPI } from './api.js';
+import { EnvelopeManager } from './visualizer.js';
 
 // MIDI Note to Frequency (A4 = 440Hz)
 const mtof = (note) => 440 * Math.pow(2, (note - 69) / 12);
@@ -27,7 +28,8 @@ const KEY_MAP = {
     'p': 76, // E5
     '[': 77, // F5
     '=': 78, // F#5
-    ']': 79  // G5
+    ']': 79, // G5
+    '\\': 81 // A5
 };
 
 export const KeyboardController = {
@@ -79,6 +81,12 @@ export const KeyboardController = {
 
             try {
                 const instId = KeyboardController.getActiveInstrumentId();
+                
+                // --- 視覺觸發：StartHold ---
+                if (window.EnvelopeManager) {
+                    window.EnvelopeManager.triggerStart(instId);
+                }
+
                 const voiceIndex = await invoke('trigger_note', { 
                     freq: parseFloat(freq),
                     instId: instId
@@ -95,6 +103,13 @@ export const KeyboardController = {
         if (KeyboardController.activeVoices.has(key)) {
             const voiceIndex = KeyboardController.activeVoices.get(key);
             const invoke = WaveCodeAPI.getInvoke();
+            const instId = KeyboardController.getActiveInstrumentId();
+
+            // --- 視覺結束：EndHold (進入 Release) ---
+            if (window.EnvelopeManager) {
+                window.EnvelopeManager.triggerEnd(instId);
+            }
+
             if (invoke) {
                 await invoke('release_note', { index: voiceIndex });
             }
