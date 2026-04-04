@@ -56,19 +56,43 @@
             </div>
             <div id="panel-resizer" title="拖動以調整寬度"></div>
             <div id="stage-panel">
-                <!-- Oscilloscope Section -->
-                <div class="panel-section" id="waveform-section">
+                <!-- Visualizer Section -->
+                <div class="panel-section collapsible" id="waveform-section">
                     <div class="section-header">
-                        <img src="/icons/published_with_changes_24dp_75FB4C.png" class="nyx-icon-green" style="width:16px;">
-                        <span data-i18n="WAVECODE_OSCILLOSCOPE">即時分析儀</span>
+                        <img src="/icons/wave_24dp_FE2F89.png" class="nyx-icon-neon" style="width:16px;">
+                        <span data-i18n="WAVECODE_STAGE_VISUAL">示波器</span>
+                        <div class="header-actions">
+                            <div class="mini-btn toggle-section-btn" title="摺疊/展開">
+                                <img src="/icons/keyboard_double_arrow_up_24dp_FE2F89.png" class="nyx-icon-neon toggle-icon">
+                            </div>
+                        </div>
                     </div>
-                    <div id="visualizer-container" style="display: flex; height: 120px; gap: 4px; padding: 4px;">
-                        <canvas id="waveformCanvas" style="flex: 1; background: #050505; border-radius: 4px;"></canvas>
-                        <canvas id="fftCanvas" style="flex: 1; background: #050505; border-radius: 4px;"></canvas>
+                    <div class="section-content" id="visualizer-container">
+                        <canvas id="waveformCanvas"></canvas>
+                        <canvas id="fftCanvas"></canvas>
                     </div>
                 </div>
 
-                <!-- Smart Tabs Section -->
+                <!-- Log Section (Now in the middle) -->
+                <div class="panel-section collapsible" id="log-section">
+                    <div class="section-header">
+                        <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-neon" style="width:16px;">
+                        <span data-i18n="WAVECODE_STAGE_LOG">系統日誌</span>
+                        <div class="header-actions">
+                            <div id="clear-log-btn" class="mini-btn" title="清除日誌">
+                                <img src="/icons/clear_log_24dp_FE2F89.png" class="nyx-icon-neon" >
+                            </div>
+                            <div class="mini-btn toggle-section-btn" title="摺疊/展開">
+                                <img src="/icons/keyboard_double_arrow_up_24dp_FE2F89.png" class="nyx-icon-neon toggle-icon">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div id="log-container"></div>
+                    </div>
+                </div>
+
+                <!-- Smart Tabs Section (Now at the bottom, flex: 1) -->
                 <div class="panel-section" id="smart-tabs-section">
                     <div class="smart-tabs-header">
                         <div class="tab-btn active" data-tab="visual-help">
@@ -96,22 +120,6 @@
                         <div id="live-code" class="tab-pane">
                             <pre><code id="generated-code"></code></pre>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Log Section -->
-                <div class="panel-section" id="log-section">
-                    <div class="section-header">
-                        <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-neon" style="width:16px;">
-                        <span data-i18n="WAVECODE_STAGE_LOG">執行日誌</span>
-                        <div class="header-actions">
-                            <div id="clear-log-btn" class="mini-btn" title="清除日誌">
-                                <img src="/icons/clear_log_24dp_FE2F89.png" class="nyx-icon-neon" style="width:16px;">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="section-content">
-                        <div id="log-container"></div>
                     </div>
                 </div>
 

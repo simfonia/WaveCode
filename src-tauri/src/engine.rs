@@ -119,6 +119,7 @@ impl AudioEngine {
         };
 
         engine.restart()?;
+        let _ = app_handle.emit("processing-log", "WaveCode: 音訊引擎已啟動");
         
         // --- 非同步背景載入 ---
         let engine_handle = app_handle.clone();
@@ -146,7 +147,9 @@ impl AudioEngine {
                         let mut map = sample_map_arc.lock().unwrap();
                         for (id, buf) in loaded_samples { map.insert(id, buf); }
                     }
-                    println!("WaveCode: 背景載入完成 ({} 個音色)", count);
+                    let msg = format!("WaveCode: 背景載入完成 ({} 個音色)", count);
+                    println!("{}", msg);
+                    let _ = engine_handle.emit("processing-log", msg);
                     let _ = engine_handle.emit("samples_ready", count);
                 }
         });

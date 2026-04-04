@@ -111,24 +111,53 @@ export const UIUtils = {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
                 const tabId = btn.getAttribute('data-tab');
-                this.switchSmartTab(tabId);
+                UIUtils.switchSmartTab(tabId);
             };
         });
 
-        // --- 4. Log 功能 ---
-        const appendLog = (msg, type = 'info') => {
-            if (!logContainer) return;
-            const line = document.createElement('div');
-            line.className = `log-line log-${type}`;
-            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logContainer.appendChild(line);
-            logContainer.scrollTop = logContainer.scrollHeight;
+        // --- 4. Collapsible Sections (Waveform & Log) ---
+        document.querySelectorAll('.toggle-section-btn').forEach(btn => {
+            btn.onclick = () => {
+                const section = btn.closest('.panel-section');
+                if (section) {
+                    section.classList.toggle('collapsed');
+                    // 摺疊時需要通知 Blockly 重新計算空間
+                    if (window.Blockly) {
+                        const ws = Blockly.getMainWorkspace();
+                        if (ws) {
+                            setTimeout(() => Blockly.svgResize(ws), 350);
+                        }
+                    }
+                }
+            };
+        });
+
+        // --- 5. Log 功能 ---
+        window.LogManager = {
+            appendLog: (msg, type = 'info') => {
+                if (!logContainer) return;
+                
+                // 限制行數上限為 300
+                while (logContainer.children.length >= 300) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+
+                const line = document.createElement('div');
+                line.className = `log-line log-${type}`;
+                line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                logContainer.appendChild(line);
+
+                // 改用 scrollIntoView 確保捲動到最後一行
+                requestAnimationFrame(() => {
+                    line.scrollIntoView({ behavior: 'auto', block: 'end' });
+                });
+            },
+            clearLog: () => { if (logContainer) logContainer.innerHTML = ''; }
         };
 
-        const clearLog = () => { if (logContainer) logContainer.innerHTML = ''; };
-        if (clearLogBtn) clearLogBtn.onclick = clearLog;
+        if (clearLogBtn) clearLogBtn.onclick = window.LogManager.clearLog;
 
-        return { appendLog, clearLog };
+        return window.LogManager;
     },
 
     /**
@@ -296,7 +325,7 @@ export const UIUtils = {
 
             // 外部開啟按鈕
             const linkIcon = document.createElement('img');
-            linkIcon.src = '/icons/assistant_navigation_24dp_FE2F89.png';
+            linkIcon.src = '/icons/travel_explore_24dp_FE2F89.png';
             linkIcon.className = 'nyx-icon-neon';
             linkIcon.style.width = '16px';
             linkIcon.style.cursor = 'pointer';

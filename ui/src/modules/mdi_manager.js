@@ -3,6 +3,8 @@
  */
 import '../mdi.css';
 import { UIUtils } from './ui_utils.js';
+import { WaveCodeAPI } from './api.js';
+import { WaveCodeCompiler } from './compiler.js';
 
 export class MDIManager {
     constructor(toolbarManager, blocklyOptions) {
@@ -128,12 +130,16 @@ export class MDIManager {
                     this.toolbarManager.createDefaultBlocks();
                 }
 
+                // 【修正】現在 createDefaultBlocks 是同步的，可以直接掃描
+                const configs = WaveCodeCompiler.scanInstruments(workspace);
+                WaveCodeAPI.setInstruments(configs);
+
                 setTimeout(() => {
                     workspace.isClearing = false;
                     Blockly.svgResize(workspace);
                     if (this.toolbarManager.onWorkspaceChanged) this.toolbarManager.onWorkspaceChanged();
-                }, 100);
-            }, 100);
+                }, 50);
+            }, 50);
         }
         
         return tab;
@@ -161,14 +167,20 @@ export class MDIManager {
         this.elements.tabsContainer.insertBefore(tabEl, this.elements.addTabBtn);
     }
 
-    switchTab(tabId) {
+    async switchTab(tabId) {
         if (this.activeTabId === tabId) return;
+
+        // 【新增】切換分頁時停止上一個分頁的腳本執行 (安樂死機制)
+        if (WaveCodeAPI) {
+            await WaveCodeAPI.reset();
+        }
 
         if (this.activeTabId) {
             const oldTab = this.tabs.find(t => t.id === this.activeTabId);
             if (oldTab) {
                 oldTab.wrapper.classList.remove('active');
-                document.getElementById(this.activeTabId).classList.remove('active');
+                const oldTabEl = document.getElementById(this.activeTabId);
+                if (oldTabEl) oldTabEl.classList.remove('active');
             }
         }
 
@@ -184,6 +196,18 @@ export class MDIManager {
             this.toolbarManager.currentFilename = newTab.title === "未命名專案" ? "" : newTab.title;
             this.toolbarManager.isDirty = newTab.isDirty;
             this.toolbarManager.setDirty(newTab.isDirty);
+
+            // 重置 Run 按鈕狀態
+            if (this.toolbarManager.elements.runBtn) {
+                this.toolbarManager.elements.runBtn.classList.remove('is-running');
+                this.toolbarManager.isProcessing = false;
+            }
+
+            // 【新增】同步目前工作區的樂器配置到 WaveCodeAPI，確保鍵盤演奏即時生效
+            if (WaveCodeCompiler) {
+                const configs = WaveCodeCompiler.scanInstruments(newTab.workspace);
+                WaveCodeAPI.setInstruments(configs);
+            }
 
             setTimeout(() => {
                 Blockly.svgResize(newTab.workspace);

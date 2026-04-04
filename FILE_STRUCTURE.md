@@ -15,7 +15,7 @@
 - `ui/`: 前端程式碼 (Vite + JavaScript)
     - `index.html`: **雙欄即時分析儀介面 (Waveform + Spectrum)**
     - `src/main.js`: 前端主進入點，實作更新系統與設定選單
-    - `src/style.css`: IDE 樣式定義，包含 MDI 分頁與側邊面板縮放
+    - `src/style.css`: **IDE 樣式定義，包含 MDI 分頁、側邊面板縮放與雙欄視覺化佈局**
     - `src/blocks/`: Blockly 積木定義 (模組化)
     - `src/generators/javascript/`: Blockly 程式碼產生器 (模組化)
     - `src/modules/`: 功能模組
@@ -36,4 +36,4 @@
     - `work/`: 每日工作日誌
 
 ---
-*最後更新：2026-04-04 (Resource Consolidation, Help System Overhaul & MDI Stability)*
+*最後更新：2026-04-04 (Resource Consolidation, Help System Overhaul, MDI Stability & Right Panel Layout Optimization)*

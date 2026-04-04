@@ -38,7 +38,7 @@
 - **原因**：舊實作中 ADSR 參數在引擎啟動時即固定，且多聲部間的 `gate` 與 `osc` 相位沒有物理斷路。當 `gate` 在頻繁切換時，相位跳變引發了不穩定震盪。
 - **解決**：
     - **ADSR Live**：在 `Net` 中將 `adsr_live` 的輸入連往 `var(gate)` 節點。這確保了包絡線能正確響應 `gate` 的 0 -> 1 變化。
-    - **物理閘門隔離**：在每個聲部的 `Net`輸出前，強制插入一個 `product()` 節點，將最終訊號乘上 `var(gate)`。這保證了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0，消除了所有潛在的相位滲漏。
+    - **物理閘門隔離**：在每個聲部的 `Net` 輸出前，強制插入一個 `product()` 節點，將最終訊號乘上 `var(gate)`。這保證了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0，消除了所有潛在的相位滲漏。
 
 ### 3. Box<dyn AudioUnit> 的型別陷阱
 - **關鍵**：在 `Net` 中推入節點時，必須明確使用 `Box::new(node)`。例如：`net.push(Box::new(sine()))`。
@@ -98,25 +98,20 @@
         * `main.js` 註冊了 BlocklyContextMenuRegistry 的「說明」選項。
     *   **積木定義 (`audio_instruments.js`)**: 為「定義樂器」、「ADSR」、「濾鏡」積木添加 `helpUrl` 屬性。
 
-## 2026-04-04 (UI 佈局與 MDI 狀態同步深度修復)
+## 2026-04-04 (UI 佈局與狀態管理深度修復)
 
-### 1. 右側面板 CSS 特異性修復
-- **問題**：示波器收合後仍有殘留高度。
-- **成因**：`min-height` 權重高於單純的 `height`，導致 `collapsed` 類別無法完全縮小面板。
-- **修復**：使用 `:not(.collapsed)` 隔離 `min-height` 設定，並在 `.collapsed` 下強制執行 `max-height: 35px !important`。同時修正了 `height: auto` 導致日誌面板無法產生內部捲軸的問題。
-
-### 2. switchSmartTab 的 Context 綁定問題
-- **現象**：切換分頁無反應。
-- **成因**：在 `ui_utils.js` 的 `init` 迴圈中使用箭頭函式時，`this` 可能在某些異步載入情況下解析不正確。
-- **修復**：改用顯式的具名物件呼叫 `UIUtils.switchSmartTab(tabId)` 以確保穩定性。
-
-### 3. MDI 腳本安樂死 (Euthanasia) 技術
-- **問題**：切換分頁後上一分頁的異步腳本 (含有 `sleep`) 仍會繼續運行並佔用音訊聲部。
-- **修復**：在 `MDIManager.switchTab` 呼叫 `WaveCodeAPI.reset()`。這會遞增 `_execId`，使得舊分頁中正在 `sleep` 的 Promise 醒來後因 ID 不符而拋出 `Script cancelled` 異常，從而終止舊腳本。
-
-### 4. 樂器掃描同步 (Instrument Sync)
-- **問題**：新分頁建立後 PC 鍵盤無聲或使用舊樂器。
+### 1. CSS 狀態優先級與 Flex 佈局衝突
+- **問題**：面板收合後殘留高度，且展開狀態下捲軸消失。
+- **成因**：`min-height` 屬性在 CSS 權重中優先於固定 `height` 或 `max-height`。當 `#log-section` 設定了 `min-height` 時，收合狀態的 `height: 35px` 無法完全生效；同時，`height: auto` 導致容器隨內容增長而排擠 `flex: 1` 的下層元件。
 - **修復**：
-    - 將 `WaveCodeCompiler.scanInstruments` 提取為靜態工具函式。
-    - 將 `createDefaultBlocks` 改為同步 (同步建立 SVG 元素與連線)，確保在 `addNewTab` 同一事件循環內完成樂器 Patch 初始化。
-    - 在 `switchTab` 與 `addNewTab` 流程中加入強制的樂器掃描同步動作。
+    - 將 `min-height` 限制封裝在 `:not(.collapsed)` 偽類中。
+    - 在 `.collapsed` 狀態下強制執行 `max-height: 35px !important` 與 `display: none !important` (對子元素)。
+    - 恢復 `log-section` 的固定 `height: 180px` 以確保 `flex-shrink: 0` 並正確觸發 `overflow-y: auto`。
+
+### 2. JavaScript 箭頭函式與 `this` 綁定陷阱
+- **現象**：點擊分頁按鈕無法觸發 `switchSmartTab`。
+- **成因**：在 `UIUtils` (物件字面量) 的 `init` 函式中使用箭頭函式定義 `onclick` 回呼時，`this` 雖然指向 `UIUtils`，但在複雜的模組載入環境下容易產生上下文不明的問題。
+- **修復**：將回呼函式中的 `this.switchSmartTab(tabId)` 改為具名的 `UIUtils.switchSmartTab(tabId)`，確保絕對路徑呼叫，解決 MDI 環境下的分頁切換故障。
+
+### 3. 收合動畫與 DOM 結構對齊
+- **修復**：統一 `header-actions` 的 Flex 佈局，利用 `margin-left: auto` 確保動作按鈕（如清空日誌、收合）始終在右側對齊，不受標題文字長度影響。

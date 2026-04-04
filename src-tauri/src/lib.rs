@@ -2,7 +2,7 @@ mod engine;
 mod utils;
 
 use engine::{AudioEngine, Component};
-use tauri::{State, Manager};
+use tauri::{State, Manager, Emitter};
 use std::fs;
 use std::sync::Mutex;
 use std::path::PathBuf;
@@ -178,6 +178,12 @@ async fn open_url(app_handle: tauri::AppHandle, url: String) -> Result<(), Strin
     Ok(())
 }
 
+#[tauri::command]
+fn log(app_handle: tauri::AppHandle, message: String, level: String) {
+    let event_name = if level == "error" { "processing-error" } else { "processing-log" };
+    let _ = app_handle.emit(event_name, message);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -193,7 +199,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
-        set_master_volume
+        set_master_volume, log
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

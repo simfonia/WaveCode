@@ -28,7 +28,9 @@ import { Updater } from './modules/updater.js';
 
 // --- 0. 基礎初始化 ---
 UIUtils.injectNaNShield();
-const stageUI = UIUtils.initStagePanel();
+const LogManager = UIUtils.initStagePanel();
+window.LogManager = LogManager; // 確保全域可用供產生器與後端監聽使用
+
 Oscilloscope.init('waveformCanvas');
 KeyboardController.init();
 
@@ -66,7 +68,7 @@ const blocklyOptions = {
 };
 
 // --- 3. 初始化管理器 ---
-const toolbarManager = new ToolbarManager(null, stageUI);
+const toolbarManager = new ToolbarManager(null, LogManager);
 const mdiManager = new MDIManager(toolbarManager, blocklyOptions);
 toolbarManager.mdiManager = mdiManager;
 
@@ -130,9 +132,9 @@ setTimeout(async () => {
 // 監聽 Rust 端的 Log
 if (window.__TAURI__ && window.__TAURI__.event) {
     window.__TAURI__.event.listen('processing-log', (e) => {
-        stageUI.appendLog(e.payload);
+        LogManager.appendLog(e.payload);
     });
     window.__TAURI__.event.listen('processing-error', (e) => {
-        stageUI.appendLog(e.payload, 'error');
+        LogManager.appendLog(e.payload, 'error');
     });
 }

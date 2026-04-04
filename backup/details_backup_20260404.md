@@ -38,7 +38,7 @@
 - **原因**：舊實作中 ADSR 參數在引擎啟動時即固定，且多聲部間的 `gate` 與 `osc` 相位沒有物理斷路。當 `gate` 在頻繁切換時，相位跳變引發了不穩定震盪。
 - **解決**：
     - **ADSR Live**：在 `Net` 中將 `adsr_live` 的輸入連往 `var(gate)` 節點。這確保了包絡線能正確響應 `gate` 的 0 -> 1 變化。
-    - **物理閘門隔離**：在每個聲部的 `Net`輸出前，強制插入一個 `product()` 節點，將最終訊號乘上 `var(gate)`。這保證了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0，消除了所有潛在的相位滲漏。
+    - **物理閘門隔離**：在每個聲部的 `Net` 輸出前，強制插入一個 `product()` 節點，將最終訊號乘上 `var(gate)`。這保證了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0，消除了所有潛在的相位滲漏。
 
 ### 3. Box<dyn AudioUnit> 的型別陷阱
 - **關鍵**：在 `Net` 中推入節點時，必須明確使用 `Box::new(node)`。例如：`net.push(Box::new(sine()))`。
@@ -64,7 +64,7 @@
 - **結論**：為了保證教學穩定性，將 `MAX_VOICES` 限制為 **8 聲部**。對於教育用途，8 聲部已足夠應付複雜的和弦與旋律，且能確保 100% 無雜訊。
 
 ### 4. 教學用 Clipping 視覺化
-- **策略**：移除引擎內建的 `tanh`/`atan`軟限幅。
+- **策略**：移除引擎內建的 `tanh`/`atan` 軟限幅。
 - **實作**：
     - Rust 端傳送「未經過 clamp 的原始數據」與 `clipped` 旗標給前端。
     - 前端示波器在 `clipped` 為真時將波形變紅並顯示「CLIP」警訊。
@@ -97,26 +97,5 @@
 事件，觸發 `UIUtils.updateVisualHelp`。
         * `main.js` 註冊了 BlocklyContextMenuRegistry 的「說明」選項。
     *   **積木定義 (`audio_instruments.js`)**: 為「定義樂器」、「ADSR」、「濾鏡」積木添加 `helpUrl` 屬性。
-
-## 2026-04-04 (UI 佈局與 MDI 狀態同步深度修復)
-
-### 1. 右側面板 CSS 特異性修復
-- **問題**：示波器收合後仍有殘留高度。
-- **成因**：`min-height` 權重高於單純的 `height`，導致 `collapsed` 類別無法完全縮小面板。
-- **修復**：使用 `:not(.collapsed)` 隔離 `min-height` 設定，並在 `.collapsed` 下強制執行 `max-height: 35px !important`。同時修正了 `height: auto` 導致日誌面板無法產生內部捲軸的問題。
-
-### 2. switchSmartTab 的 Context 綁定問題
-- **現象**：切換分頁無反應。
-- **成因**：在 `ui_utils.js` 的 `init` 迴圈中使用箭頭函式時，`this` 可能在某些異步載入情況下解析不正確。
-- **修復**：改用顯式的具名物件呼叫 `UIUtils.switchSmartTab(tabId)` 以確保穩定性。
-
-### 3. MDI 腳本安樂死 (Euthanasia) 技術
-- **問題**：切換分頁後上一分頁的異步腳本 (含有 `sleep`) 仍會繼續運行並佔用音訊聲部。
-- **修復**：在 `MDIManager.switchTab` 呼叫 `WaveCodeAPI.reset()`。這會遞增 `_execId`，使得舊分頁中正在 `sleep` 的 Promise 醒來後因 ID 不符而拋出 `Script cancelled` 異常，從而終止舊腳本。
-
-### 4. 樂器掃描同步 (Instrument Sync)
-- **問題**：新分頁建立後 PC 鍵盤無聲或使用舊樂器。
-- **修復**：
-    - 將 `WaveCodeCompiler.scanInstruments` 提取為靜態工具函式。
-    - 將 `createDefaultBlocks` 改為同步 (同步建立 SVG 元素與連線)，確保在 `addNewTab` 同一事件循環內完成樂器 Patch 初始化。
-    - 在 `switchTab` 與 `addNewTab` 流程中加入強制的樂器掃描同步動作。
+### 4. 日誌與結構更新
+    * 更新 `FILE_STRUCTURE.md` 以反映新增的 FFT 功能、MDI 管理員、後端工具類及 ADSR 持續模式等變動。

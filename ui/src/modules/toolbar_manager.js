@@ -318,34 +318,25 @@ export class ToolbarManager {
     }
 
     createDefaultBlocks() {
-        this.workspace.isClearing = true;
-        this.workspace.clear();
-        setTimeout(() => {
-            try {
-                const inst = this.workspace.newBlock('audio_instrument');
-                inst.setFieldValue('my_piano', 'ID');
-                inst.initSvg(); inst.render(); inst.moveBy(50, 50);
-                
-                const osc = this.workspace.newBlock('audio_component_osc');
-                osc.initSvg(); osc.render();
-                inst.getInput('CHAIN').connection.connect(osc.previousConnection);
+        try {
+            const inst = this.workspace.newBlock('audio_instrument');
+            inst.setFieldValue('my_piano', 'ID');
+            inst.initSvg(); inst.render(); inst.moveBy(50, 50);
+            
+            const osc = this.workspace.newBlock('audio_component_osc');
+            osc.initSvg(); osc.render();
+            inst.getInput('CHAIN').connection.connect(osc.previousConnection);
 
-                const adsr = this.workspace.newBlock('audio_component_adsr');
-                adsr.initSvg(); adsr.render();
-                osc.nextConnection.connect(adsr.previousConnection);
+            const adsr = this.workspace.newBlock('audio_component_adsr');
+            adsr.initSvg(); adsr.render();
+            osc.nextConnection.connect(adsr.previousConnection);
 
-                const vol = this.workspace.newBlock('audio_component_volume');
-                vol.initSvg(); vol.render();
-                adsr.nextConnection.connect(vol.previousConnection);
-            } catch (e) {
-                console.warn('建立預設積木失敗:', e);
-            }
-            setTimeout(() => {
-                this.workspace.isClearing = false;
-                this.setDirty(false);
-                if (this.onWorkspaceChanged) this.onWorkspaceChanged();
-            }, 100);
-        }, 50);
+            const vol = this.workspace.newBlock('audio_component_volume');
+            vol.initSvg(); vol.render();
+            adsr.nextConnection.connect(vol.previousConnection);
+        } catch (e) {
+            console.warn('建立預設積木失敗:', e);
+        }
     }
 
     loadXMLToWorkspace(xmlText) {

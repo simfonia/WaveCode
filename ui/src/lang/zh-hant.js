@@ -17,10 +17,10 @@
     "WAVECODE_UPDATE_NONE": "目前已是最新版本",
     
     // UI 標籤
-    "WAVECODE_OSCILLOSCOPE": "即時示波器",
+    "WAVECODE_OSCILLOSCOPE": "示波器",
     "WAVECODE_HELP_TITLE": "輔助說明",
     "WAVECODE_TAB_CODE": "指令鏈 (Live Code)",
-    "WAVECODE_STAGE_LOG": "執行日誌",
+    "WAVECODE_STAGE_LOG": "系統日誌",
     "WAVECODE_HELP_HINT": "點擊積木以查看說明",
     "WAVECODE_LANG_SETTING": "語言設定",
     
