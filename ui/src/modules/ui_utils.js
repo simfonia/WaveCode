@@ -264,19 +264,25 @@ export const UIUtils = {
         setTimeout(doInject, 500);
     },
 
+    /**
+     * --- Orphan Block System (對齊 #nyx) ---
+     */
+    VALID_ROOTS: ['wc_instrument', 'wc_perform', 'wc_comment', 'procedures_defnoreturn', 'procedures_defreturn'],
+
     updateOrphanBlocks: (ws) => {
         if (!ws || ws.isDragging()) return;
-        ws.getTopBlocks().forEach(block => {
-            const isOrphan = block.type !== 'audio_instrument' && 
-                             !block.outputConnection && 
-                             !block.previousConnection;
+        ws.getTopBlocks(false).forEach(topBlock => {
+            const isOrphan = !UIUtils.VALID_ROOTS.includes(topBlock.type);
             
-            if (block.setDisabledReason) {
-                // v11+ 建議做法
-                block.setDisabledReason(isOrphan, 'orphan');
-            } else if (block.setEnabled) {
-                block.setEnabled(!isOrphan);
-            }
+            // 遞迴處理該頂層積木的所有後代
+            topBlock.getDescendants(false).forEach(block => {
+                if (block.setDisabledReason) {
+                    const hasOrphanReason = block.hasDisabledReason('orphan');
+                    if (hasOrphanReason !== isOrphan) block.setDisabledReason(isOrphan, 'orphan');
+                } else if (block.setEnabled) {
+                    block.setEnabled(!isOrphan);
+                }
+            });
         });
     },
 

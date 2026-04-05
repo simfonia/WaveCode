@@ -11,9 +11,13 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_LOGIC}',
             'colour': '%{BKY_LOGIC_HUE}',
             'contents': [
+                { 'kind': 'block', 'type': 'controls_if' },
                 { 'kind': 'block', 'type': 'logic_compare' },
                 { 'kind': 'block', 'type': 'logic_operation' },
-                { 'kind': 'block', 'type': 'logic_boolean' }
+                { 'kind': 'block', 'type': 'logic_negate' },
+                { 'kind': 'block', 'type': 'logic_boolean' },
+                { 'kind': 'block', 'type': 'logic_null' },
+                { 'kind': 'block', 'type': 'logic_ternary' }
             ]
         },
         {
@@ -27,7 +31,17 @@ export const WaveCodeToolbox = {
                     'inputs': { 'TIMES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } } }
                 },
                 { 'kind': 'block', 'type': 'controls_whileUntil' },
-                { 'kind': 'block', 'type': 'controls_for' }
+                {
+                    'kind': 'block',
+                    'type': 'controls_for',
+                    'inputs': {
+                        'FROM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
+                        'TO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } },
+                        'BY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
+                    }
+                },
+                { 'kind': 'block', 'type': 'controls_forEach' },
+                { 'kind': 'block', 'type': 'controls_flow_statements' }
             ]
         },
 
@@ -40,8 +54,24 @@ export const WaveCodeToolbox = {
             'colour': '%{BKY_MATH_HUE}',
             'contents': [
                 { 'kind': 'block', 'type': 'math_number' },
-                { 'kind': 'block', 'type': 'math_arithmetic' },
-                { 'kind': 'block', 'type': 'math_random_int' }
+                {
+                    'kind': 'block',
+                    'type': 'math_arithmetic',
+                    'inputs': {
+                        'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
+                        'B': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
+                    }
+                },
+                { 'kind': 'block', 'type': 'math_single', 'inputs': { 'NUM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 9 } } } } },
+                { 'kind': 'block', 'type': 'math_trig', 'inputs': { 'NUM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 45 } } } } },
+                { 'kind': 'block', 'type': 'math_constant' },
+                { 'kind': 'block', 'type': 'math_number_property', 'inputs': { 'NUMBER_TO_CHECK': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } } } },
+                { 'kind': 'block', 'type': 'math_round', 'inputs': { 'NUM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 3.1 } } } } },
+                { 'kind': 'block', 'type': 'math_on_list' },
+                { 'kind': 'block', 'type': 'math_modulo', 'inputs': { 'DIVIDEND': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 64 } } }, 'DIVISOR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } } } },
+                { 'kind': 'block', 'type': 'math_constrain', 'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 50 } } }, 'LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }, 'HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } } },
+                { 'kind': 'block', 'type': 'math_random_int', 'inputs': { 'FROM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }, 'TO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } } },
+                { 'kind': 'block', 'type': 'math_random_float' }
             ]
         },
         {
@@ -51,9 +81,11 @@ export const WaveCodeToolbox = {
             'contents': [
                 { 'kind': 'block', 'type': 'text' },
                 { 'kind': 'block', 'type': 'text_join' },
-                { 'kind': 'block', 'type': 'text_length' },
-                { 'kind': 'block', 'type': 'text_isEmpty' },
-                { 'kind': 'block', 'type': 'wc_text_print' }
+                { 'kind': 'block', 'type': 'text_append', 'inputs': { 'TEXT': { 'shadow': { 'type': 'text' } } } },
+                { 'kind': 'block', 'type': 'text_length', 'inputs': { 'VALUE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'abc' } } } } },
+                { 'kind': 'block', 'type': 'text_isEmpty', 'inputs': { 'VALUE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '' } } } } },
+                { 'kind': 'block', 'type': 'wc_text_print' },
+                { 'kind': 'block', 'type': 'wc_comment' }
             ]
         },
         {
@@ -77,9 +109,9 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_SOUND_SOURCES}',
             'colour': '%{BKY_SOUND_SOURCES_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'audio_instrument' },
-                { 'kind': 'block', 'type': 'audio_component_osc' },
-                { 'kind': 'block', 'type': 'audio_component_sampler' }
+                { 'kind': 'block', 'type': 'wc_instrument' },
+                { 'kind': 'block', 'type': 'wc_component_osc' },
+                { 'kind': 'block', 'type': 'wc_component_sampler' }
             ]
         },
 
@@ -89,8 +121,8 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_INSTRUMENT_CONTROL}',
             'colour': '%{BKY_INSTRUMENT_CONTROL_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'audio_component_adsr' },
-                { 'kind': 'block', 'type': 'audio_component_volume' }
+                { 'kind': 'block', 'type': 'wc_component_adsr' },
+                { 'kind': 'block', 'type': 'wc_component_volume' }
             ]
         },
 
@@ -100,7 +132,7 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_EFFECTS}',
             'colour': '%{BKY_EFFECTS_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'audio_component_filter' }
+                { 'kind': 'block', 'type': 'wc_component_filter' }
             ]
         },
 
@@ -110,38 +142,26 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_PERFORMANCE}',
             'colour': '%{BKY_PERFORMANCE_HUE}',
             'contents': [
+                { 'kind': 'block', 'type': 'wc_perform' },
                 {
                     'kind': 'block',
-                    'type': 'audio_play_note',
+                    'type': 'wc_play_note',
                     'inputs': {
-                        'FREQ': { 'shadow': { 'type': 'audio_note' } },
+                        'FREQ': { 'shadow': { 'type': 'wc_note' } },
                         'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
                     }
                 },
                 {
                     'kind': 'block',
-                    'type': 'audio_play_note_async',
+                    'type': 'wc_play_note_async',
                     'inputs': {
-                        'FREQ': { 'shadow': { 'type': 'audio_note' } },
+                        'FREQ': { 'shadow': { 'type': 'wc_note' } },
                         'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
                     }
                 },
-                { 'kind': 'block', 'type': 'audio_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
-                { 'kind': 'block', 'type': 'audio_note' },
-                { 'kind': 'block', 'type': 'audio_stop' }
-            ]
-        },
-
-        { 'kind': 'sep' },
-
-        // 7. 音訊電路 (保留)
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_AUDIO_TRAIN}',
-            'colour': '#585858',
-            'contents': [
-                { 'kind': 'block', 'type': 'audio_oscillator' },
-                { 'kind': 'block', 'type': 'audio_dac' }
+                { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
+                { 'kind': 'block', 'type': 'wc_note' },
+                { 'kind': 'block', 'type': 'wc_stop' }
             ]
         }
     ]

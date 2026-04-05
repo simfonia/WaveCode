@@ -7,7 +7,6 @@ import './lang/zh-hant.js';
 // --- 模組化積木與產生器 ---
 import './blocks/audio_instruments.js';
 import './blocks/audio_performance.js';
-import './blocks/audio_train.js';
 import './blocks/text.js';
 
 import './generators/javascript/audio_instruments.js';
@@ -54,6 +53,9 @@ const waveCodeTheme = Blockly.Theme.defineTheme('wavecode_theme', {
     }
 });
 
+// 根據設定決定是否載入捲軸插件 (預設關閉)
+const isScrollEnabled = localStorage.getItem('wavecode_scroll_options') === 'true';
+
 const blocklyOptions = {
     toolbox: WaveCodeToolbox,
     grid: { spacing: 20, length: 3, colour: '#222', snap: true },
@@ -61,10 +63,10 @@ const blocklyOptions = {
     move: { scrollbars: true, drag: true, wheel: true },
     theme: waveCodeTheme,
     renderer: 'geras',
-    plugins: {
+    plugins: isScrollEnabled ? {
         'blockDragger': scrollDragger,
         'metricsManager': scrollMetrics
-    }
+    } : {}
 };
 
 // --- 3. 初始化管理器 ---

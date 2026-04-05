@@ -33,6 +33,8 @@ struct Voice {
     gate: Shared,
     unit: Mutex<Box<dyn AudioUnit>>,
     queued_unit: Mutex<Option<Box<dyn AudioUnit>>>,
+    fade_unit: Mutex<Option<Box<dyn AudioUnit>>>, // 淡出中的舊單元
+    fade_counter: AtomicUsize,                     // 淡入淡出計數器 (採樣點數)
     reset_pending: AtomicBool,
     current_inst_id: Mutex<String>,
 }
@@ -100,12 +102,16 @@ pub struct AudioEngine {
 unsafe impl Sync for AudioEngine {}
 unsafe impl Send for AudioEngine {}
 
+const FADE_SAMPLES: usize = 512; // 約 11ms (44.1kHz)
+
 impl AudioEngine {
     pub fn new(app_handle: tauri::AppHandle) -> Result<Self, String> {
         let voices = Arc::new((0..MAX_VOICES).map(|_| Voice {
             freq: shared(0.0), gate: shared(0.0),
             unit: Mutex::new(Box::new(dc(0.0))),
             queued_unit: Mutex::new(None),
+            fade_unit: Mutex::new(None),
+            fade_counter: AtomicUsize::new(0),
             reset_pending: AtomicBool::new(false),
             current_inst_id: Mutex::new(String::new()),
         }).collect());
@@ -250,9 +256,46 @@ impl AudioEngine {
                     let mut sum = 0.0;
                     for v in voices_clone.iter() {
                         if let Ok(mut unit) = v.unit.try_lock() {
-                            if let Ok(mut q) = v.queued_unit.try_lock() { if let Some(new_unit) = q.take() { *unit = new_unit; unit.reset(); } }
+                            // 1. 處理單元切換
+                            if let Ok(mut q) = v.queued_unit.try_lock() { 
+                                if let Some(new_unit) = q.take() { 
+                                    // 將舊單元移入淡出槽，新單元上架
+                                    if let Ok(mut f) = v.fade_unit.try_lock() {
+                                        *f = Some(std::mem::replace(&mut *unit, new_unit));
+                                        v.fade_counter.store(FADE_SAMPLES, Ordering::SeqCst);
+                                    } else {
+                                        *unit = new_unit;
+                                    }
+                                    unit.reset(); 
+                                } 
+                            }
+                            
+                            // 2. 處理相位重置 (Hard Sync)
                             if v.reset_pending.swap(false, Ordering::SeqCst) { unit.reset(); }
-                            sum += unit.get_mono();
+                            
+                            // 3. 計算主要輸出與淡出混合
+                            let current_out = unit.get_mono();
+                            let fade_counter = v.fade_counter.load(Ordering::SeqCst);
+                            
+                            if fade_counter > 0 {
+                                if let Ok(mut fade_u) = v.fade_unit.try_lock() {
+                                    if let Some(f_unit) = fade_u.as_mut() {
+                                        let ratio = fade_counter as f32 / FADE_SAMPLES as f32;
+                                        // 新單元淡入 (1.0 -> 0.0 改成 0.0 -> 1.0 的混合)
+                                        // 舊單元淡出 (ratio), 新單元 (1 - ratio)
+                                        sum += current_out * (1.0 - ratio) + f_unit.get_mono() * ratio;
+                                        v.fade_counter.fetch_sub(1, Ordering::SeqCst);
+                                    } else {
+                                        sum += current_out;
+                                    }
+                                } else {
+                                    sum += current_out;
+                                }
+                            } else {
+                                // 淡出結束，清空淡出單元
+                                if let Ok(mut f) = v.fade_unit.try_lock() { *f = None; }
+                                sum += current_out;
+                            }
                         }
                     }
                     let final_raw = sum * master_vol_clone.value() as f32;

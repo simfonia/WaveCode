@@ -5,7 +5,7 @@
 
 Blockly.defineBlocksWithJsonArray([
   {
-    "type": "audio_play_note",
+    "type": "wc_play_note",
     "message0": "%{BKY_AUDIO_PLAY_NOTE}",
     "args0": [
       { "type": "input_value", "name": "FREQ", "check": "Number" },
@@ -20,10 +20,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_PLAY_NOTE_TOOLTIP}",
-    "extensions": ["audio_play_note_instrument_dropdown"]
+    "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
-    "type": "audio_play_note_async",
+    "type": "wc_play_note_async",
     "message0": "%{BKY_AUDIO_PLAY_NOTE_ASYNC}",
     "args0": [
       { "type": "input_value", "name": "FREQ", "check": "Number" },
@@ -38,10 +38,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_PLAY_NOTE_ASYNC_TOOLTIP}",
-    "extensions": ["audio_play_note_instrument_dropdown"]
+    "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
-    "type": "audio_note",
+    "type": "wc_note",
     "message0": "%{BKY_AUDIO_NOTE}",
     "args0": [
       {
@@ -58,7 +58,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "%{BKY_AUDIO_NOTE_TOOLTIP}"
   },
   {
-    "type": "audio_wait",
+    "type": "wc_wait",
     "message0": "%{BKY_AUDIO_WAIT}",
     "args0": [
       { "type": "input_value", "name": "MS", "check": "Number" }
@@ -69,20 +69,30 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "%{BKY_AUDIO_WAIT_TOOLTIP}"
   },
   {
-    "type": "audio_stop",
+    "type": "wc_stop",
     "message0": "%{BKY_AUDIO_STOP}",
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_STOP_TOOLTIP}"
+  },
+  {
+    "type": "wc_perform",
+    "message0": "%{BKY_AUDIO_PERFORM_ONCE}",
+    "args0": [
+      { "type": "input_statement", "name": "DO" }
+    ],
+    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "tooltip": "%{BKY_AUDIO_PERFORM_ONCE_TOOLTIP}",
+    "hat": true
   }
 ]);
 
-Blockly.Extensions.register('audio_play_note_instrument_dropdown', function() {
+Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
   const dropdown = this.getField('INSTRUMENT');
   dropdown.menuGenerator_ = function() {
     const workspace = dropdown.getSourceBlock().workspace;
-    const blocks = workspace.getBlocksByType('audio_instrument');
+    const blocks = workspace.getBlocksByType('wc_instrument');
     const options = blocks.map(b => {
       const id = b.getFieldValue('ID');
       return [id, id];

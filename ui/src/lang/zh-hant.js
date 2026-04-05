@@ -23,6 +23,7 @@
     "WAVECODE_STAGE_LOG": "系統日誌",
     "WAVECODE_HELP_HINT": "點擊積木以查看說明",
     "WAVECODE_LANG_SETTING": "語言設定",
+    "WAVECODE_SCROLL_OPTIONS": "自動捲動功能 (Scroll Options)",
     
     // 通用訊息
     "MSG_WARNING": "警告",
@@ -63,12 +64,6 @@
     "AUDIO_FILTER_LP": "低通",
     "AUDIO_FILTER_HP": "高通",
 
-    // 音訊電路 (火車模式)
-    "AUDIO_OSCILLATOR_TRAIN": "振盪器 (ID: %1) 波形 %2 ❯ 傳送到 %3",
-    "AUDIO_OSCILLATOR_TOOLTIP": "音訊產生的起點。ID 命名請使用英文字母、數字與下底線，不含空格並區分大小寫（如：osc1）。必須連往主輸出才能發聲。",
-    "AUDIO_DAC_TRAIN": "主輸出 (DAC)",
-    "AUDIO_DAC_TOOLTIP": "音訊傳送的終點，將聲音送往喇叭。",
-
     // 演奏指令
     "AUDIO_PLAY_NOTE": "演奏音符 頻率 %1 持續 %2 毫秒 使用樂器 %3",
     "AUDIO_PLAY_NOTE_ASYNC": "觸發音符 頻率 %1 持續 %2 毫秒 使用樂器 %3 (不等待)",
@@ -80,6 +75,8 @@
     "AUDIO_WAIT_TOOLTIP": "暫停程式執行一段時間。",
     "AUDIO_STOP": "全部靜音",
     "AUDIO_STOP_TOOLTIP": "立即關閉所有聲部的閘門並停止聲音。",
+    "AUDIO_PERFORM_ONCE": "演奏 %1",
+    "AUDIO_PERFORM_ONCE_TOOLTIP": "在背景執行一次內部的演奏積木，適合用於單次表演。多個演奏積木可同時進行多聲部合奏。",
 
     "AUDIO_WAVE_SINE": "正弦波",
     "AUDIO_WAVE_SAW": "鋸齒波",
@@ -98,6 +95,8 @@
     "FUNCTIONS_HUE": "#d22f73",
     "TEXT_HUE": "#6a8871",
     "WC_TEXT_PRINT": "列印 %1",
-    "WC_TEXT_PRINT_TOOLTIP": "將訊息輸出至瀏覽器主控台 (F12)。"
+    "WC_TEXT_PRINT_TOOLTIP": "將訊息輸出至瀏覽器主控台 (F12)。",
+    "WC_COMMENT": "註解 %1",
+    "WC_COMMENT_TOOLTIP": "這是一段不會執行的文字說明，用來標記程式碼邏輯。"
   });
 })(Blockly);

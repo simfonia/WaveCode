@@ -7,7 +7,7 @@ import { EnvelopeManager } from '../modules/visualizer.js';
 Blockly.defineBlocksWithJsonArray([
   // --- 0. 樂器定義 (C 型帽子模式) ---
   {
-    "type": "audio_instrument",
+    "type": "wc_instrument",
     "message0": "%{BKY_AUDIO_DEFINE_INSTRUMENT}",
     "args0": [
       { "type": "field_input", "name": "ID", "text": "lead_synth" }
@@ -19,12 +19,12 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}",
     "hat": "cap",
     "tooltip": "%{BKY_AUDIO_INSTRUMENT_TOOLTIP}",
-    "extensions": ["audio_instrument_dropdown_sync"]
+    "extensions": ["wc_instrument_dropdown_sync"]
   },
 
   // --- 0.1 樂器組件 ---
   {
-    "type": "audio_component_osc",
+    "type": "wc_component_osc",
     "message0": "%{BKY_AUDIO_COMP_OSC}",
     "args0": [
       {
@@ -40,7 +40,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
-    "type": "audio_component_adsr",
+    "type": "wc_component_adsr",
     "message0": "%{BKY_AUDIO_COMP_ADSR}",
     "args0": [
       { "type": "field_adsr", "name": "VISUAL", "a": 0.05, "d": 0.2, "s": 0.5, "r": 0.5 },
@@ -52,10 +52,10 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
-    "extensions": ["audio_adsr_visual_sync"]
+    "extensions": ["wc_adsr_visual_sync"]
   },
   {
-    "type": "audio_component_filter",
+    "type": "wc_component_filter",
     "message0": "%{BKY_AUDIO_COMP_FILTER}",
     "args0": [
       {
@@ -71,7 +71,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_EFFECTS_HUE}"
   },
   {
-    "type": "audio_component_volume",
+    "type": "wc_component_volume",
     "message0": "%{BKY_AUDIO_COMP_VOLUME}",
     "args0": [
       { "type": "field_number", "name": "VOL", "value": 80, "min": 0, "max": 500 }
@@ -83,7 +83,7 @@ Blockly.defineBlocksWithJsonArray([
 
   // --- 1. 核心鏈條積木 ---
   {
-    "type": "audio_oscillator",
+    "type": "wc_oscillator",
     "message0": "%{BKY_AUDIO_OSCILLATOR_TRAIN}",
     "args0": [
       { "type": "field_input", "name": "ID", "text": "osc1" },
@@ -100,7 +100,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "#585858"
   },
   {
-    "type": "audio_dac",
+    "type": "wc_dac",
     "message0": "%{BKY_AUDIO_DAC_TRAIN}",
     "output": "AudioDest",
     "colour": "#585858"
@@ -108,7 +108,7 @@ Blockly.defineBlocksWithJsonArray([
 
   // --- 2. 演奏積木 ---
   {
-    "type": "audio_play_note",
+    "type": "wc_play_note",
     "message0": "%{BKY_AUDIO_PLAY_NOTE}",
     "args0": [
       { "type": "input_value", "name": "FREQ", "check": "Number" },
@@ -123,10 +123,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_PLAY_NOTE_TOOLTIP}",
-    "extensions": ["audio_play_note_instrument_dropdown"]
+    "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
-    "type": "audio_play_note_async",
+    "type": "wc_play_note_async",
     "message0": "%{BKY_AUDIO_PLAY_NOTE_ASYNC}",
     "args0": [
       { "type": "input_value", "name": "FREQ", "check": "Number" },
@@ -141,10 +141,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_PLAY_NOTE_ASYNC_TOOLTIP}",
-    "extensions": ["audio_play_note_instrument_dropdown"]
+    "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
-    "type": "audio_note",
+    "type": "wc_note",
     "message0": "%{BKY_AUDIO_NOTE}",
     "args0": [
       {
@@ -160,7 +160,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_PERFORMANCE_HUE}"
   },
   {
-    "type": "audio_wait",
+    "type": "wc_wait",
     "message0": "%{BKY_AUDIO_WAIT}",
     "args0": [
       { "type": "input_value", "name": "MS", "check": "Number" }
@@ -170,7 +170,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_PERFORMANCE_HUE}"
   },
   {
-    "type": "audio_stop",
+    "type": "wc_stop",
     "message0": "%{BKY_AUDIO_STOP}",
     "previousStatement": null,
     "nextStatement": null,
@@ -181,12 +181,12 @@ Blockly.defineBlocksWithJsonArray([
 // --- 3. 動態擴充與邏輯 ---
 
 // 樂器 ID 同步 (用於下拉選單更新)
-Blockly.Extensions.register('audio_instrument_dropdown_sync', function() {
-  // 目前僅作為標記，選單產生器會掃描所有 audio_instrument
+Blockly.Extensions.register('wc_instrument_dropdown_sync', function() {
+  // 目前僅作為標記，選單產生器會掃描所有 wc_instrument
 });
 
 // ADSR 組件與 SVG 預覽同步
-Blockly.Extensions.register('audio_adsr_visual_sync', function() {
+Blockly.Extensions.register('wc_adsr_visual_sync', function() {
   const block = this;
   
   const updateVisual = () => {
@@ -201,7 +201,7 @@ Blockly.Extensions.register('audio_adsr_visual_sync', function() {
     
     // 註冊到 EnvelopeManager (由所屬的樂器 ID 決定)
     let parent = block.getSurroundParent();
-    while (parent && parent.type !== 'audio_instrument') {
+    while (parent && parent.type !== 'wc_instrument') {
       parent = parent.getSurroundParent();
     }
     if (parent) {
@@ -220,11 +220,11 @@ Blockly.Extensions.register('audio_adsr_visual_sync', function() {
   setTimeout(updateVisual, 100);
 });
 
-Blockly.Extensions.register('audio_play_note_instrument_dropdown', function() {
+Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
   const dropdown = this.getField('INSTRUMENT');
   dropdown.menuGenerator_ = function() {
     const workspace = dropdown.getSourceBlock().workspace;
-    const blocks = workspace.getBlocksByType('audio_instrument');
+    const blocks = workspace.getBlocksByType('wc_instrument');
     const options = blocks.map(b => {
       const id = b.getFieldValue('ID');
       return [id, id];

@@ -122,8 +122,15 @@ export class ToolbarManager {
             // 1. 編譯樂器配置
             await WaveCodeCompiler.compileAndRun(this.workspace);
 
-            // 2. 生成並執行腳本
-            const rawCode = Blockly.JavaScript.workspaceToCode(this.workspace);
+            // 2. 生成並執行腳本 (確保包含所有頂層積木)
+            let rawCode = '';
+            const topBlocks = this.workspace.getTopBlocks(true);
+            topBlocks.forEach(block => {
+                if (block.type === 'wc_instrument') return; // 跳過定義型積木
+                const code = Blockly.JavaScript.blockToCode(block);
+                if (code) rawCode += code + '\n';
+            });
+
             const finalCode = `
                 const _id = WaveCode.getCurrentId();
                 try {
@@ -236,6 +243,10 @@ export class ToolbarManager {
     setupSettingsMenu() {
         this.menus.settings.innerHTML = `
             <div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span data-i18n="WAVECODE_RESTART_AUDIO">重啟音訊</span></div>
+            <div class="dropdown-item" id="toggle-scroll-item">
+                <span class="scroll-check" style="width:20px; display:inline-block;"></span>
+                <span data-i18n="WAVECODE_SCROLL_OPTIONS">進階捲軸功能</span>
+            </div>
             <div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span data-i18n="WAVECODE_LANG_SETTING">語言設定</span><span class="arrow">▶</span></div>
             <div class="submenu">
                 <div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div>
@@ -248,6 +259,16 @@ export class ToolbarManager {
             if (restartBtn) {
                 await WaveCodeAPI.restartAudio();
                 this.menus.settings.classList.remove('show');
+            }
+
+            const scrollBtn = e.target.closest('#toggle-scroll-item');
+            if (scrollBtn) {
+                const current = localStorage.getItem('wavecode_scroll_options') === 'true';
+                localStorage.setItem('wavecode_scroll_options', !current);
+                this.updateScrollOptionsCheck(!current);
+                // 提示使用者
+                if (this.stageUI) this.stageUI.appendLog('捲軸設定已更新，重啟軟體後生效');
+                e.stopPropagation();
             }
 
             const langItem = e.target.closest('.lang-item');
@@ -272,6 +293,17 @@ export class ToolbarManager {
         const selectedEl = this.menus.settings.querySelector(`.lang-item[data-lang="${lang}"] .lang-check`);
         if (selectedEl) {
             selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" class="nyx-icon-neon" style="width: 16px;">`;
+        }
+        
+        // 同時更新 Scroll Options 勾選狀態
+        const isScrollEnabled = localStorage.getItem('wavecode_scroll_options') === 'true';
+        this.updateScrollOptionsCheck(isScrollEnabled);
+    }
+
+    updateScrollOptionsCheck(enabled) {
+        const checkEl = this.menus.settings.querySelector('.scroll-check');
+        if (checkEl) {
+            checkEl.innerHTML = enabled ? `<img src="/icons/done_24dp_FE2F89.png" class="nyx-icon-neon" style="width: 16px;">` : '';
         }
     }
 
@@ -319,19 +351,19 @@ export class ToolbarManager {
 
     createDefaultBlocks() {
         try {
-            const inst = this.workspace.newBlock('audio_instrument');
+            const inst = this.workspace.newBlock('wc_instrument');
             inst.setFieldValue('my_piano', 'ID');
             inst.initSvg(); inst.render(); inst.moveBy(50, 50);
             
-            const osc = this.workspace.newBlock('audio_component_osc');
+            const osc = this.workspace.newBlock('wc_component_osc');
             osc.initSvg(); osc.render();
             inst.getInput('CHAIN').connection.connect(osc.previousConnection);
 
-            const adsr = this.workspace.newBlock('audio_component_adsr');
+            const adsr = this.workspace.newBlock('wc_component_adsr');
             adsr.initSvg(); adsr.render();
             osc.nextConnection.connect(adsr.previousConnection);
 
-            const vol = this.workspace.newBlock('audio_component_volume');
+            const vol = this.workspace.newBlock('wc_component_volume');
             vol.initSvg(); vol.render();
             adsr.nextConnection.connect(vol.previousConnection);
         } catch (e) {
@@ -345,7 +377,7 @@ export class ToolbarManager {
         const dom = Blockly.utils.xml.textToDom(xmlText);
         Blockly.Xml.domToWorkspace(dom, this.workspace);
         
-        this.workspace.getBlocksByType('audio_instrument').forEach(b => {
+        this.workspace.getBlocksByType('wc_instrument').forEach(b => {
             const id = b.getFieldValue('ID');
             const visual = b.getField('VISUAL');
             if (id && visual && window.EnvelopeManager) {

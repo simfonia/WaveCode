@@ -8,7 +8,7 @@ import { EnvelopeManager } from '../modules/visualizer.js';
 Blockly.defineBlocksWithJsonArray([
   // --- 0. 樂器定義 (C 型帽子模式) ---
   {
-    "type": "audio_instrument",
+    "type": "wc_instrument",
     "message0": "%{BKY_AUDIO_DEFINE_INSTRUMENT}",
     "args0": [
       { "type": "field_input", "name": "ID", "text": "my_piano" }
@@ -21,12 +21,12 @@ Blockly.defineBlocksWithJsonArray([
     "hat": "cap",
     "tooltip": "%{BKY_AUDIO_INSTRUMENT_TOOLTIP}",
     "helpUrl": "sound_sources",
-    "extensions": ["audio_instrument_dropdown_sync"]
+    "extensions": ["wc_instrument_dropdown_sync"]
   },
 
   // --- 0.1 樂器組件 ---
   {
-    "type": "audio_component_osc",
+    "type": "wc_component_osc",
     "message0": "%{BKY_AUDIO_COMP_OSC}",
     "args0": [
       {
@@ -42,7 +42,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
-    "type": "audio_component_sampler",
+    "type": "wc_component_sampler",
     "message0": "%{BKY_AUDIO_COMP_SAMPLER}",
     "args0": [
       {
@@ -71,7 +71,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
-    "type": "audio_component_adsr",
+    "type": "wc_component_adsr",
     "message0": "%{BKY_AUDIO_COMP_ADSR}",
     "args0": [
       { "type": "field_adsr", "name": "VISUAL", "a": 0.05, "d": 0.2, "s": 0.5, "r": 0.5 },
@@ -84,10 +84,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
     "helpUrl": "adsr",
-    "extensions": ["audio_adsr_visual_sync"]
+    "extensions": ["wc_adsr_visual_sync"]
   },
   {
-    "type": "audio_component_filter",
+    "type": "wc_component_filter",
     "message0": "%{BKY_AUDIO_COMP_FILTER}",
     "args0": [
       {
@@ -104,7 +104,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "effects"
   },
   {
-    "type": "audio_component_volume",
+    "type": "wc_component_volume",
     "message0": "%{BKY_AUDIO_COMP_VOLUME}",
     "args0": [
       { "type": "field_number", "name": "VOL", "value": 80, "min": 0, "max": 500 }
@@ -117,9 +117,9 @@ Blockly.defineBlocksWithJsonArray([
 
 // --- Extensions ---
 
-Blockly.Extensions.register('audio_instrument_dropdown_sync', function() {});
+Blockly.Extensions.register('wc_instrument_dropdown_sync', function() {});
 
-Blockly.Extensions.register('audio_adsr_visual_sync', function() {
+Blockly.Extensions.register('wc_adsr_visual_sync', function() {
   const block = this;
   const updateVisual = () => {
     const a = parseFloat(block.getFieldValue('A'));
@@ -129,7 +129,7 @@ Blockly.Extensions.register('audio_adsr_visual_sync', function() {
     const visualField = block.getField('VISUAL');
     if (visualField) { visualField.updateParams(a, d, s, r); }
     let parent = block.getSurroundParent();
-    while (parent && parent.type !== 'audio_instrument') { parent = parent.getSurroundParent(); }
+    while (parent && parent.type !== 'wc_instrument') { parent = parent.getSurroundParent(); }
     if (parent && window.EnvelopeManager) {
       window.EnvelopeManager.register(parent.getFieldValue('ID'), visualField);
     }
