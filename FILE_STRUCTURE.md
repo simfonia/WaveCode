@@ -17,15 +17,14 @@
     - `src/blocks/`: Blockly 積木定義 (含 wc_create_additive_synth 與 Mutator)
     - `src/modules/`: 功能模組
         - `audio/`: **[新增] Web Audio API 核心引擎**
-            - `manager.js`: 核心音訊管理員與 Context 控制
-            - `voice.js`: 單一發聲通道生命週期封裝 (含 ADSR)
-            - `factory.js`: 積木 Patch 到 Web Audio Node 的轉換工廠
+            - `manager.js`: 核心管理員 (支援背景預載與 Context 持久化)
+            - `voice.js`: 聲部封裝 (含 ADSR 邏輯與數值安全檢查)
+            - `factory.js`: 節點工廠 (支援音名頻率自動轉換與多重取樣尋找)
             - `visualizer.js`: 實時分析儀資料提取器
-        - `api.js`: **[更新] 轉發音訊指令至前端 AudioManager**
-        - `compiler.js`: **[更新] 針對 Web Audio 模式的最佳化編譯器**
-        - `visualizer.js`: **[更新] UI 示波器繪圖 (監聽本地事件，視覺聽覺 100% 同步)**
+        - `api.js`: **[更新] 旋律解析 (支援連結線/附點/三連音) 與 ADSR 視覺化聯動**
+        - `ui_utils.js`: **[更新] IME 中文搜尋優化與 Unicode 正規化索引**
         - (其餘模組保持穩定...)
-    - `src/lang/`: i18n 語系檔 (補齊加法合成器標籤)
+        - `src/lang/`: i18n 語系檔 (更新演奏音符與音名標籤)
 
----
-*最後更新：2026-04-05 (Audio Engine Migration to Web Audio API, Modular Refactoring)*
+        ---
+        *最後更新：2026-04-06 (Melody Parser Refactor, IME Search Optimization, Background Loading)*

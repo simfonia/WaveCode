@@ -1,0 +1,167 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_comment" id="wrTi|%7mBWc^|t-BR+18" x="10" y="10">
+    <field name="COMMENT">此範例展示如何「設計音色」&amp;#10;&amp;#10;1. 樂器定義：&amp;#10;- 我們建立了6種樂器：&amp;#10;   Violin, Horn, Harpsichord, Electronic synthesizer, Bell 與 Scary 。&amp;#10;2. 即時切換樂器：&amp;#10;- 使用PC 鍵盤請用左右方向鍵切換樂器。&amp;#10;3. 塑造音色&amp;#10;- 定義波形：使用四種基本波形發聲。注意低頻正弦波可能無法從小型喇叭發聲。&amp;#10;- 諧波合成器：由整數倍頻疊加而成，聲音和諧。&amp;#10;- 加法合成器：包含非整數倍率，會產生不和諧的金屬撞擊感。&amp;#10;- 各別樂器的 ADSR 可分別在&lt;定義樂器&gt;積木內定義。</field>
+  </block>
+  <block type="wc_instrument" id="yk~Y:-93*{6Rrw!m%kP;" x="10" y="290">
+    <field name="ID">Violin</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="z[ySQ(qjv--6O$=ro52x">
+        <field name="WAVE">1</field>
+        <next>
+          <block type="wc_component_adsr" id="H_$oFGKWZy8YHdS1O8|,">
+            <field name="A">0.5</field>
+            <field name="D">0</field>
+            <field name="S">1</field>
+            <field name="R">0.5</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="wo%jVNt7gFMBh@E0Hmts" x="10" y="470">
+    <field name="ID">Horn</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id=";n}S~Ms9fyOpNnP1_Y:@">
+        <mutation items="5"></mutation>
+        <field name="WAVE1">0</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">0</field>
+        <field name="RATIO2">2</field>
+        <field name="AMP2">0.5</field>
+        <field name="WAVE3">0</field>
+        <field name="RATIO3">3</field>
+        <field name="AMP3">0.33</field>
+        <field name="WAVE4">0</field>
+        <field name="RATIO4">4</field>
+        <field name="AMP4">0.25</field>
+        <field name="WAVE5">0</field>
+        <field name="RATIO5">5</field>
+        <field name="AMP5">0.2</field>
+        <next>
+          <block type="wc_component_adsr" id="Kx|~PqIv*^bjddoo8na@">
+            <field name="A">0.1</field>
+            <field name="D">0.1</field>
+            <field name="S">0.7</field>
+            <field name="R">0.2</field>
+            <next>
+              <block type="wc_component_volume" id="7S~Sg[~uv-p_f.}rEK^7">
+                <field name="VOL">70</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="L:Gw7n-USZ4;NsqG@9=9" x="10" y="810">
+    <field name="ID">Harpsichord</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id="mvR^[6Z;(//,z19y`%T5">
+        <mutation items="3"></mutation>
+        <field name="WAVE1">2</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">2</field>
+        <field name="RATIO2">2</field>
+        <field name="AMP2">0.5</field>
+        <field name="WAVE3">2</field>
+        <field name="RATIO3">5</field>
+        <field name="AMP3">0.33</field>
+        <next>
+          <block type="wc_component_adsr" id="D.*cG7|WNQZY8AG{+,_q">
+            <field name="A">0.01</field>
+            <field name="D">0.3</field>
+            <field name="S">0</field>
+            <field name="R">0.3</field>
+            <next>
+              <block type="wc_component_volume" id="eG2(.Ivh%cg#iF`I_Yyp">
+                <field name="VOL">70</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="uQDe@6,wG@buf$d:0Lo=" x="10" y="1090">
+    <field name="ID">Electronic synthesizer</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id="9~8~C*w(YwjGwPI/GUxp">
+        <mutation items="3"></mutation>
+        <field name="WAVE1">2</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">1</field>
+        <field name="RATIO2">2</field>
+        <field name="AMP2">0.5</field>
+        <field name="WAVE3">3</field>
+        <field name="RATIO3">0.5</field>
+        <field name="AMP3">0.2</field>
+        <next>
+          <block type="wc_component_adsr" id="]wfq:Ii{6e(*|(zu}]]O">
+            <field name="A">0.2</field>
+            <field name="D">0</field>
+            <field name="S">1</field>
+            <field name="R">0.5</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="kcmo53J6PYv::crkD}9e" x="10" y="1350">
+    <field name="ID">Bell</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id="t3n_/n`;y*7urV;H75,#">
+        <mutation items="3"></mutation>
+        <field name="WAVE1">0</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">0</field>
+        <field name="RATIO2">2.76</field>
+        <field name="AMP2">0.3</field>
+        <field name="WAVE3">0</field>
+        <field name="RATIO3">5.4</field>
+        <field name="AMP3">0.2</field>
+        <next>
+          <block type="wc_component_adsr" id="g|s!%gip9%.tpU]0(9:$">
+            <field name="A">0.01</field>
+            <field name="D">0.1</field>
+            <field name="S">0.7</field>
+            <field name="R">2</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="Yw5($T`U8q-p5MX@*n77" x="10" y="1610">
+    <field name="ID">Scary</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id="Np(Do}+[!@krV`/i0]/]">
+        <mutation items="3"></mutation>
+        <field name="WAVE1">0</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">0</field>
+        <field name="RATIO2">1.3</field>
+        <field name="AMP2">0.7</field>
+        <field name="WAVE3">0</field>
+        <field name="RATIO3">0.7</field>
+        <field name="AMP3">1</field>
+        <next>
+          <block type="wc_component_adsr" id="QoOWM{.@M~a78s!NvB$D">
+            <field name="A">0.01</field>
+            <field name="D">0.1</field>
+            <field name="S">0.5</field>
+            <field name="R">1</field>
+            <next>
+              <block type="wc_component_volume" id="-H{{O6s{.6mWgS%3E$[!">
+                <field name="VOL">70</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -147,6 +147,15 @@ export class MDIManager {
         return tab;
     }
 
+    /**
+     * 獲取目前啟動中的工作區
+     */
+    getActiveWorkspace() {
+        if (!this.activeTabId) return null;
+        const tab = this.tabs.find(t => t.id === this.activeTabId);
+        return tab ? tab.workspace : null;
+    }
+
     renderTab(tab) {
         const tabEl = document.createElement('div');
         tabEl.className = 'mdi-tab';

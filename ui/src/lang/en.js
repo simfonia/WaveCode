@@ -78,6 +78,19 @@
     "AUDIO_STOP": "stop all sounds",
     "AUDIO_STOP_TOOLTIP": "Immediately release all voices and stop sound.",
 
+    "AUDIO_SET_BPM": "set tempo (BPM) %1",
+    "AUDIO_SET_BPM_TOOLTIP": "Set global playback tempo. Affects beat duration in 'play melody'.",
+    "AUDIO_SELECT_INSTRUMENT": "select instrument %1",
+    "AUDIO_SELECT_INSTRUMENT_TOOLTIP": "Set the default instrument for subsequent performance commands.",
+    "AUDIO_PLAY_MELODY": "play melody %1 using instrument %2",
+    "AUDIO_PLAY_MELODY_SCORE": "score %1",
+    "AUDIO_PLAY_MELODY_TOOLTIP": "Play a sequence of notes. Example: C4Q (Quarter), E4H (Half), G4W (Whole).",
+
+    "AUDIO_DEFINE_CHORD": "define chord name %1 notes (comma separated) %2",
+    "AUDIO_DEFINE_CHORD_TOOLTIP": "Define a set of notes as a name, which can later be played with 'play chord' block. Format: C4, E4, G4 etc.",
+    "AUDIO_PLAY_CHORD": "play chord %1 dur %2 ms using instrument %3",
+    "AUDIO_PLAY_CHORD_TOOLTIP": "Simultaneously play all notes in a defined chord. This is a synchronous command and will wait for the duration to end.",
+
     "AUDIO_WAVE_SINE": "Sine",
     "AUDIO_WAVE_SAW": "Sawtooth",
     "AUDIO_WAVE_SQUARE": "Square",

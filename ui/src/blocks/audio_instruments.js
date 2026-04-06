@@ -42,6 +42,31 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
+    "type": "wc_create_additive_synth",
+    "message0": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH}",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "tooltip": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "mutator": "wc_additive_mutator",
+    "helpUrl": "custom_synth"
+  },
+  {
+    "type": "wc_additive_synth_container",
+    "message0": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH_CONTAINER}",
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "enableContextMenu": false
+  },
+  {
+    "type": "wc_additive_synth_item",
+    "message0": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH_ITEM}",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "enableContextMenu": false
+  },
+  {
     "type": "wc_component_sampler",
     "message0": "%{BKY_AUDIO_COMP_SAMPLER}",
     "args0": [
@@ -70,31 +95,6 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
-  },
-  {
-    "type": "wc_create_additive_synth",
-    "message0": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH}",
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "%{BKY_SOUND_SOURCES_HUE}",
-    "tooltip": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH_TOOLTIP}%{BKY_HELP_HINT}",
-    "mutator": "wc_additive_mutator",
-    "helpUrl": "custom_synth"
-  },
-  {
-    "type": "wc_additive_synth_container",
-    "message0": "加法合成器",
-    "nextStatement": null,
-    "colour": "%{BKY_SOUND_SOURCES_HUE}",
-    "enableContextMenu": false
-  },
-  {
-    "type": "wc_additive_synth_item",
-    "message0": "分音",
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "%{BKY_SOUND_SOURCES_HUE}",
-    "enableContextMenu": false
   },
   {
     "type": "wc_component_adsr",

@@ -73,6 +73,7 @@ const blocklyOptions = {
 const toolbarManager = new ToolbarManager(null, LogManager);
 const mdiManager = new MDIManager(toolbarManager, blocklyOptions);
 toolbarManager.mdiManager = mdiManager;
+WaveCodeAPI.mdiManager = mdiManager; // 讓 KeyboardController 能全域存取工作區
 
 // --- 3.1 鍵盤控制器綁定快速鍵 ---
 KeyboardController.init(
@@ -162,3 +163,12 @@ if (window.__TAURI__ && window.__TAURI__.event) {
         LogManager.appendLog(e.payload, 'error');
     });
 }
+
+// --- 6. 背景預加載音訊引擎 ---
+setTimeout(() => {
+    if (WaveCodeAPI && WaveCodeAPI.AudioManager) {
+        WaveCodeAPI.AudioManager.init().catch(err => {
+            console.warn("WaveCode: 背景初始化音訊失敗 (可能需要使用者點擊頁面後才能啟動)", err);
+        });
+    }
+}, 1000);

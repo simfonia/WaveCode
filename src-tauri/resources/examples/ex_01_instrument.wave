@@ -47,7 +47,8 @@
         <field name="INSTRUMENT">piano</field>
         <value name="FREQ">
           <block type="wc_note" id=")~:YQ0_#gD]HZyQ[Px#P">
-            <field name="NOTE">261.63</field>
+            <field name="NOTE">C</field>
+            <field name="OCTAVE">4</field>
           </block>
         </value>
         <value name="DUR">
@@ -60,7 +61,8 @@
             <field name="INSTRUMENT">violin</field>
             <value name="FREQ">
               <block type="wc_note" id="+|Qh!@|zKfy|(SKYX2gh">
-                <field name="NOTE">329.63</field>
+                <field name="NOTE">E</field>
+                <field name="OCTAVE">4</field>
               </block>
             </value>
             <value name="DUR">
@@ -73,7 +75,8 @@
                 <field name="INSTRUMENT">violin</field>
                 <value name="FREQ">
                   <block type="wc_note" id="8Pi9{oUkKaGIc#lJmx*,">
-                    <field name="NOTE">392.00</field>
+                    <field name="NOTE">G</field>
+                    <field name="OCTAVE">4</field>
                   </block>
                 </value>
                 <value name="DUR">
@@ -86,7 +89,8 @@
                     <field name="INSTRUMENT">piano</field>
                     <value name="FREQ">
                       <shadow type="wc_note" id="x@TisZDMn:wV6?ks#[T*">
-                        <field name="NOTE">261.63</field>
+                        <field name="NOTE">C</field>
+                        <field name="OCTAVE">4</field>
                       </shadow>
                     </value>
                     <value name="DUR">
@@ -99,7 +103,8 @@
                         <field name="INSTRUMENT">piano</field>
                         <value name="FREQ">
                           <shadow type="wc_note" id="GlZ|.O8,CnOY6%j,)ycS">
-                            <field name="NOTE">329.63</field>
+                            <field name="NOTE">E</field>
+                            <field name="OCTAVE">4</field>
                           </shadow>
                         </value>
                         <value name="DUR">
@@ -112,7 +117,8 @@
                             <field name="INSTRUMENT">piano</field>
                             <value name="FREQ">
                               <shadow type="wc_note" id=".v`E9!m:0)ssj3pT$=z$">
-                                <field name="NOTE">392.00</field>
+                                <field name="NOTE">G</field>
+                                <field name="OCTAVE">4</field>
                               </shadow>
                             </value>
                             <value name="DUR">

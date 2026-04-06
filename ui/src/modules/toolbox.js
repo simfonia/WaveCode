@@ -111,8 +111,8 @@ export const WaveCodeToolbox = {
             'contents': [
                 { 'kind': 'block', 'type': 'wc_instrument' },
                 { 'kind': 'block', 'type': 'wc_component_osc' },
-                { 'kind': 'block', 'type': 'wc_component_sampler' },
-                { 'kind': 'block', 'type': 'wc_create_additive_synth' }
+                { 'kind': 'block', 'type': 'wc_create_additive_synth' },
+                { 'kind': 'block', 'type': 'wc_component_sampler' }
             ]
         },
 
@@ -143,7 +143,16 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_PERFORMANCE}',
             'colour': '%{BKY_PERFORMANCE_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'wc_perform' },
+                { 'kind': 'block', 'type': 'wc_init' },  // 初始化
+                { 'kind': 'block', 'type': 'wc_perform' },  // 演奏
+                {
+                    'kind': 'block',
+                    'type': 'wc_transport_set_bpm',  // 設定 BPM
+                    'inputs': {
+                        'BPM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 120 } } }
+                    }
+                },
+                { 'kind': 'block', 'type': 'wc_select_current_instrument' },  // 選擇樂器
                 {
                     'kind': 'block',
                     'type': 'wc_play_note',
@@ -157,6 +166,15 @@ export const WaveCodeToolbox = {
                     'type': 'wc_play_note_async',
                     'inputs': {
                         'FREQ': { 'shadow': { 'type': 'wc_note' } },
+                        'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
+                    }
+                },
+                { 'kind': 'block', 'type': 'wc_play_melody' },
+                { 'kind': 'block', 'type': 'wc_define_chord' },
+                {
+                    'kind': 'block',
+                    'type': 'wc_play_chord',
+                    'inputs': {
                         'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
                     }
                 },

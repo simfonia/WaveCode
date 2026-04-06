@@ -7,12 +7,17 @@ export const NodeFactory = {
      * 建立節點
      * @param {AudioContext} ctx 上下文
      * @param {Object} comp 組件定義
-     * @param {number} baseFreq 基礎頻率
+     * @param {number|string} freqOrNote 基礎頻率或音名
      * @param {AudioNode} lastNode 上一個節點
      * @param {number} startTime 啟動時間
      */
-    create(ctx, comp, baseFreq, lastNode, startTime) {
-        const time = startTime || ctx.currentTime;
+    create(ctx, comp, freqOrNote, lastNode, startTime) {
+        let baseFreq = parseFloat(freqOrNote);
+        if (isNaN(baseFreq)) {
+            baseFreq = this.noteToFreq(freqOrNote);
+        }
+        
+        const time = (typeof startTime === 'number' && isFinite(startTime)) ? startTime : ctx.currentTime;
 
         switch (comp.type) {
             case 'osc': {
@@ -31,7 +36,7 @@ export const NodeFactory = {
                     osc.type = ['sine', 'sawtooth', 'square', 'triangle'][p.wave] || 'sine';
                     osc.frequency.setValueAtTime(baseFreq * p.ratio, time);
                     const pGain = ctx.createGain();
-                    pGain.gain.setValueAtTime(p.amp, time);
+                    pGain.gain.setValueAtTime(p.amp || 0, time);
                     osc.connect(pGain);
                     pGain.connect(groupGain);
                     osc.start(time);
@@ -42,11 +47,15 @@ export const NodeFactory = {
 
             case 'adsr': {
                 const env = ctx.createGain();
+                const a = comp.a || 0.01;
+                const d = comp.d || 0.1;
+                const s = (typeof comp.s === 'number') ? comp.s : 0.5;
+
                 env.gain.setValueAtTime(0, time);
                 // Attack
-                env.gain.linearRampToValueAtTime(1, time + comp.a);
+                env.gain.linearRampToValueAtTime(1, time + a);
                 // Decay to Sustain
-                env.gain.linearRampToValueAtTime(comp.s, time + comp.a + comp.d);
+                env.gain.linearRampToValueAtTime(s, time + a + d);
                 
                 if (lastNode) lastNode.connect(env);
                 return { nodes: [env], output: env, isEnv: true };
@@ -55,7 +64,7 @@ export const NodeFactory = {
             case 'filter': {
                 const filter = ctx.createBiquadFilter();
                 filter.type = (comp.kind === 'HP') ? 'highpass' : 'lowpass';
-                filter.frequency.setValueAtTime(comp.freq, time);
+                filter.frequency.setValueAtTime(comp.freq || 1000, time);
                 filter.Q.setValueAtTime(comp.q || 1, time);
                 
                 if (lastNode) lastNode.connect(filter);
@@ -64,7 +73,7 @@ export const NodeFactory = {
 
             case 'volume': {
                 const gain = ctx.createGain();
-                gain.gain.setValueAtTime(comp.val, time);
+                gain.gain.setValueAtTime(comp.val || 0, time);
                 if (lastNode) lastNode.connect(gain);
                 return { nodes: [gain], output: gain };
             }
@@ -99,14 +108,13 @@ export const NodeFactory = {
                 source.playbackRate.setValueAtTime(playbackRate, time);
                 
                 // --- 音量補償層 ---
-                // 取樣通常比合成器小聲，在此加入補償增益 (預設 3.0 倍)
                 const compensationGain = ctx.createGain();
                 compensationGain.gain.setValueAtTime(3.0, time);
                 source.connect(compensationGain);
 
                 source.start(time);
 
-                if (lastNode) lastNode.connect(source); // 支援鏈式輸入
+                if (lastNode) lastNode.connect(source); 
 
                 return { nodes: [source, compensationGain], output: compensationGain };
             }
@@ -114,6 +122,15 @@ export const NodeFactory = {
             default:
                 return null;
         }
+    },
+
+    /**
+     * 音名轉頻率
+     */
+    noteToFreq(name) {
+        if (!name || typeof name !== 'string') return 440;
+        const midi = this.noteToMidi(name);
+        return 440 * Math.pow(2, (midi - 69) / 12);
     },
 
     /**

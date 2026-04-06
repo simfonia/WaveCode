@@ -1,0 +1,92 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_comment" id="IVayh8Na+d`if|D?fl^]" x="10" y="10">
+    <field name="COMMENT">此範例展示如何「演奏旋律與和弦」&amp;#10;&amp;#10;1. 【定義樂器】：Piano&amp;#10;2. 【定義和弦】&amp;#10;3. 使用【演奏旋律】進行旋律線</field>
+  </block>
+  <block type="wc_instrument" id="QBxK[Gwk24naGtcV{eNZ" x="10" y="150">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="p/~Q24^c^)|~:9P(bx(L">
+        <field name="WAVE">3</field>
+        <next>
+          <block type="wc_component_adsr" id="b*GC!l23i{%.F+)k7%br">
+            <field name="A">0.01</field>
+            <field name="D">0.1</field>
+            <field name="S">0.5</field>
+            <field name="R">2</field>
+            <next>
+              <block type="wc_component_volume" id="lGA3W1Mz|zvp8h[,+1}6">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id=".SJ$~_1ChTcr*psD`Z3$" x="10" y="350">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="yNr!22a3M^]=3r9+I6q7">
+        <value name="BPM">
+          <shadow type="math_number" id="[Dm?SGi|,Fp?z|Ut65(W">
+            <field name="NUM">90</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_select_current_instrument" id="i/~Eca;m|!3Q/_g4YzOc">
+            <field name="INSTRUMENT">Piano</field>
+            <next>
+              <block type="wc_define_chord" id="i+{Hhqn^0[}Usww({bme">
+                <field name="NAME">CM7</field>
+                <field name="NOTES">C4,E4,G4,B4</field>
+                <next>
+                  <block type="wc_define_chord" id="!sz$Jo0/O-?iLZd,;Nk3">
+                    <field name="NAME">Dm</field>
+                    <field name="NOTES">D4,F4,A4</field>
+                    <next>
+                      <block type="wc_define_chord" id="AYYXkiwyFcF_EO[Z}:Xs">
+                        <field name="NAME">FM7</field>
+                        <field name="NOTES">F3,A3,E4</field>
+                        <next>
+                          <block type="wc_define_chord" id="{E~X7i09m6=20p2!2E4!">
+                            <field name="NAME">FMadd6_C</field>
+                            <field name="NOTES">C4,D4,F4,A4</field>
+                            <next>
+                              <block type="wc_define_chord" id="O*id58Br4.C*fUi9$9]Z">
+                                <field name="NAME">Bdim</field>
+                                <field name="NOTES">B3,D4,F4,A4</field>
+                                <next>
+                                  <block type="wc_define_chord" id="^2;{#;l}H6?uR2l$fpn9">
+                                    <field name="NAME">GMaj</field>
+                                    <field name="NOTES">G5,B5,D4</field>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="fx|D3Qjma/h*m%SI;2VW" x="10" y="630">
+    <statement name="DO">
+      <block type="wc_play_melody" id="4}vnVM|:[!lDIq7/9fNF">
+        <field name="INSTRUMENT">Piano</field>
+        <field name="MELODY">RQ   C4Q D4Q.   E4E &amp;#10;CM7H.+E              RE&amp;#10;RQ C5Q B4Q.  G4E&amp;#10;DmH      FM7H</field>
+        <next>
+          <block type="wc_play_melody" id="/[VJs|yI~a}PA+E20m]B">
+            <field name="INSTRUMENT">Piano</field>
+            <field name="MELODY">RH   A3Q_T B3Q_T C4Q_T  &amp;#10;DmQ.     E4E FMadd6_CQ.    E4E&amp;#10;BdimQ.     A4E B3Q.    B4E&amp;#10;CM7W&amp;#10;RH</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

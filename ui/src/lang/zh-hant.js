@@ -53,7 +53,14 @@
     "AUDIO_COMP_OSC": "振盪器 %1",
     "AUDIO_COMP_SAMPLER": "取樣器 %1",
     "AUDIO_CREATE_ADDITIVE_SYNTH": "加法合成器",
+    "AUDIO_CREATE_ADDITIVE_SYNTH_CONTAINER": "加法合成器 (分音列表)",
+    "AUDIO_CREATE_ADDITIVE_SYNTH_ITEM": "分音 (Partial)",
     "AUDIO_CREATE_ADDITIVE_SYNTH_TOOLTIP": "建立一個高彈性的加法合成器，您可以自由設定每個分音的波形、頻率比例與音量比例。",
+    
+    // 鍵盤與系統訊息
+    "WAVECODE_KEYBOARD_SWITCH": "Keyboard: 已切換至樂器 [%1]",
+    "WAVECODE_KEYBOARD_NO_INSTRUMENT": "目前工作區尚未定義任何樂器 (請使用「定義樂器」積木)",
+    "WAVECODE_TRANSPOSE_MSG": "移調: %1 (%2 八度)",
     "AUDIO_WAVE": "波形",
     "AUDIO_COMP_ADSR": "ADSR 包絡線 %1 A %2 D %3 S %4 R %5",
     "AUDIO_COMP_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
@@ -68,11 +75,11 @@
     "AUDIO_FILTER_HP": "高通",
 
     // 演奏指令
-    "AUDIO_PLAY_NOTE": "演奏音符 頻率 %1 持續 %2 毫秒 使用樂器 %3",
-    "AUDIO_PLAY_NOTE_ASYNC": "觸發音符 頻率 %1 持續 %2 毫秒 使用樂器 %3 (不等待)",
-    "AUDIO_PLAY_NOTE_TOOLTIP": "演奏一個音符並等待其持續時間結束才繼續執行下一個積木。",
-    "AUDIO_PLAY_NOTE_ASYNC_TOOLTIP": "觸發一個音符並立即繼續執行下一個積木，可用於同時發出多個音符（如和弦）。",
-    "AUDIO_NOTE": "音符 %1",
+    "AUDIO_PLAY_NOTE": "演奏音符 頻率/音名 %1 持續 %2 毫秒 樂器 %3",
+    "AUDIO_PLAY_NOTE_ASYNC": "觸發音符 頻率/音名 %1 持續 %2 毫秒 樂器 %3 (不等待)",
+    "AUDIO_PLAY_NOTE_TOOLTIP": "演奏一個音符並等待其持續時間結束。支援輸入數字頻率（如 440）或音名文字（如 'C4', 'E#5'）。",
+    "AUDIO_PLAY_NOTE_ASYNC_TOOLTIP": "觸發一個音符並立即執行下一個積木。支援輸入數字頻率或音名文字。",
+    "AUDIO_NOTE": "音名 %1 八度 %2",
     "AUDIO_NOTE_TOOLTIP": "選取標準音樂音符並轉換為頻率。",
     "AUDIO_WAIT": "等待 %1 毫秒 (ms)",
     "AUDIO_WAIT_TOOLTIP": "暫停程式執行一段時間。",
@@ -80,6 +87,19 @@
     "AUDIO_STOP_TOOLTIP": "立即關閉所有聲部的閘門並停止聲音。",
     "AUDIO_PERFORM_ONCE": "演奏 %1",
     "AUDIO_PERFORM_ONCE_TOOLTIP": "在背景執行一次內部的演奏積木，適合用於單次表演。多個演奏積木可同時進行多聲部合奏。",
+
+    "AUDIO_SET_BPM": "設定演奏速度 (BPM) %1",
+    "AUDIO_SET_BPM_TOOLTIP": "設定全域的演奏速度。這會影響「演奏旋律」中的節拍長度。",
+    "AUDIO_SELECT_INSTRUMENT": "選取當前樂器 %1",
+    "AUDIO_SELECT_INSTRUMENT_TOOLTIP": "設定後續演奏指令若未指定樂器時所使用的預設樂器。",
+    "AUDIO_PLAY_MELODY": "使用樂器 %1",
+    "AUDIO_PLAY_MELODY_SCORE": "播放旋律 %1",
+    "AUDIO_PLAY_MELODY_TOOLTIP": "依序演奏一段旋律。格式範例: C4Q (四分音符), E4H (二分音符), G4W (全音符)。",
+
+    "AUDIO_DEFINE_CHORD": "定義和弦 名稱 %1 音符 (用逗號隔開) %2",
+    "AUDIO_DEFINE_CHORD_TOOLTIP": "將一組音符定義為一個名稱，稍後可透過「演奏和弦」積木呼叫。音符格式可為 C4, E4, G4 等。",
+    "AUDIO_PLAY_CHORD": "演奏和弦 %1 長度 %2 毫秒 使用樂器 %3",
+    "AUDIO_PLAY_CHORD_TOOLTIP": "同時演奏已定義和弦中的所有音符。這是一個同步指令，會等待長度結束才繼續執行下一個積木。",
 
     "AUDIO_WAVE_SINE": "正弦波",
     "AUDIO_WAVE_SAW": "鋸齒波",

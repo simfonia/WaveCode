@@ -14,7 +14,12 @@ export const AudioManager = {
     samples: {}, // ID -> AudioBuffer
 
     async init() {
-        if (this.ctx) return;
+        if (this.ctx) {
+            if (this.ctx.state === 'suspended') await this.ctx.resume();
+            return;
+        }
+        
+        console.log("WaveCode Engine: Initializing Web Audio Context...");
         this.ctx = new (window.AudioContext || window.webkitAudioContext)({
             latencyHint: 'interactive',
             sampleRate: 44100
@@ -61,12 +66,16 @@ export const AudioManager = {
     },
 
     async restart() {
+        this.stopAll();
         if (this.ctx) {
-            await this.ctx.close();
-            this.ctx = null;
+            if (this.ctx.state === 'suspended') await this.ctx.resume();
+            if (this.masterGain) {
+                this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+                this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
+            }
+        } else {
+            await this.init();
         }
-        this.voices = [];
-        await this.init();
     },
 
     setInstruments(configs) {

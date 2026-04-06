@@ -187,25 +187,47 @@ export const UIUtils = {
             window.BlockSearcher = {
                 _cache: new Map(),
                 _searchTimeout: null,
+                _isComposing: false, // 是否正在組字 (IME)
+                /**
+                 * 字串清理輔助：正規化並移除特殊空白/控制字元
+                 */
+                clean: function(str) {
+                    if (!str) return '';
+                    return str.normalize('NFC')
+                              .replace(/[\u00A0\u1680​\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]/g, ' ') // 替換各種特殊空白
+                              .replace(/[\u0000-\u001f]/g, '') // 移除控制字元
+                              .toLowerCase().trim();
+                },
                 buildIndex: function() {
                     this._cache.clear();
                     const types = Object.keys(Blockly.Blocks);
                     types.forEach(type => {
                         let blob = type.toLowerCase();
                         const def = Blockly.Blocks[type];
-                        if (def) { 
-                            for(let i=0; i<10; i++) { 
-                                const m = def['message'+i]; 
-                                if(typeof m === 'string') blob += ' ' + m.replace(/%\d+/g,'').toLowerCase(); 
-                            } 
+                        if (def) {
+                            // 1. 抓取 message
+                            for (let i = 0; i < 10; i++) {
+                                let m = def['message' + i];
+                                if (typeof m === 'string') {
+                                    const parsed = Blockly.utils.parsing.replaceMessageReferences(m);
+                                    blob += ' ' + this.clean(parsed).replace(/%\d+/g, '');
+                                }
+                            }
+                            // 2. 抓取 tooltip
+                            let tooltip = def.tooltip;
+                            if (typeof tooltip === 'string') {
+                                blob += ' ' + this.clean(Blockly.utils.parsing.replaceMessageReferences(tooltip));
+                            }
                         }
                         this._cache.set(type, blob);
                     });
+                    console.log(`WaveCode Search: Index built. Example entry [wc_play_note]:`, this._cache.get('wc_play_note'));
                 }
             };
         }
         
         const BlockSearcher = window.BlockSearcher;
+
         const doInject = () => {
             if (BlockSearcher._cache.size === 0) BlockSearcher.buildIndex();
             
@@ -218,47 +240,82 @@ export const UIUtils = {
             const placeholder = Blockly.Msg['CAT_SEARCH'] || '搜尋積木...';
             searchDiv.innerHTML = `
                 <input type="text" class="block-search" placeholder="${placeholder}" autocomplete="off">
-                <img src="/icons/cancel_24dp_FE2F89.png" class="search-clear-btn nyx-icon-neon" style="display:none; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 14px; cursor: pointer;">
+                <span class="search-clear-btn" style="display:none; position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; font-weight:bold; color:#888; font-size:18px;">✕</span>
             `;
             wrapper.appendChild(searchDiv);
 
             const searchInput = searchDiv.querySelector('.block-search');
             const clearBtn = searchDiv.querySelector('.search-clear-btn');
             
-            // 監聽 Toolbox 寬度變動
-            const updateWidth = () => { 
-                const rect = toolboxDiv.getBoundingClientRect(); 
-                if (rect.width > 0) searchDiv.style.width = rect.width + 'px'; 
+            const updateWidth = () => {
+                const rect = toolboxDiv.getBoundingClientRect();
+                if (rect.width > 0) searchDiv.style.width = rect.width + 'px';
             };
             new ResizeObserver(updateWidth).observe(toolboxDiv);
 
-            clearBtn.onclick = () => {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
+            const performSearch = (queryRaw) => {
                 const toolbox = workspace.getToolbox();
                 const flyout = toolbox ? toolbox.getFlyout() : null;
-                if (flyout) flyout.hide();
+                if (!flyout) return;
+
+                const query = BlockSearcher.clean(queryRaw);
+                if (!query) {
+                    flyout.hide();
+                    clearBtn.style.display = 'none';
+                    return;
+                }
+
+                clearBtn.style.display = 'block';
+                const matched = [];
+                const keywords = query.split(/\s+/).filter(k => k.length > 0);
+                
+                BlockSearcher._cache.forEach((blob, type) => {
+                    const isMatch = keywords.every(k => blob.includes(k));
+                    if (isMatch) matched.push(type);
+                });
+
+                const xmlList = matched.slice(0, 30).map(t => {
+                    const x = Blockly.utils.xml.createElement('block');
+                    x.setAttribute('type', t);
+                    return x;
+                });
+
+                if (xmlList.length > 0) {
+                    flyout.show(xmlList);
+                } else {
+                    flyout.hide();
+                }
+            };
+
+            clearBtn.onclick = () => {
+                searchInput.value = '';
+                performSearch('');
                 searchInput.focus();
             };
 
+            // --- 中文輸入法 (IME) 優化 ---
+            searchInput.addEventListener('compositionstart', () => { BlockSearcher._isComposing = true; });
+            searchInput.addEventListener('compositionend', (e) => {
+                BlockSearcher._isComposing = false;
+                performSearch(e.target.value.toLowerCase().trim());
+            });
+
             searchInput.oninput = (e) => {
+                if (BlockSearcher._isComposing) return;
+
                 const query = e.target.value.toLowerCase().trim();
-                clearBtn.style.display = query ? 'block' : 'none';
                 clearTimeout(BlockSearcher._searchTimeout);
                 BlockSearcher._searchTimeout = setTimeout(() => {
-                    const toolbox = workspace.getToolbox();
-                    const flyout = toolbox ? toolbox.getFlyout() : null;
-                    if (!flyout) return;
-                    if (!query) { flyout.hide(); return; }
-                    const matched = []; 
-                    BlockSearcher._cache.forEach((b, t) => { if(b.includes(query)) matched.push(t); });
-                    const xmlList = matched.slice(0, 20).map(t => { 
-                        const x = Blockly.utils.xml.createElement('block'); 
-                        x.setAttribute('type', t); 
-                        return x; 
-                    });
-                    flyout.show(xmlList);
-                }, 200);
+                    performSearch(query);
+                }, 300);
+            };
+
+            searchInput.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.blur();
+                }
             };
         };
 
@@ -268,7 +325,7 @@ export const UIUtils = {
     /**
      * --- Orphan Block System (對齊 #nyx) ---
      */
-    VALID_ROOTS: ['wc_instrument', 'wc_perform', 'wc_comment', 'procedures_defnoreturn', 'procedures_defreturn'],
+    VALID_ROOTS: ['wc_init', 'wc_instrument', 'wc_perform', 'wc_comment', 'procedures_defnoreturn', 'procedures_defreturn'],
 
     updateOrphanBlocks: (ws) => {
         if (!ws || ws.isDragging()) return;
