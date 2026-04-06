@@ -1,41 +1,30 @@
 # WaveCode 任務清單 (Todo List)
 
-## 核心願景
-打造一個獨立、低延遲、100% Rust 原生、適合高中教育的音訊編程 IDE。
-
----
-
-## [進行中]
-- [ ] **階段二：功能模組擴充**
-    - [x] 支援多種波形切換：Sine, Saw, Square, Triangle。
-    - [x] **帽子積木**：實作「定義樂器」邏輯，對齊 Processing 創作風格。
-    - [x] **實作高品質取樣器 (Sampler)**：
-        - [x] 支援 WAV / MP3 (puremp3)。
-        - [x] 實作多取樣 (Multi-Sampling) 映射。
-        - [x] 實作線性插值變速 (VariableSpeedPlayer)。
-    - [ ] **加入空間效果器**：Delay, Reverb。
-    - [x] **加入動態效果器**：Soft Limiter / Clip (防止爆音)。
-- [ ] **階段三：視覺化與 UX**
-    - [x] 實作 60FPS 即時示波器 (Oscilloscope)。
-    - [x] 實作 ADSR 曲線積木預覽與動態光點。
-    - [x] 實作整合式系統設定選單。
-    - [x] 實作 FFT 頻譜分析儀 (2026-04-03)。
-    - [x] 實作雙欄分析儀佈局與面板收合優化 (2026-04-04)。
-- [ ] **核心穩定化 (Bug Bash)**
-    - [x] 解決睡眠喚醒後的音訊時鐘同步雜訊 (`restart_audio`)。
-    - [x] 解決無 ADSR 樂器無法停止的問題（物理閘門機制）。
-    - [x] 實作分頁切換時的「腳本安樂死」與樂器同步 (2026-04-04)。
-    - [ ] **徹底根除正弦波切換時的細微雜訊**：嘗試在 Rust 端實作 Crossfade 或改善相位銜接。
-
----
+## [當前目標] 轉生計畫：Web Audio API 混合架構
+- [ ] **[A] 前端音訊引擎 (Web Audio Engine)**
+    - [ ] 建立 `ui/src/modules/audio_engine.js`。
+    - [ ] 實作多發聲數管理 (Voice Manager)，支援 32+ 同時發聲。
+    - [ ] 實作基礎組件：Oscillator, Sampler, ADSR Envelope, Filter, Gain。
+    - [ ] 實作加法合成器 (Additive Synth) 邏輯。
+    - [ ] 整合 `AnalyserNode` 並重構示波器 UI (直接從 Web Audio 獲取數據)。
+- [ ] **[B] 聯邦編譯器更新 (Compiler Refactor)**
+    - [ ] 修改 `ui/src/modules/compiler.js`：將 Patch 資料傳遞給前端 `AudioEngine` 而非 Rust。
+    - [ ] 確保 `trigger_note` 與 `release_note` 事件在前端直接分流。
+- [ ] **[C] Rust 後端角色轉型 (Rust Backend Transition)**
+    - [ ] 清理 `src-tauri/src/engine.rs`：移除 `cpal` 與 `fundsp` 相關運算。
+    - [ ] 強化「取樣資源伺服器」：讓 Rust 負責高效讀取音訊檔並轉為 Float32 傳回前端。
+- [ ] **[D] 效能與功能驗證**
+    - [ ] 驗證和弦演奏穩定性 (無振動、低延遲)。
+    - [ ] 驗證示波器視覺聽覺同步。
 
 ## [已完成]
-- [x] **M-1. 引擎架構轉型 (Pure Rust)**
-- [x] **M-2. 前端模組化重整**
-- [x] **M-3. 核心功能穩定化**
-- [x] **M-4. 視覺化系統奠基 (2026-03-10)**
-- [x] **M-5. 取樣器革命與效能優化 (2026-03-14)**
-- [x] **M-6. FFT 頻譜與 UI 佈局優化 (2026-04-04)**
+- [x] 統一積木前綴為 `wc_`。
+- [x] 工具箱分類與核心積木修復。
+- [x] 實作加法合成器積木 (Mutation 與 UI)。
+- [x] IDE 設定選單與 Scroll Options 持久化。
+- [x] 跨平台路徑適配與資源掛載。
 
----
-*最後更新：2026-04-05*
+## [未來規畫]
+- [ ] 實作空間效果器 (Reverb, Delay)。
+- [ ] 支援多採樣點對應 (Multi-sampling Mapping)。
+- [ ] 錄音功能 (將 Web Audio 流匯出為 WAV)。

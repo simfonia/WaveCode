@@ -1,6 +1,7 @@
 /**
  * WaveCode UI Utilities - 面板管理與 UI 輔助函式 (對齊 #nyx)
  */
+import { WaveCodeAPI } from './api.js';
 
 export const UIUtils = {
     injectNaNShield: () => {
@@ -295,7 +296,7 @@ export const UIUtils = {
         const titleEl = document.getElementById('help-title');
         const descEl = document.getElementById('help-desc');
         const previewEl = document.getElementById('help-preview');
-        const invoke = window.WaveCode?.getInvoke ? window.WaveCode.getInvoke() : null;
+        const invoke = WaveCodeAPI.getInvoke();
 
         if (!placeholder || !content) return;
 
@@ -306,72 +307,81 @@ export const UIUtils = {
             return;
         }
 
-        // 效能優化：避免重複更新同一積木
         if (window._currentHelpBlockId === block.id) return;
         window._currentHelpBlockId = block.id;
 
         placeholder.style.display = 'none';
         content.style.display = 'block';
 
-        // 1. 標題與 ID
+        // 1. 顯示積木類型標題
         titleEl.style.display = 'flex';
         titleEl.style.alignItems = 'center';
         titleEl.style.justifyContent = 'space-between';
         titleEl.style.fontFamily = "'Fira Code', monospace";
         titleEl.style.fontSize = '12px';
+        titleEl.style.padding = '5px 0';
+        titleEl.style.borderBottom = '1px solid var(--nyx-border)';
+        titleEl.style.marginBottom = '10px';
         titleEl.innerHTML = `<span style="color: var(--nyx-purple-glow); opacity: 0.8;">ID: &lt;${block.type}&gt;</span>`;
 
-        // 2. 處理 Help URL
-        const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+        // 2. 處理說明文件載入 (對齊 #nyx 路徑規範)
+        let url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
         previewEl.innerHTML = '';
         previewEl.style.display = 'none';
 
-        if (url && url !== '' && invoke) {
-            const isExternal = url.startsWith('http');
-
-            // 外部開啟按鈕
+        if (url && url !== '') {
+            // 外部網頁後備按鈕
             const linkIcon = document.createElement('img');
             linkIcon.src = '/icons/travel_explore_24dp_FE2F89.png';
             linkIcon.className = 'nyx-icon-neon';
             linkIcon.style.width = '16px';
             linkIcon.style.cursor = 'pointer';
-            linkIcon.title = '開啟外部說明';
+            linkIcon.title = '開啟外部完整說明';
             linkIcon.onclick = () => {
-                const targetUrl = isExternal ? url : `${url}_${lang}.html`;
+                const targetUrl = url.startsWith('http') ? url : `${url}_${lang}.html`;
                 invoke('open_url', { url: targetUrl });
             };
             titleEl.appendChild(linkIcon);
 
-            // 內嵌說明 (僅限內部文件)
-            if (!isExternal) {
+            if (!url.startsWith('http')) {
                 try {
+                    // 去除可能重複的副檔名
+                    url = url.replace(/\.html$/, '');
                     const docFilename = `${url}_${lang}.html`;
-                    console.log(`[HelpSystem] Attempting to load help document: ${docFilename}`);
+                    
                     const docContent = await invoke('get_doc_content', { filename: docFilename });
 
-                    const iframe = document.createElement('iframe');
-                    iframe.style.width = '100%';
-                    iframe.style.height = '280px';
-                    iframe.style.border = 'none';
-                    iframe.style.backgroundColor = '#fff';
-                    iframe.style.borderRadius = '4px';
-                    iframe.srcdoc = docContent;
-
-                    previewEl.appendChild(iframe);
-                    previewEl.style.display = 'block';
-                    previewEl.style.marginBottom = '15px';
+                    if (docContent) {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.width = '100%';
+                        iframe.style.height = '420px';
+                        iframe.style.border = 'none';
+                        iframe.style.backgroundColor = '#fff';
+                        iframe.style.borderRadius = '8px';
+                        iframe.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+                        iframe.srcdoc = docContent;
+                        previewEl.appendChild(iframe);
+                        previewEl.style.display = 'block';
+                        previewEl.style.marginTop = '10px';
+                    }
                 } catch (err) {
-                    console.warn('Failed to load doc:', err);
+                    console.warn(`[HelpSystem] 無法載入說明文件 (${url}):`, err);
+                    previewEl.innerHTML = `<div style="color: var(--nyx-red); font-size: 12px; padding: 10px; border: 1px dashed var(--nyx-border); border-radius: 4px;">說明文件載入失敗: ${url}</div>`;
+                    previewEl.style.display = 'block';
                 }
             }
         }
 
-        // 3. Tooltip 摘要
+        // 3. Tooltip 摘要 (顯示在預覽下方)
         let tooltip = block.getTooltip();
         if (typeof tooltip === 'function') tooltip = tooltip();
         descEl.style.fontSize = '13px';
         descEl.style.lineHeight = '1.6';
-        descEl.style.color = 'var(--nyx-text)';
-        descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '<i>(此積木暫無詳細說明)</i>';
+        descEl.style.color = 'var(--nyx-text-dim)';
+        descEl.style.marginTop = '15px';
+        descEl.style.padding = '10px';
+        descEl.style.background = 'rgba(255,255,255,0.03)';
+        descEl.style.borderRadius = '4px';
+        descEl.innerHTML = tooltip ? `<strong>摘要:</strong><br>${tooltip.replace(/\n/g, '<br>')}` : '';
     }
 };

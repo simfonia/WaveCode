@@ -1,19 +1,10 @@
 /**
  * WaveCode Generator: System & Lifecycle
- * Injects interruption checks into loops.
+ * 提供基礎系統積木的產生器與全域攔截邏輯。
  */
 
-const patchGenerator = (blockType) => {
-  const original = Blockly.JavaScript.forBlock[blockType];
-  if (!original) return;
-  Blockly.JavaScript.forBlock[blockType] = function(block) {
-    const code = original.call(this, block);
-    // 在第一個左大括號後注入檢查，確保循環可被中斷
-    return code.replace('{', '{\n  WaveCode.isAlive(_id);');
-  };
+// 定義 wc_note 產生器 (如果尚未定義)
+Blockly.JavaScript.forBlock['wc_note'] = function(block) {
+  const code = block.getFieldValue('NOTE');
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
-
-// 延遲執行，確保基礎產生器已載入
-setTimeout(() => {
-  ['controls_repeat_ext', 'controls_whileUntil', 'controls_for', 'controls_forEach'].forEach(patchGenerator);
-}, 100);

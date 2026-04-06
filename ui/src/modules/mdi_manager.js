@@ -86,15 +86,17 @@ export class MDIManager {
             }
 
             if (targetBlockId && this.activeTabId === tabId) {
-                // 選取了新積木，顯示說明
+                // 選取了新積木，更新輔助說明
                 if (helpResetTimeout) {
                     clearTimeout(helpResetTimeout);
                     helpResetTimeout = null;
                 }
                 const block = workspace.getBlockById(targetBlockId);
                 if (block) {
+                    // 1. 更新側邊面板說明 (自動載入對應內容)
                     UIUtils.updateVisualHelp(block, this.toolbarManager.currentLang);
-                    // 自動切換至輔助說明分頁
+                    
+                    // 2. 切換至輔助說明分頁
                     UIUtils.switchSmartTab('visual-help');
                 }
             } else if (this.activeTabId === tabId) {

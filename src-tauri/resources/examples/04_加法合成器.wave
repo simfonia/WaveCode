@@ -1,0 +1,38 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_instrument" id="yk~Y:-93*{6Rrw!m%kP;" x="50" y="50">
+    <field name="ID">additive_synth</field>
+    <statement name="CHAIN">
+      <block type="wc_create_additive_synth" id="LCmOwil`QN!O7~2#u)X#">
+        <mutation items="5"></mutation>
+        <field name="WAVE1">0</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">1</field>
+        <field name="WAVE2">1</field>
+        <field name="RATIO2">2</field>
+        <field name="AMP2">0.5</field>
+        <field name="WAVE3">2</field>
+        <field name="RATIO3">3</field>
+        <field name="AMP3">0.33</field>
+        <field name="WAVE4">3</field>
+        <field name="RATIO4">4</field>
+        <field name="AMP4">0.25</field>
+        <field name="WAVE5">0</field>
+        <field name="RATIO5">5</field>
+        <field name="AMP5">0.2</field>
+        <next>
+          <block type="wc_component_adsr" id="H_$oFGKWZy8YHdS1O8|,">
+            <field name="A">0.05</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="K@-)+)h:N:$;we9cKi1|">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

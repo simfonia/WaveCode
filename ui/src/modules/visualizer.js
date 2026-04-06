@@ -1,5 +1,5 @@
 /**
- * WaveCode Visualizer Module - 多重註冊同步版 (光暈與動態 Sustain 優化)
+ * WaveCode Visualizer Module - 穩定觸發與全頻譜版
  */
 
 export class FieldADSR extends Blockly.Field {
@@ -30,27 +30,21 @@ export class FieldADSR extends Blockly.Field {
             'transform': 'translate(0, 5)'
         }, this.fieldGroup_);
 
-        // 1. 定義光暈濾鏡 (Glow Filter)
         const defs = Blockly.utils.dom.createSvgElement('defs', {}, this.svgGroup_);
         const filter = Blockly.utils.dom.createSvgElement('filter', {
             'id': 'glow-filter',
             'x': '-50%', 'y': '-50%', 'width': '200%', 'height': '200%'
         }, defs);
-        Blockly.utils.dom.createSvgElement('feGaussianBlur', {
-            'stdDeviation': '2.5',
-            'result': 'blur'
-        }, filter);
+        Blockly.utils.dom.createSvgElement('feGaussianBlur', { 'stdDeviation': '2.5', 'result': 'blur' }, filter);
         const feMerge = Blockly.utils.dom.createSvgElement('feMerge', {}, filter);
         Blockly.utils.dom.createSvgElement('feMergeNode', { 'in': 'blur' }, feMerge);
         Blockly.utils.dom.createSvgElement('feMergeNode', { 'in': 'SourceGraphic' }, feMerge);
 
-        // 背景
         Blockly.utils.dom.createSvgElement('rect', {
             'width': this.width_, 'height': this.height_,
             'rx': 4, 'ry': 4, 'fill': '#1a252f'
         }, this.svgGroup_);
 
-        // 網格線
         for (let i = 1; i < 4; i++) {
             Blockly.utils.dom.createSvgElement('line', {
                 'x1': 0, 'y1': (this.height_ * i / 4),
@@ -59,12 +53,10 @@ export class FieldADSR extends Blockly.Field {
             }, this.svgGroup_);
         }
 
-        // ADSR 曲線
         this.bgPath_ = Blockly.utils.dom.createSvgElement('path', {
             'fill': 'none', 'stroke': '#3498db', 'stroke-width': 3, 'stroke-linejoin': 'round'
         }, this.svgGroup_);
 
-        // 2. 移動光點 (加上 filter)
         this.dot_ = Blockly.utils.dom.createSvgElement('circle', {
             'r': 4, 'fill': '#f1c40f', 'opacity': 0, 
             'filter': 'url(#glow-filter)'
@@ -94,7 +86,7 @@ export class FieldADSR extends Blockly.Field {
         this._startTime = performance.now();
         this._isPlaying = true;
         this._isHolding = true;
-        this._duration = 999; // 預設極大，直到 endHold
+        this._duration = 999; 
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
@@ -104,7 +96,6 @@ export class FieldADSR extends Blockly.Field {
             this._isHolding = false;
             const now = performance.now();
             const elapsedSinceStart = (now - this._startTime) / 1000;
-            // 將 _duration 設為目前的偏移量，讓動畫進入 Release 階段
             this._duration = Math.max(elapsedSinceStart - (this.A + this.D), 0);
         }
     }
@@ -178,51 +169,33 @@ export class FieldADSR extends Blockly.Field {
 
 Blockly.fieldRegistry.register('field_adsr', FieldADSR);
 
-/**
- * 全域包絡線管理員
- */
 export const EnvelopeManager = {
     _registry: new Map(),
-
+    clearRegistry() { this._registry.clear(); },
     register(id, field) {
         if (!this._registry.has(id)) this._registry.set(id, []);
         const list = this._registry.get(id);
         if (!list.includes(field)) list.push(field);
     },
-
     trigger(id, duration) {
-        if (id && this._registry.has(id)) {
-            this._registry.get(id).forEach(f => f.playAnimation(duration));
-        } else {
-            this._registry.forEach(list => list.forEach(f => f.playAnimation(duration)));
-        }
+        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.playAnimation(duration));
+        else this._registry.forEach(list => list.forEach(f => f.playAnimation(duration)));
     },
-
     triggerStart(id) {
-        if (id && this._registry.has(id)) {
-            this._registry.get(id).forEach(f => f.startHold());
-        } else {
-            this._registry.forEach(list => list.forEach(f => f.startHold()));
-        }
+        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.startHold());
+        else this._registry.forEach(list => list.forEach(f => f.startHold()));
     },
-
     triggerEnd(id) {
-        if (id && this._registry.has(id)) {
-            this._registry.get(id).forEach(f => f.endHold());
-        } else {
-            this._registry.forEach(list => list.forEach(f => f.endHold()));
-        }
+        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.endHold());
+        else this._registry.forEach(list => list.forEach(f => f.endHold()));
     },
-
-    stopAll() {
-        this._registry.forEach(list => list.forEach(f => f.stopAnimation()));
-    }
+    stopAll() { this._registry.forEach(list => list.forEach(f => f.stopAnimation())); }
 };
 
 window.EnvelopeManager = EnvelopeManager;
 
 /**
- * 即時分析儀 (Visualizer) - 包含示波器與頻譜
+ * 即時分析儀 (Visualizer) - 強化觸發版
  */
 export const Oscilloscope = {
     canvas: null,
@@ -239,39 +212,41 @@ export const Oscilloscope = {
         if (!this.canvas || !this.fftCanvas) return;
         this.ctx = this.canvas.getContext('2d');
         this.fftCtx = this.fftCanvas.getContext('2d');
-        
-        // 確保繪圖解析度正確
         this.resize();
         window.addEventListener('resize', () => this.resize());
+        this.loop();
+    },
 
-        let lastUpdateTime = 0;
+    loop() {
+        if (!this.ctx || !this.fftCtx) return;
+        const manager = window.WaveCode?.AudioManager || (window.WaveCodeAPI?.AudioManager); 
+        const analyser = manager?.analyser;
 
-        if (window.__TAURI__) {
-            window.__TAURI__.event.listen('waveform', (event) => {
-                const payload = event.payload;
-                this._data = payload.data || [];
-                this._fftData = payload.fft || [];
-                this._isClipped = payload.clipped || false;
-                lastUpdateTime = performance.now();
-                this.draw();
-            });
-        }
+        if (analyser) {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Float32Array(bufferLength);
+            analyser.getFloatTimeDomainData(dataArray);
+            this._data = dataArray;
 
-        setInterval(() => {
-            if (performance.now() - lastUpdateTime > 100 && (this._data.length > 0 || this._fftData.length > 0)) {
-                this._data = [];
-                this._fftData = [];
-                this._isClipped = false;
-                this.clear();
+            const fftArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(fftArray);
+            this._fftData = Array.from(fftArray).map(v => v / 255);
+
+            this._isClipped = false;
+            for (let i = 0; i < dataArray.length; i++) {
+                if (Math.abs(dataArray[i]) >= 0.99) { this._isClipped = true; break; }
             }
-        }, 50);
+            this.draw();
+        } else {
+            this.clear();
+        }
+        requestAnimationFrame(() => this.loop());
     },
 
     resize() {
         const rect = this.canvas.getBoundingClientRect();
         this.canvas.width = rect.width * window.devicePixelRatio;
         this.canvas.height = rect.height * window.devicePixelRatio;
-        
         const fftRect = this.fftCanvas.getBoundingClientRect();
         this.fftCanvas.width = fftRect.width * window.devicePixelRatio;
         this.fftCanvas.height = fftRect.height * window.devicePixelRatio;
@@ -279,20 +254,8 @@ export const Oscilloscope = {
 
     clear() {
         if (!this.ctx || !this.fftCtx) return;
-        const w = this.canvas.width, h = this.canvas.height;
-        const fw = this.fftCanvas.width, fh = this.fftCanvas.height;
-
-        this.ctx.clearRect(0, 0, w, h);
-        this.fftCtx.clearRect(0, 0, fw, fh);
-        
-        // 繪製零位水平線 (示波器)
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#2ecc71';
-        this.ctx.globalAlpha = 0.2;
-        this.ctx.moveTo(0, h / 2);
-        this.ctx.lineTo(w, h / 2);
-        this.ctx.stroke();
-        this.ctx.globalAlpha = 1.0;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.fftCtx.clearRect(0, 0, this.fftCanvas.width, this.fftCanvas.height);
     },
 
     draw() {
@@ -305,24 +268,34 @@ export const Oscilloscope = {
         const ctx = this.ctx;
         const w = this.canvas.width, h = this.canvas.height;
         ctx.clearRect(0, 0, w, h);
+        if (!this._data || !this._data.length) return;
 
-        if (!this._data.length) return;
+        // --- 強力鎖定：最大正向斜率零交越點搜尋 ---
+        let offset = 0;
+        let maxSlope = -1;
+        const searchRange = Math.floor(this._data.length * 0.7);
+        for (let i = 1; i < searchRange; i++) {
+            if (this._data[i-1] < 0 && this._data[i] >= 0) {
+                const slope = this._data[i] - this._data[i-1];
+                if (slope > maxSlope) { maxSlope = slope; offset = i; }
+            }
+        }
+        if (maxSlope < 0.001) offset = 0;
 
         ctx.beginPath();
-        ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#2ecc71';
-        ctx.lineWidth = 2 * window.devicePixelRatio;
+        ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#75FB4C';
+        ctx.lineWidth = 2.5 * window.devicePixelRatio;
         ctx.lineJoin = 'round';
 
-        const sliceWidth = w / this._data.length;
+        // 僅繪製 1/4 的數據點以確保視覺焦點集中
+        const drawLength = Math.floor(this._data.length / 4);
+        const sliceWidth = w / drawLength;
         let x = 0;
-
-        for (let i = 0; i < this._data.length; i++) {
-            const v = this._data[i];
-            const y = (h / 2) - (v * h / 2); // 零點在中間
-
+        for (let i = 0; i < drawLength; i++) {
+            const v = this._data[offset + i] || 0;
+            const y = (h / 2) - (v * h / 2.2);
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
-
             x += sliceWidth;
         }
         ctx.stroke();
@@ -339,34 +312,24 @@ export const Oscilloscope = {
         const ctx = this.fftCtx;
         const w = this.fftCanvas.width, h = this.fftCanvas.height;
         ctx.clearRect(0, 0, w, h);
+        if (!this._fftData || !this._fftData.length) return;
 
-        if (!this._fftData.length) return;
-
-        // --- 頻率範圍調整位置 ---
-        // 說明：FFT_SIZE 為 256，對應 0 ~ Nyquist (約 22050Hz)。
-        // 這裡取前 60 個 Bins，大約對應 0 ~ 10,000Hz (10kHz)。
-        // 如果想看到更寬或更窄，請修改下面的 60。
-        const displayBins = 60; 
+        // --- 頻率範圍延伸至全音域 (約 20kHz) ---
+        const displayBins = 240; 
         const dataToDraw = this._fftData.slice(0, displayBins);
-        // -----------------------
 
         const barWidth = w / dataToDraw.length;
-        
+        const bottomPadding = 2 * window.devicePixelRatio;
+        const drawH = h - bottomPadding;
         for (let i = 0; i < dataToDraw.length; i++) {
-            const val = dataToDraw[i] * h * 1.2; // 稍微拉高增益讓視覺更強烈
+            const val = Math.min(dataToDraw[i] * drawH * 1.15, drawH); 
             const x = i * barWidth;
-            const y = h - val;
-
-            // 多彩呈現：根據頻率位置 (i) 決定顏色 (HSL: 200藍 -> 280紫 -> 330粉)
-            const hue = 200 + (i / dataToDraw.length) * 130;
-            ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
-            
-            // 繪製帶有圓角的長條 (或是簡單矩形)
-            ctx.fillRect(x, y, barWidth - 1, val);
-            
-            // 加入頂部高亮，增加質感
+            const y = drawH - val;
+            const hue = 200 + (i / dataToDraw.length) * 180;
+            ctx.fillStyle = `hsl(${hue}, 85%, 55%)`;
+            ctx.fillRect(x, y, barWidth - 0.5, val);
             ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
-            ctx.fillRect(x, y, barWidth - 1, 2 * window.devicePixelRatio);
+            ctx.fillRect(x, y, barWidth - 0.5, 1.2 * window.devicePixelRatio);
         }
     }
 };

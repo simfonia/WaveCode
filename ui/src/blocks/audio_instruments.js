@@ -71,6 +71,31 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
+    "type": "wc_create_additive_synth",
+    "message0": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH}",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "tooltip": "%{BKY_AUDIO_CREATE_ADDITIVE_SYNTH_TOOLTIP}%{BKY_HELP_HINT}",
+    "mutator": "wc_additive_mutator",
+    "helpUrl": "custom_synth"
+  },
+  {
+    "type": "wc_additive_synth_container",
+    "message0": "加法合成器",
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "enableContextMenu": false
+  },
+  {
+    "type": "wc_additive_synth_item",
+    "message0": "分音",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "enableContextMenu": false
+  },
+  {
     "type": "wc_component_adsr",
     "message0": "%{BKY_AUDIO_COMP_ADSR}",
     "args0": [
@@ -139,3 +164,5 @@ Blockly.Extensions.register('wc_adsr_visual_sync', function() {
   });
   setTimeout(updateVisual, 100);
 });
+
+Blockly.Extensions.registerMutator('wc_additive_mutator', window.WC_Utils.ADDITIVE_SYNTH_MUTATOR, undefined, ['wc_additive_synth_item']);

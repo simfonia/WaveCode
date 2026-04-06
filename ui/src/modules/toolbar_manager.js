@@ -9,7 +9,6 @@ export class ToolbarManager {
     constructor(workspace, stageUI) {
         this.workspace = workspace;
         this.stageUI = stageUI;
-        this.invoke = WaveCodeAPI.getInvoke();
         
         this.isDirty = false;
         this.currentFilename = '';
@@ -26,7 +25,9 @@ export class ToolbarManager {
             examplesBtn: document.getElementById('examples-btn'),
             updateBtn: document.getElementById('update-btn'),
             masterGain: document.getElementById('master-gain'),
-            gainValue: document.getElementById('gain-value')
+            gainValue: document.getElementById('gain-value'),
+            latencyAdjust: document.getElementById('latency-adjust'),
+            latencyValue: document.getElementById('latency-value')
         };
 
         this.menus = {
@@ -50,6 +51,7 @@ export class ToolbarManager {
         this.setupSettingsMenu();
         this.setupGlobalClick();
         this.setupMasterGain();
+        this.setupLatencyAdjust();
     }
 
     setupMasterGain() {
@@ -61,6 +63,30 @@ export class ToolbarManager {
             };
             // 調整結束後釋放焦點，確保鍵盤事件能回到工作區
             this.elements.masterGain.onchange = (e) => {
+                e.target.blur();
+                if (this.workspace) this.workspace.markFocused();
+            };
+        }
+    }
+
+    setupLatencyAdjust() {
+        if (this.elements.latencyAdjust) {
+            // 從 localStorage 讀取舊設定 (預設 50ms)
+            const savedLatency = localStorage.getItem('wavecode_latency_compensation') || '50';
+            const val = parseInt(savedLatency);
+            
+            this.elements.latencyAdjust.value = val;
+            this.elements.latencyValue.textContent = val + 'ms';
+            WaveCodeAPI._lookAhead = val / 1000;
+
+            this.elements.latencyAdjust.oninput = (e) => {
+                const ms = parseInt(e.target.value);
+                this.elements.latencyValue.textContent = ms + 'ms';
+                WaveCodeAPI._lookAhead = ms / 1000;
+                localStorage.setItem('wavecode_latency_compensation', ms);
+            };
+
+            this.elements.latencyAdjust.onchange = (e) => {
                 e.target.blur();
                 if (this.workspace) this.workspace.markFocused();
             };
@@ -79,13 +105,15 @@ export class ToolbarManager {
     }
 
     bindEvents() {
+        const invoke = WaveCodeAPI.getInvoke();
+
         this.elements.openBtn.onclick = async () => {
             if (await this.checkUnsavedChanges()) {
                 const path = await window.__TAURI__.dialog.open({
                     filters: [{ name: 'WaveCode', extensions: ['wave', 'xml'] }]
                 });
                 if (path) {
-                    const content = await this.invoke('load_project', { path });
+                    const content = await invoke('load_project', { path });
                     this.loadXMLToWorkspace(content);
                     this.currentFilename = path.split(/[\\/]/).pop();
                     if (this.mdiManager) this.mdiManager.updateActiveTabTitle(this.currentFilename);
@@ -103,7 +131,7 @@ export class ToolbarManager {
             });
             if (path) {
                 const xmlContent = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(this.workspace));
-                await this.invoke('save_project', { xmlContent, path });
+                await invoke('save_project', { xmlContent, path });
                 this.currentFilename = path.split(/[\\/]/).pop();
                 if (this.mdiManager) this.mdiManager.updateActiveTabTitle(this.currentFilename);
                 this.setDirty(false);
@@ -111,49 +139,80 @@ export class ToolbarManager {
         };
 
         this.elements.runBtn.onclick = async () => {
-            await WaveCodeAPI.stop();
+            await WaveCodeAPI.restartAudio(); // 確保引擎重置並初始化 Context
             this.elements.runBtn.classList.add('is-running');
+            this.elements.runBtn.classList.add('pulse-animation');
             this.isProcessing = true;
             
             if (this.stageUI && this.stageUI.clearLog) this.stageUI.clearLog();
 
-            const currentId = WaveCodeAPI.getCurrentId();
+            const currentId = WaveCodeAPI.startScript();
             
             // 1. 編譯樂器配置
-            await WaveCodeCompiler.compileAndRun(this.workspace);
+            await WaveCodeCompiler.run(this.workspace);
 
-            // 2. 生成並執行腳本 (確保包含所有頂層積木)
+            // 2. 生成並執行腳本
             let rawCode = '';
+            
+            // 【關鍵修正】取得正確的產生器實例 (V10+ 標準為 javascriptGenerator)
+            const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;
+            
+            if (!generator) {
+                console.error('WaveCode: 找不到 JavaScript 產生器');
+                return;
+            }
+
+            // 初始化產生器狀態
+            generator.init(this.workspace);
+
+            // 【安全性強化】同步迴圈守衛：防止無窮迴圈鎖死 UI
+            // 此陷阱會被注入到產生器輸出的每一個循環 (while, for, repeat)
+            generator.INFINITE_LOOP_TRAP = `WaveCode.checkLoop(_id);\n`;
+            
             const topBlocks = this.workspace.getTopBlocks(true);
             topBlocks.forEach(block => {
-                if (block.type === 'wc_instrument') return; // 跳過定義型積木
-                const code = Blockly.JavaScript.blockToCode(block);
-                if (code) rawCode += code + '\n';
+                // 樂器定義由 Compiler 處理，演奏積木才產生代碼
+                if (block.type === 'wc_instrument') return; 
+
+                // 透過產生器實例進行轉換，自動處理 this.valueToCode 等上下文綁定
+                let code = generator.blockToCode(block);
+                
+                if (code) {
+                    // 若是運算積木 (含 ORDER)，取其字串部分
+                    if (Array.isArray(code)) code = code[0];
+                    rawCode += code + '\n';
+                }
             });
 
             const finalCode = `
-                const _id = WaveCode.getCurrentId();
+                const _id = ${currentId};
                 try {
                     ${rawCode}
                 } catch (err) {
-                    if (err !== 'Script cancelled') throw err;
+                    if (err.message !== 'Script cancelled') {
+                        throw err;
+                    }
                 }
             `;
 
             try {
                 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-                const executeLogic = new AsyncFunction(finalCode);
-                await executeLogic();
+                const executeLogic = new AsyncFunction('WaveCode', finalCode);
+                await executeLogic(WaveCodeAPI);
             } catch (err) {
-                if (err !== 'Script cancelled') {
+                if (err.message !== 'Script cancelled') {
                     console.error('腳本執行錯誤:', err);
                     if (this.stageUI && this.stageUI.appendLog) {
                         this.stageUI.appendLog('腳本執行錯誤: ' + err, 'error');
                     }
                 }
             } finally {
-                if (currentId === WaveCodeAPI.getCurrentId()) {
+                if (currentId === WaveCodeAPI._execId) {
                     this.elements.runBtn.classList.remove('is-running');
+                    // 程式結束後，縮放動畫持續 2 秒才停止
+                    setTimeout(() => {
+                        this.elements.runBtn.classList.remove('pulse-animation');
+                    }, 2000);
                     this.isProcessing = false;
                 }
             }
@@ -161,8 +220,9 @@ export class ToolbarManager {
 
         this.elements.stopBtn.onclick = async () => {
             this.isProcessing = false;
-            await WaveCodeAPI.stop();
+            await WaveCodeAPI.reset();
             this.elements.runBtn.classList.remove('is-running');
+            this.elements.runBtn.classList.remove('pulse-animation'); // 手動停止時立即移除
         };
 
         this.elements.settingsBtn.onclick = (e) => {
@@ -178,7 +238,7 @@ export class ToolbarManager {
         this.elements.examplesBtn.onclick = async (e) => {
             e.stopPropagation();
             try {
-                const examples = await this.invoke('list_examples');
+                const examples = await invoke('list_examples');
                 let html = '';
                 examples.forEach(ex => {
                     if (ex.category) {
@@ -212,7 +272,7 @@ export class ToolbarManager {
                         if (await this.checkUnsavedChanges()) {
                             const path = item.getAttribute('data-path');
                             const filename = path.split(/[\\/]/).pop();
-                            const content = await this.invoke('load_project', { path });
+                            const content = await invoke('load_project', { path });
                             
                             if (this.mdiManager) {
                                 this.mdiManager.addNewTab(filename, true, content);
@@ -225,9 +285,6 @@ export class ToolbarManager {
                         }
                     };
                 });
-
-                // 防止點擊選單內部導致選單關閉
-                this.menus.examples.onclick = (ev) => ev.stopPropagation();
 
                 const rect = this.elements.examplesBtn.getBoundingClientRect();
                 this.menus.examples.style.top = `${rect.bottom + 5}px`;
@@ -266,7 +323,6 @@ export class ToolbarManager {
                 const current = localStorage.getItem('wavecode_scroll_options') === 'true';
                 localStorage.setItem('wavecode_scroll_options', !current);
                 this.updateScrollOptionsCheck(!current);
-                // 提示使用者
                 if (this.stageUI) this.stageUI.appendLog('捲軸設定已更新，重啟軟體後生效');
                 e.stopPropagation();
             }
@@ -294,8 +350,6 @@ export class ToolbarManager {
         if (selectedEl) {
             selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" class="nyx-icon-neon" style="width: 16px;">`;
         }
-        
-        // 同時更新 Scroll Options 勾選狀態
         const isScrollEnabled = localStorage.getItem('wavecode_scroll_options') === 'true';
         this.updateScrollOptionsCheck(isScrollEnabled);
     }
@@ -311,7 +365,6 @@ export class ToolbarManager {
         if (this.currentLang === lang) return;
         this.currentLang = lang;
         this.updateLangCheck(lang);
-        
         const scriptId = 'lang-script';
         let script = document.getElementById(scriptId);
         if (script) script.remove();
@@ -335,10 +388,7 @@ export class ToolbarManager {
         this.isDirty = dirty;
         const displayFilename = this.currentFilename || '未命名專案';
         document.title = `${dirty ? '*' : ''}${displayFilename} - WaveCode`;
-        
-        if (this.mdiManager) {
-            this.mdiManager.updateActiveTabDirty(dirty);
-        }
+        if (this.mdiManager) this.mdiManager.updateActiveTabDirty(dirty);
     }
 
     async checkUnsavedChanges() {
@@ -350,6 +400,7 @@ export class ToolbarManager {
     }
 
     createDefaultBlocks() {
+        if (!this.workspace || this.workspace.isClearing) return;
         try {
             const inst = this.workspace.newBlock('wc_instrument');
             inst.setFieldValue('my_piano', 'ID');
@@ -372,18 +423,28 @@ export class ToolbarManager {
     }
 
     loadXMLToWorkspace(xmlText) {
+        if (!this.workspace) return;
+        if (window.EnvelopeManager) window.EnvelopeManager.clearRegistry();
+
         this.workspace.isClearing = true;
         this.workspace.clear();
+
         const dom = Blockly.utils.xml.textToDom(xmlText);
         Blockly.Xml.domToWorkspace(dom, this.workspace);
         
-        this.workspace.getBlocksByType('wc_instrument').forEach(b => {
-            const id = b.getFieldValue('ID');
-            const visual = b.getField('VISUAL');
-            if (id && visual && window.EnvelopeManager) {
-                window.EnvelopeManager.register(id, visual);
-                visual.render_();
-            }
-        });
+        setTimeout(() => {
+            if (!this.workspace) return;
+            const instruments = this.workspace.getBlocksByType('wc_instrument');
+            instruments.forEach(b => {
+                if (!b) return;
+                const id = b.getFieldValue('ID');
+                const visual = b.getField('VISUAL');
+                if (id && visual && window.EnvelopeManager) {
+                    window.EnvelopeManager.register(id, visual);
+                    if (visual.render_) visual.render_();
+                }
+            });
+            this.workspace.isClearing = false;
+        }, 100);
     }
 }

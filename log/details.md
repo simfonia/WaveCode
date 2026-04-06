@@ -1,122 +1,30 @@
 # WaveCode 技術細節紀錄 (Details)
 
-## 2026-03-08 ~ 2026-03-09 (略)
+## 2026-03-08 ~ 2026-04-04 (略)
 
-## 2026-03-10 (複音隔離、SVG 繪圖與示波器同步)
+## 2026-04-05 (Web Audio 穩定性、同步守衛與產生器修復)
 
-### 1. 複音引擎的「零滲透」物理隔離
-- **問題**：並聯多個振盪器時，即便開關為 0，背景運算的相位累加器仍會產生微小的數值滲漏與相位干涉（拍音）。
-- **解決**：在每個聲部的末端加上強制物理閘門：`osc * var(&gate)`。這確保了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0.0，杜絕了單音演奏時的背景雜音。
-- **頻率平滑**：使用 `follow(0.01)` 替代直接的 `freq` 更新。這 10ms 的過度讓相位在頻率改變時能滑順銜接，消除了正弦波切換音符時的 Click 聲。
+### 1. 徹底根治「釋放突跳 (Sustain Jump)」
+- **問題**：在 Web Audio 中，若使用 `gain.exponentialRampToValueAtTime`，必須先使用 `setValueAtTime` 設定起始點。若在「預約未來釋放」時讀取 `gain.value` (當前值)，會因為讀到 0 (音符尚未開始) 或舊值而導致釋放瞬間音量跳變。
+- **解決方案：分層起始值策略**：
+    - **即時釋放 (Manual/Real-time)**：使用 `Math.max(0.0001, this.envNode.gain.value)`。這確保了手動彈奏時能從當前聽到的位置開始 Release。
+    - **預約釋放 (Scheduled/Sequencer)**：根據 `startTime` 與 `adsr` 參數進行階段估算。若 `startTime` 超過 `Attack + Decay` 區間，則起始值設為 `Sustain` 值；否則設為 `1.0`。這解決了快速序列演奏時的爆音問題。
 
-### 2. Blockly SVG 繪圖與 Minimap 同步
-- **SVG vs Canvas**：在 Blockly 積木中嵌入 HTML5 Canvas 會導致渲染樹衝突與 Minimap 無法縮放的問題。改用 `Blockly.utils.dom.createSvgElement` 並動態操作 `<path>` (ADSR 曲線) 與 `<circle>` (光點)，能獲得更好的效能與跨插件相容性。
-- **多重註冊 (Multi-registry)**：為了解決 Minimap 與主工作區同時存在同 ID 樂器導致的註冊權搶奪，`EnvelopeManager` 改用 `Map<ID, Field[]>` 結構，同時驅動畫面上所有符合條件的動畫。
-
-### 3. 即時示波器 (Oscilloscope) 磁滯技術
-- **磁滯觸發 (Hysteresis Trigger)**：為了解決示波器波形左右飄移或在高頻下發抖的問題，Rust 端實作了「磁滯升緣」偵測：
-    1. `armed`：數值必須先低於 `-0.05`。
-    2. `triggered`：武裝後數值高於 `+0.05` 才開始擷取。
-- **自動歸零**：前端偵測數據流中斷（100ms 無更新）時，自動重繪中心水平線，維持儀器的專業視覺感。
-
-### 4. Windows 多聲道緩衝區對齊 (關鍵坑)
-- **現象**：在 5.1/7.1 聲道環境下有劇烈雜音。
-- **原因**：`cpal` 提供的 `data` 緩衝區長度與 `channels` 相關。若僅寫入前兩軌而未清零後續聲道，會讀到記憶體殘留垃圾數據。
-- **解決**：先執行 `data.fill(0.0)`，再透過 `data.chunks_mut(channels)` 進行聲道對應填充。
-
-## 2026-03-12 (動態 DSP 鏈與 Net 整合突破)
-
-### 1. fundsp::hacker32::Net 的動態組件化
-- **問題**：`fundsp` 的操作符（如 `>>`, `*`）在編譯時需要確定所有節點的型別。這使得「根據積木隨意組合組件」變得極難實現，且 `Box<dyn AudioUnit>` 無法直接使用操作符。
-- **解決**：使用 `Net32` (在 `hacker32` 中簡稱為 `Net`) 作為 DSP 容器：
-    - 使用 `net.push(Box::new(node))` 將每個積木對應的節點「推入」容器。
-    - 使用 `net.connect(src_id, src_port, dst_id, dst_port)` 在執行時動態建立連線。
-    - 最後使用 `net.pipe_output(final_node_id)` 或連接到 `fundsp::net::NodeId::ID_OUT` 輸出。
-
-### 2. 「機關槍」低頻震盪的根治
-- **現象**：昨天在複音化後，持續音會出現劇烈低頻機關槍連發聲。
-- **原因**：舊實作中 ADSR 參數在引擎啟動時即固定，且多聲部間的 `gate` 與 `osc` 相位沒有物理斷路。當 `gate` 在頻繁切換時，相位跳變引發了不穩定震盪。
-- **解決**：
-    - **ADSR Live**：在 `Net` 中將 `adsr_live` 的輸入連往 `var(gate)` 節點。這確保了包絡線能正確響應 `gate` 的 0 -> 1 變化。
-    - **物理閘門隔離**：在每個聲部的 `Net`輸出前，強制插入一個 `product()` 節點，將最終訊號乘上 `var(gate)`。這保證了當 Gate 為 0 時，該聲部的輸出是絕對的數學 0，消除了所有潛在的相位滲漏。
-
-### 3. Box<dyn AudioUnit> 的型別陷阱
-- **關鍵**：在 `Net` 中推入節點時，必須明確使用 `Box::new(node)`。例如：`net.push(Box::new(sine()))`。
-- **串接邏輯**：
-    - `Net` 內部必須處理好 `input` 與 `output` 的端口索引。
-    - `pass() * pass()` 節點用於實作乘法（如 VCA）。
-    - 最終將 `Net` 整體封裝進 `Box<dyn AudioUnit>` 供音訊執行緒統一呼叫。
-
-## 2026-03-12 (深度優化與音訊穩定性維護)
-
-### 1. 徹底根治「機關槍雜訊」 (效能大坑)
-- **錯誤原因**：之前的實作在音訊執行緒的「採樣點層級」進行 Mutex 鎖定嘗試 (`try_lock`)。16 聲部導致每秒產生 70 萬次鎖定競爭，CPU 負擔過重導致緩衝區欠載 (Buffer Underrun)。
-- **解決方案：批次鎖定 (Batch Locking)**：
-    - 將鎖定移至「緩衝區層級」（每 256~512 個採樣點鎖定一次）。
-    - 音訊執行緒預先收集所有成功的鎖定單元，形成 `active_units` 向量後再進行循環計算。效能提升約 100 倍。
-
-### 2. 硬同步 (Hard Sync) 確保音質純淨
-- **問題**：快速演奏時波形相位不連續，產生直流跳變 (DC Offset) 噪音。
-- **解決**：引入 `AtomicBool` 旗標 `reset_pending`。每次 `trigger_note` 時標記，音訊執行緒領取鎖定後立即執行 `unit.reset()`。這確保了振盪器與包絡線從 0 開始，對齊了 #processing (Minim) 的標準。
-
-### 3. 聲部數的物理限制與效能權衡
-- **現象**：提升至 16 聲部時，在動態 `Net` 的架構下，Windows 11 筆電會出現不可預期的尖峰雜訊。
-- **結論**：為了保證教學穩定性，將 `MAX_VOICES` 限制為 **8 聲部**。對於教育用途，8 聲部已足夠應付複雜的和弦與旋律，且能確保 100% 無雜訊。
-
-### 4. 教學用 Clipping 視覺化
-- **策略**：移除引擎內建的 `tanh`/`atan`軟限幅。
+### 2. 同步無窮迴圈鎖死守衛 (Loop Guard)
+- **原理**：JavaScript 是單執行緒，同步的 `while(true) {}` 會鎖死整個 UI。
 - **實作**：
-    - Rust 端傳送「未經過 clamp 的原始數據」與 `clipped` 旗標給前端。
-    - 前端示波器在 `clipped` 為真時將波形變紅並顯示「CLIP」警訊。
-    - 學生可以直觀看到波形被 Hard Clamp (-1.0 ~ 1.0) 切平的現象，作為 Compressor/Limiter 課程的基礎。
+    - 在 `WaveCodeAPI` 加入 `checkLoop(id)` 方法，維護一個 `_loopCounters` Map。
+    - 在 `ToolbarManager` 產生程式碼時，注入 `Blockly.JavaScript.INFINITE_LOOP_TRAP = 'WaveCode.checkLoop(_id);\n';`。
+    - **歸零機制**：每當執行 `await sleep` 時，代表執行權已交還給 UI，此時將該腳本的計數器歸零。
+    - **觸發機制**：若計數器超過 10,000 次未歸零，代表發生了同步卡死，立即拋出 `Error` 中斷執行。
 
+### 3. Blockly 產生器環境相容性 (V10+ Fix)
+- **問題**：在現代 Blockly 中，`this.valueToCode` 需要正確的 `this` 綁定。手動呼叫 `Blockly.JavaScript.forBlock['...'](block)` 會因為遺失 Context 而崩潰。
+- **解決**：
+    - 統一使用 `const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;` 取得實例。
+    - 呼叫 `generator.blockToCode(block)`，讓 Blockly 內部自動處理 `this` 綁定與優先序陣列處理。
+    - 確保在產生前呼叫 `generator.init(workspace)` 以初始化變數資料庫。
 
-## 2026-04-03 
-
-### 1. FFT 頻譜分析儀與示波器優化
-    * **後端 (Rust `engine.rs`)**:
-        * 引入 `rustfft` 庫，實作 256 點 FFT 計算。`WaveformPayload` 結構體新增 `fft` 欄位。
-        * `Cargo.toml` 加入 `rustfft` 依賴。
-    * **前端 (JavaScript `visualizer.js`)**:
-        * `drawFFT` 函式透過 `_fftData.slice(0, displayBins)` 限制顯示頻率範圍（約 10kHz）。
-        * 使用 HSL 色彩模型為頻譜長條動態生成顏色，並添加頂部高亮。
-        * `resize()` 函式處理 Canvas 解析度與顯示大小，修正置中問題。
-    * **HTML/CSS**: `index.html` 拆分示波器為雙欄；`style.css` 更新視覺化容器樣式。
-### 2. ADSR 動畫與鍵盤輸入整合
-    * **`FieldADSR` 類別**：新增 `startHold()` 和 `endHold()` 方法，支援長按 Sustain。
-    *   **`EnvelopeManager`**: 新增 `triggerStart(id)` 和 `triggerEnd(id)` 方法。
-    *   **`KeyboardController`**:
-        *   `KEY_MAP` 加入 `\` 鍵 (MIDI note 81)。
-        *   `handleKeyDown` 呼叫 `EnvelopeManager.triggerStart()`。
-        *   `handleKeyUp` 呼叫 `EnvelopeManager.triggerEnd()`。
-### 3. 輔助說明系統對齊 (#nyx)
-    * **文件遷移**: 成功從 HarmoNyx 複製說明文件至 WaveCode `resources/docs/`。
-    * **前端整合 (`ui_utils.js`, `mdi_manager.js`, `main.js`)**:
-        * `UIUtils.updateVisualHelp` 實現 Iframe 內嵌顯示本地 HTML 說明。
-        * `MDIManager` 的 `workspace.addChangeListener` 邏輯已調整，能捕捉 `Blockly.Events.SELECTED` 或 `UI`
-事件，觸發 `UIUtils.updateVisualHelp`。
-        * `main.js` 註冊了 BlocklyContextMenuRegistry 的「說明」選項。
-    *   **積木定義 (`audio_instruments.js`)**: 為「定義樂器」、「ADSR」、「濾鏡」積木添加 `helpUrl` 屬性。
-
-## 2026-04-04 (UI 佈局與 MDI 狀態同步深度修復)
-
-### 1. 右側面板 CSS 特異性修復
-- **問題**：示波器收合後仍有殘留高度。
-- **成因**：`min-height` 權重高於單純的 `height`，導致 `collapsed` 類別無法完全縮小面板。
-- **修復**：使用 `:not(.collapsed)` 隔離 `min-height` 設定，並在 `.collapsed` 下強制執行 `max-height: 35px !important`。同時修正了 `height: auto` 導致日誌面板無法產生內部捲軸的問題。
-
-### 2. switchSmartTab 的 Context 綁定問題
-- **現象**：切換分頁無反應。
-- **成因**：在 `ui_utils.js` 的 `init` 迴圈中使用箭頭函式時，`this` 可能在某些異步載入情況下解析不正確。
-- **修復**：改用顯式的具名物件呼叫 `UIUtils.switchSmartTab(tabId)` 以確保穩定性。
-
-### 3. MDI 腳本安樂死 (Euthanasia) 技術
-- **問題**：切換分頁後上一分頁的異步腳本 (含有 `sleep`) 仍會繼續運行並佔用音訊聲部。
-- **修復**：在 `MDIManager.switchTab` 呼叫 `WaveCodeAPI.reset()`。這會遞增 `_execId`，使得舊分頁中正在 `sleep` 的 Promise 醒來後因 ID 不符而拋出 `Script cancelled` 異常，從而終止舊腳本。
-
-### 4. 樂器掃描同步 (Instrument Sync)
-- **問題**：新分頁建立後 PC 鍵盤無聲或使用舊樂器。
-- **修復**：
-    - 將 `WaveCodeCompiler.scanInstruments` 提取為靜態工具函式。
-    - 將 `createDefaultBlocks` 改為同步 (同步建立 SVG 元素與連線)，確保在 `addNewTab` 同一事件循環內完成樂器 Patch 初始化。
-    - 在 `switchTab` 與 `addNewTab` 流程中加入強制的樂器掃描同步動作。
+### 4. 精確排程與 Voice 物件綁定
+- **變更**：`WaveCodeAPI.playNote` 不再透過頻率搜尋來 release。
+- **優點**：`AudioManager.triggerNote` 現在會回傳該聲部的 `Voice` 物件，`playNote` 直接對該物件呼叫 `release(time)`。這保證了即使在同頻率、同 ID 的重疊演奏下，每個音符的 Release 都能精確對應到自己的起始排程，不會發生「誤殺」鄰近音符的情況。

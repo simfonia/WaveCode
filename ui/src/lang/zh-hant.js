@@ -1,8 +1,8 @@
 (function (Blockly) {
   Blockly.Msg = Blockly.Msg || {};
   Object.assign(Blockly.Msg, {
-    "WAVECODE_RUN": "執行程式",
-    "WAVECODE_STOP": "停止音訊",
+    "WAVECODE_RUN": "執行程式 (Ctrl+Enter)",
+    "WAVECODE_STOP": "停止音訊 (Esc)",
     "WAVECODE_NEW": "新建專案",
     "WAVECODE_EXAMPLES": "範例專案",
     "WAVECODE_OPEN": "開啟專案",
@@ -52,6 +52,9 @@
     // 樂器組件
     "AUDIO_COMP_OSC": "振盪器 %1",
     "AUDIO_COMP_SAMPLER": "取樣器 %1",
+    "AUDIO_CREATE_ADDITIVE_SYNTH": "加法合成器",
+    "AUDIO_CREATE_ADDITIVE_SYNTH_TOOLTIP": "建立一個高彈性的加法合成器，您可以自由設定每個分音的波形、頻率比例與音量比例。",
+    "AUDIO_WAVE": "波形",
     "AUDIO_COMP_ADSR": "ADSR 包絡線 %1 A %2 D %3 S %4 R %5",
     "AUDIO_COMP_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
     "AUDIO_COMP_VOLUME": "音量 %1 %",

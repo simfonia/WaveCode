@@ -1,14 +1,13 @@
 /**
- * WaveCode Keyboard Controller - 電腦鍵盤演奏模組 (對齊 SynthBlockly Stage)
+ * WaveCode Keyboard Controller - 電腦鍵盤演奏模組 (對齊 HarmoNyx #nyx 標準)
  */
 import { WaveCodeAPI } from './api.js';
-import { EnvelopeManager } from './visualizer.js';
 
 // MIDI Note to Frequency (A4 = 440Hz)
 const mtof = (note) => 440 * Math.pow(2, (note - 69) / 12);
 
+// #nyx 標準對應：Q 鍵排與數字鍵排交錯模擬黑白鍵
 const KEY_MAP = {
-    // 第一行：白鍵與黑鍵交錯
     'q': 60, // C4
     '2': 61, // C#4
     'w': 62, // D4
@@ -27,82 +26,102 @@ const KEY_MAP = {
     '0': 75, // D#5
     'p': 76, // E5
     '[': 77, // F5
-    '=': 78, // F#5
     ']': 79, // G5
     '\\': 81 // A5
 };
 
 export const KeyboardController = {
-    activeVoices: new Map(), // key -> voiceIndex
+    activeVoices: new Map(), // key -> freq
     transpose: 0,
-    enabled: true,
+    runCallback: null,
+    stopCallback: null,
 
-    init: () => {
+    init: (runCallback, stopCallback) => {
+        if (runCallback) KeyboardController.runCallback = runCallback;
+        if (stopCallback) KeyboardController.stopCallback = stopCallback;
         window.addEventListener('keydown', KeyboardController.handleKeyDown);
         window.addEventListener('keyup', KeyboardController.handleKeyUp);
-        if (window.LogManager) window.LogManager.appendLog("WaveCode: 鍵盤演奏模式已啟動");
+        window.addEventListener('blur', () => KeyboardController.stopAll());
+        console.log("WaveCode: 鍵盤演奏模式已啟動 (對齊 HarmoNyx #nyx 標準)");
+    },
+
+    /**
+     * 統一印出移調日誌
+     */
+    logTranspose: () => {
+        const val = KeyboardController.transpose;
+        const oct = (val / 12).toFixed(1).replace('.0', '');
+        const sign = val > 0 ? '+' : '';
+        const msg = `Transpose: ${sign}${val} (${oct} Octaves)`;
+        if (window.LogManager) window.LogManager.appendLog(msg, 'info');
     },
 
     handleKeyDown: async (e) => {
-        if (KeyboardController.isTyping()) return;
+        const isTyping = KeyboardController.isTyping();
+        
+        // --- 0. 快速鍵優先 (Ctrl + Enter / Escape) ---
+        if (e.ctrlKey && e.key === 'Enter') {
+            if (KeyboardController.runCallback) {
+                e.preventDefault();
+                KeyboardController.runCallback();
+            }
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            if (KeyboardController.stopCallback) {
+                e.preventDefault();
+                KeyboardController.stopCallback();
+            }
+            return;
+        }
+
+        if (isTyping) return;
         
         const key = e.key.toLowerCase();
 
-        // 處理位移指令
+        // 1. 處理移調指令 (#nyx 規格)
         if (e.key === 'ArrowUp') {
-            e.preventDefault(); // 防止日誌或頁面捲動
             KeyboardController.transpose += 12;
-            if (window.LogManager) window.LogManager.appendLog(`Transpose: +12 (目前總值: ${KeyboardController.transpose})`, 'info');
+            KeyboardController.logTranspose();
             return;
         }
         if (e.key === 'ArrowDown') {
-            e.preventDefault();
             KeyboardController.transpose -= 12;
-            if (window.LogManager) window.LogManager.appendLog(`Transpose: -12 (目前總值: ${KeyboardController.transpose})`, 'info');
+            KeyboardController.logTranspose();
             return;
         }
         if (e.key === '=' || e.key === '+') {
-            e.preventDefault();
             KeyboardController.transpose += 1;
-            if (window.LogManager) window.LogManager.appendLog(`Transpose: +1 (目前總值: ${KeyboardController.transpose})`, 'info');
+            KeyboardController.logTranspose();
             return;
         }
         if (e.key === '-' || e.key === '_') {
-            e.preventDefault();
             KeyboardController.transpose -= 1;
-            if (window.LogManager) window.LogManager.appendLog(`Transpose: -1 (目前總值: ${KeyboardController.transpose})`, 'info');
+            KeyboardController.logTranspose();
             return;
         }
         if (e.key === 'Backspace') {
-            e.preventDefault();
             KeyboardController.transpose = 0;
-            if (window.LogManager) window.LogManager.appendLog(`Transpose: Reset (目前總值: 0)`, 'info');
+            if (window.LogManager) window.LogManager.appendLog(`Transpose: Reset (0)`, 'info');
             return;
         }
 
-        // 處理演奏按鍵
+        if (e.repeat) return;
+
+        // 2. 處理演奏按鍵
         if (KEY_MAP[key] && !KeyboardController.activeVoices.has(key)) {
-            e.preventDefault(); // 演奏時也防止按鍵產生預設行為
             const midiNote = KEY_MAP[key] + KeyboardController.transpose;
             const freq = mtof(midiNote);
-            const invoke = WaveCodeAPI.getInvoke();
-            if (!invoke) return;
+            const instId = KeyboardController.getActiveInstrumentId();
 
             try {
-                const instId = KeyboardController.getActiveInstrumentId();
+                if (window.EnvelopeManager) window.EnvelopeManager.triggerStart(instId);
                 
-                // --- 視覺觸發：StartHold ---
-                if (window.EnvelopeManager) {
-                    window.EnvelopeManager.triggerStart(instId);
-                }
+                // 觸發音訊引擎 (startTime=0 代表立即)
+                await WaveCodeAPI.triggerNote(freq, instId, 0);
+                KeyboardController.activeVoices.set(key, freq);
 
-                if (window.LogManager) window.LogManager.appendLog(`Note ON: ${midiNote} (${freq.toFixed(2)} Hz) [${instId}]`, 'info');
-
-                const voiceIndex = await invoke('trigger_note', { 
-                    freq: parseFloat(freq),
-                    instId: instId
-                });
-                KeyboardController.activeVoices.set(key, voiceIndex);
             } catch (err) {
                 console.error("鍵盤觸發錯誤:", err);
             }
@@ -112,19 +131,22 @@ export const KeyboardController = {
     handleKeyUp: async (e) => {
         const key = e.key.toLowerCase();
         if (KeyboardController.activeVoices.has(key)) {
-            const voiceIndex = KeyboardController.activeVoices.get(key);
-            const invoke = WaveCodeAPI.getInvoke();
+            const freq = KeyboardController.activeVoices.get(key);
             const instId = KeyboardController.getActiveInstrumentId();
 
-            // --- 視覺結束：EndHold (進入 Release) ---
-            if (window.EnvelopeManager) {
-                window.EnvelopeManager.triggerEnd(instId);
-            }
+            if (window.EnvelopeManager) window.EnvelopeManager.triggerEnd(instId);
 
-            if (invoke) {
-                await invoke('release_note', { index: voiceIndex });
-            }
+            // 釋放音訊引擎 (startTime=0 代表立即)
+            await WaveCodeAPI.releaseNote(freq, 0);
             KeyboardController.activeVoices.delete(key);
+        }
+    },
+
+    stopAll: () => {
+        if (KeyboardController.activeVoices.size > 0) {
+            KeyboardController.activeVoices.clear();
+            WaveCodeAPI.stopAudio();
+            if (window.EnvelopeManager) window.EnvelopeManager.stopAll();
         }
     },
 
@@ -132,11 +154,13 @@ export const KeyboardController = {
         const el = document.activeElement;
         if (!el) return false;
         const tagName = el.tagName.toLowerCase();
-        return tagName === 'input' || tagName === 'textarea' || el.isContentEditable || el.classList.contains('blocklyHtmlInput');
+        const isInput = tagName === 'input' || tagName === 'textarea' || el.isContentEditable || el.classList.contains('blocklyHtmlInput');
+        if (el.type === 'range') return false;
+        return isInput;
     },
 
     getActiveInstrumentId: () => {
         const keys = Object.keys(WaveCodeAPI._instruments);
-        return keys.length > 0 ? keys[0] : 'default';
+        return keys.length > 0 ? keys[0] : 'my_piano';
     }
 };

@@ -1,8 +1,8 @@
 /**
- * WaveCode Compiler - 鏈式動態編譯器 (Rust 原生模式)
+ * WaveCode Compiler - 鏈式動態編譯器 (Web Audio 模式)
  */
 
-import { WaveCodeAPI } from './api.js';
+import { AudioManager } from './audio/manager.js';
 
 export const WaveCodeCompiler = {
   /**
@@ -23,6 +23,16 @@ export const WaveCodeCompiler = {
         if (current.isEnabled()) {
           if (current.type === 'wc_component_osc') {
             chain.push({ type: 'osc', wave: parseInt(current.getFieldValue('WAVE')) });
+          } else if (current.type === 'wc_create_additive_synth') {
+            const partials = [];
+            for (let i = 1; i <= (current.itemCount_ || 0); i++) {
+              partials.push({
+                wave: parseInt(current.getFieldValue('WAVE' + i)),
+                ratio: parseFloat(current.getFieldValue('RATIO' + i)),
+                amp: parseFloat(current.getFieldValue('AMP' + i))
+              });
+            }
+            chain.push({ type: 'additive', partials });
           } else if (current.type === 'wc_component_sampler') {
             chain.push({
               type: 'sampler',
@@ -57,14 +67,14 @@ export const WaveCodeCompiler = {
   },
 
   /**
-   * 遍歷工作區積木，分析音訊鏈條並傳送啟動指令給 Rust 引擎
+   * 遍歷工作區積木，分析音訊鏈條並同步至 Web Audio 引擎
    */
-  compileAndRun: async (workspace) => {
+  run: async (workspace) => {
     if (!workspace || workspace.isClearing) return;
 
-    console.log("WaveCode: 開始 Rust 原生鏈式編譯...");
+    console.log("WaveCode: 開始 Web Audio 鏈式編譯...");
     
     const instrumentConfigs = WaveCodeCompiler.scanInstruments(workspace);
-    await WaveCodeAPI.setInstruments(instrumentConfigs);
+    AudioManager.setInstruments(instrumentConfigs);
   }
 };

@@ -1,0 +1,92 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_instrument" id="%xOiQ?IFA1N_0TFiqfl2" x="50" y="50">
+    <field name="ID">my_piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="{9+5aQ96?5PC`C=/0@Dn">
+        <field name="WAVE">0</field>
+        <next>
+          <block type="wc_component_adsr" id="PNe7,$q*l3$3[oa[APd1">
+            <field name="A">0.05</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="tmhoN##OU3eh(A09P%Vg">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="63mZurP7s*k=^a}8u7e)" x="50" y="290">
+    <field name="COMMENT">在無窮迴圈中，若沒有等待時間，應用程式將會卡死。&amp;#10;WaveCode自帶同步無窮迴圈守衛，可以自動停止程式。</field>
+  </block>
+  <block type="wc_perform" id="odm}2!u9lk:E5P2K3f?+" x="50" y="370">
+    <statement name="DO">
+      <block type="controls_whileUntil" id="x,I^j0w(C.f#d+pll3L#">
+        <field name="MODE">WHILE</field>
+        <value name="BOOL">
+          <block type="logic_boolean" id="`CSY.3F{oph2?n:j,uQ?">
+            <field name="BOOL">TRUE</field>
+          </block>
+        </value>
+        <statement name="DO">
+          <block type="wc_play_note_async" id="aofHu/q-rK,o.Hb,T.yH">
+            <field name="INSTRUMENT">my_piano</field>
+            <value name="FREQ">
+              <shadow type="wc_note" id="`OV4Rm`zE3=dHWDNGsZW">
+                <field name="NOTE">261.63</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="math_number" id="L!}{ddXlXTFpD(-+zE]v">
+                <field name="NUM">500</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_play_note_async" id="Ai/X8a:5`hG8sfUA=YW1">
+                <field name="INSTRUMENT">my_piano</field>
+                <value name="FREQ">
+                  <shadow type="wc_note" id="$Fd8Q:ahHEd}}-p!aRjf">
+                    <field name="NOTE">329.63</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="math_number" id="j;clsiCt^*FI9E9v~g-0">
+                    <field name="NUM">500</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note_async" id="a53E651K`QS4--.j21+i">
+                    <field name="INSTRUMENT">my_piano</field>
+                    <value name="FREQ">
+                      <shadow type="wc_note" id="HA{W`/.,-p@rk5[,y;0e">
+                        <field name="NOTE">392.00</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="math_number" id="YeywqP2iU)K^qj8YPeD^">
+                        <field name="NUM">500</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_wait" id="]7mtDKxTGm5JbT#bqR^r" disabled-reasons="MANUALLY_DISABLED">
+                        <value name="MS">
+                          <shadow type="math_number" id="fi/4M*^Xg$MeM0OYD3/z">
+                            <field name="NUM">500</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

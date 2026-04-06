@@ -1,8 +1,8 @@
 (function (Blockly) {
   Blockly.Msg = Blockly.Msg || {};
   Object.assign(Blockly.Msg, {
-    "WAVECODE_RUN": "Run Code",
-    "WAVECODE_STOP": "Stop Audio",
+    "WAVECODE_RUN": "Run Code (Ctrl+Enter)",
+    "WAVECODE_STOP": "Stop Audio (Esc)",
     "WAVECODE_NEW": "New Project",
     "WAVECODE_EXAMPLES": "Examples",
     "WAVECODE_OPEN": "Open Project",

@@ -1,6 +1,7 @@
 /**
  * WaveCode IDE - 前端主程式 (對齊 #nyx 架構)
  */
+import './preinit.js';
 import './style.css';
 import './lang/zh-hant.js';
 
@@ -31,7 +32,6 @@ const LogManager = UIUtils.initStagePanel();
 window.LogManager = LogManager; // 確保全域可用供產生器與後端監聽使用
 
 Oscilloscope.init('waveformCanvas');
-KeyboardController.init();
 
 // --- 1. 註冊 Blockly 插件 ---
 if (window.FieldMultilineInput) Blockly.fieldRegistry.register('field_multilinetext', window.FieldMultilineInput);
@@ -74,6 +74,24 @@ const toolbarManager = new ToolbarManager(null, LogManager);
 const mdiManager = new MDIManager(toolbarManager, blocklyOptions);
 toolbarManager.mdiManager = mdiManager;
 
+// --- 3.1 鍵盤控制器綁定快速鍵 ---
+KeyboardController.init(
+    () => { if (toolbarManager.elements.runBtn) toolbarManager.elements.runBtn.click(); },
+    () => { if (toolbarManager.elements.stopBtn) toolbarManager.elements.stopBtn.click(); }
+);
+
+/**
+ * 統一開啟說明的處理函式 (保留供右鍵選單使用)
+ */
+const openBlockHelp = (block) => {
+    if (!block || !block.helpUrl) return;
+    const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+    const lang = toolbarManager.currentLang;
+    const targetUrl = url.startsWith('http') ? url : `${url}_${lang}.html`;
+    const invoke = WaveCodeAPI.getInvoke();
+    if (invoke) invoke('open_url', { url: targetUrl });
+};
+
 // 將 UIUtils 的功能暴露到全域供 MDIManager 使用
 window.updateVisualHelp = UIUtils.updateVisualHelp;
 
@@ -110,7 +128,11 @@ function debouncedUpdateLiveCode() {
     liveCodeTimeout = setTimeout(() => {
         const workspace = toolbarManager.workspace;
         if (!workspace) return;
+        
+        // 【關鍵修復】確保產生器已初始化，防止 CodeGenerator init 報錯
+        Blockly.JavaScript.init(workspace);
         const code = Blockly.JavaScript.workspaceToCode(workspace);
+        
         const codeEl = document.getElementById('generated-code');
         if (codeEl) codeEl.textContent = code;
     }, 500);
