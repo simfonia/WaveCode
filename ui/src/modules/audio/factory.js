@@ -78,6 +78,69 @@ export const NodeFactory = {
                 return { nodes: [gain], output: gain };
             }
 
+            case 'effect': {
+                const effectType = comp.effect_type;
+                let nodes = [];
+                let output = null;
+
+                if (effectType === 'filter') {
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = comp.filter_type || 'lowpass';
+                    filter.frequency.setValueAtTime(comp.freq || 1000, time);
+                    filter.Q.setValueAtTime(comp.q || 1, time);
+                    nodes.push(filter);
+                    output = filter;
+                } else if (effectType === 'delay') {
+                    const delay = ctx.createDelay(5.0);
+                    delay.delayTime.setValueAtTime(comp.delay_time || 0.5, time);
+                    const feedback = ctx.createGain();
+                    feedback.gain.setValueAtTime(comp.feedback || 0.5, time);
+                    
+                    // 建立環路: Delay -> Feedback -> Delay
+                    delay.connect(feedback);
+                    feedback.connect(delay);
+                    
+                    nodes.push(delay, feedback);
+                    output = delay;
+                } else if (effectType === 'compressor') {
+                    const compNode = ctx.createDynamicsCompressor();
+                    compNode.threshold.setValueAtTime(comp.threshold || -24, time);
+                    compNode.knee.setValueAtTime(comp.knee || 30, time);
+                    compNode.ratio.setValueAtTime(comp.ratio || 12, time);
+                    compNode.attack.setValueAtTime(comp.attack || 0.003, time);
+                    compNode.release.setValueAtTime(comp.release || 0.25, time);
+                    
+                    // Makeup Gain: 將 dB 轉換為線性增益
+                    const makeup = ctx.createGain();
+                    const makeupDb = parseFloat(comp.makeup) || 0;
+                    const makeupVal = Math.pow(10, makeupDb / 20);
+                    makeup.gain.setValueAtTime(makeupVal, time);
+                    
+                    compNode.connect(makeup);
+                    nodes.push(compNode, makeup);
+                    output = makeup;
+                } else if (effectType === 'distortion') {
+                    // 【關鍵修正】對齊 Compiler 的 'distortion' 類型
+                    const shaper = ctx.createWaveShaper();
+                    const amt = parseFloat(comp.distortion) || 10;
+                    shaper.curve = this.makeDistortionCurve(amt);
+                    shaper.oversample = '4x'; // 增加採樣以減少數位失真感
+                    nodes.push(shaper);
+                    output = shaper;
+                } else if (effectType === 'bitcrush') {
+                    // 簡易 BitCrush: 使用 WaveShaper 模擬位元量化
+                    const shaper = ctx.createWaveShaper();
+                    shaper.curve = this.makeBitcrushCurve(comp.bitdepth || 8);
+                    nodes.push(shaper);
+                    output = shaper;
+                }
+
+                if (output && lastNode) {
+                    lastNode.connect(nodes[0]); // 連接到效果鏈的第一個節點
+                }
+                return { nodes, output };
+            }
+
             case 'sampler': {
                 const audioManager = arguments[5]; // 從傳入參數獲取
                 if (!audioManager || !audioManager.samples) return null;
@@ -174,5 +237,34 @@ export const NodeFactory = {
         if (n.includes('S') || n.includes('#')) modifier = 1;
         else if (n.includes('B') && n[0] !== 'B') modifier = -1;
         return (octave + 1) * 12 + base + modifier;
+    },
+
+    /**
+     * 產生失真曲線 (Sigmoid)
+     */
+    makeDistortionCurve(amount) {
+        const k = typeof amount === 'number' ? amount : 50;
+        const n_samples = 44100;
+        const curve = new Float32Array(n_samples);
+        const deg = Math.PI / 180;
+        for (let i = 0; i < n_samples; ++i) {
+            const x = (i * 2) / n_samples - 1;
+            curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+        }
+        return curve;
+    },
+
+    /**
+     * 產生位元量化曲線 (Bitcrush)
+     */
+    makeBitcrushCurve(bits) {
+        const n_samples = 44100;
+        const curve = new Float32Array(n_samples);
+        const step = Math.pow(0.5, bits - 1);
+        for (let i = 0; i < n_samples; ++i) {
+            const x = (i * 2) / n_samples - 1;
+            curve[i] = Math.round(x / step) * step;
+        }
+        return curve;
     }
 };

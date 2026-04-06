@@ -325,7 +325,16 @@ export const UIUtils = {
     /**
      * --- Orphan Block System (對齊 #nyx) ---
      */
-    VALID_ROOTS: ['wc_init', 'wc_instrument', 'wc_perform', 'wc_comment', 'procedures_defnoreturn', 'procedures_defreturn'],
+    VALID_ROOTS: [
+        'wc_init', 
+        'wc_instrument', 
+        'wc_master', 
+        'wc_perform', 
+        'wc_select_current_instrument', 
+        'wc_comment', 
+        'procedures_defnoreturn', 
+        'procedures_defreturn'
+    ],
 
     updateOrphanBlocks: (ws) => {
         if (!ws || ws.isDragging()) return;

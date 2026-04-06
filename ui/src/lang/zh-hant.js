@@ -19,7 +19,7 @@
     // UI 標籤
     "WAVECODE_OSCILLOSCOPE": "示波器",
     "WAVECODE_HELP_TITLE": "輔助說明",
-    "WAVECODE_TAB_CODE": "指令鏈 (Live Code)",
+    "WAVECODE_TAB_CODE": "音訊腳本 (Audio DSL)",
     "WAVECODE_STAGE_LOG": "系統日誌",
     "WAVECODE_HELP_HINT": "點擊積木以查看說明",
     "WAVECODE_LANG_SETTING": "語言設定",
@@ -43,9 +43,12 @@
     "CAT_INSTRUMENT_CONTROL": "樂器控制",
     "CAT_EFFECTS": "音訊效果",
     "CAT_PERFORMANCE": "音樂演奏",
+    "CAT_MASTER": "主輸出控制",
 
     // 樂器定義 (C 型帽子模式)
     "AUDIO_DEFINE_INSTRUMENT": "定義樂器 %1",
+    "AUDIO_DEFINE_MASTER": "主輸出控制 (Master Out)",
+    "AUDIO_MASTER_TOOLTIP": "定義全域主輸出的處理鏈。您可以在此加入 Limiter 或 Compressor 來防止複音合奏時產生的 Clipping (破音)。",
     "AUDIO_INSTRUMENT_CHAIN": "%1",
     "AUDIO_INSTRUMENT_TOOLTIP": "在此定義樂器的音訊鏈。您可以放入振盪器、ADSR、濾過器等組件。這是一個定義區塊，演奏指令會引用此處的設定。",
 
@@ -65,6 +68,21 @@
     "AUDIO_COMP_ADSR": "ADSR 包絡線 %1 A %2 D %3 S %4 R %5",
     "AUDIO_COMP_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
     "AUDIO_COMP_VOLUME": "音量 %1 %",
+
+    // 效果器 (拆分版)
+    "AUDIO_EFFECT_FILTER": "濾波器 %1 頻率 %2 Q值 %3",
+    "AUDIO_EFFECT_DELAY": "延遲時間 %1 秒 (Feedback %2)",
+    "AUDIO_EFFECT_BITCRUSH": "位元粉碎 (BitCrush) %1 Bits",
+    "AUDIO_EFFECT_DISTORTION": "失真 (Distortion) %1",
+    "AUDIO_EFFECT_COMPRESSOR": "壓縮器 (Compressor) 閾值 %1 比率 %2 啟動 %3 釋放 %4 增益 %5",
+
+    "AUDIO_FILTER_TOOLTIP": "使用濾波器過濾特定頻率（低通/高通/帶通）。",
+    "AUDIO_DELAY_TOOLTIP": "產生回聲延遲效果。",
+    "AUDIO_BITCRUSH_TOOLTIP": "降低位元深度，產生復古的數位失真感。",
+    "AUDIO_DISTORTION_TOOLTIP": "產生類比風格的飽和失真效果。",
+    "AUDIO_COMPRESSOR_TOOLTIP": "動態壓縮音訊，使大聲變小、小聲變大，平衡動態。",
+
+    "AUDIO_FILTER_TYPE": "濾波器",
 
     // 組件選項
     "AUDIO_WAVE_SINE": "正弦波",

@@ -7,10 +7,12 @@ import { Visualizer } from './visualizer.js';
 export const AudioManager = {
     ctx: null,
     masterGain: null,
+    masterChainNodes: [], // 儲存動態建立的主鏈節點
     analyser: null,
     voices: [],
     maxVoices: 32,
     patches: {},
+    masterPatch: [], // 主輸出鏈配置
     samples: {}, // ID -> AudioBuffer
 
     async init() {
@@ -25,18 +27,20 @@ export const AudioManager = {
             sampleRate: 44100
         });
 
+        // --- 建立主輸出總線 (Master Bus) ---
         this.masterGain = this.ctx.createGain();
-        this.masterGain.connect(this.ctx.destination);
+        this.masterGain.gain.setValueAtTime(0.8, this.ctx.currentTime);
 
         this.analyser = this.ctx.createAnalyser();
         this.analyser.fftSize = 1024; 
-        this.analyser.smoothingTimeConstant = 0.4; // 頻譜平滑度
-        this.masterGain.connect(this.analyser);
+        this.analyser.smoothingTimeConstant = 0.4; 
+
+        // 初始連接
+        this.rebuildMasterChain();
 
         this.visualizer = new Visualizer(this.analyser);
         this.visualizer.start();
 
-        // 只有在取樣庫為空時才載入，避免每次執行都重新解碼耗時
         if (Object.keys(this.samples).length === 0) {
             await this.loadSamples();
         }
@@ -44,16 +48,46 @@ export const AudioManager = {
         console.log("WaveCode Engine: Web Audio Manager Initialized");
     },
 
+    /**
+     * 重建主鏈效果器
+     */
+    async rebuildMasterChain() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 1. 斷開舊有連接並銷毀舊節點
+        this.masterGain.disconnect();
+        this.masterChainNodes.forEach(node => {
+            if (node.disconnect) node.disconnect();
+        });
+        this.masterChainNodes = [];
+
+        // 2. 根據 masterPatch 建立新節點
+        let lastNode = this.masterGain;
+        
+        const { NodeFactory } = await import('./factory.js');
+        
+        for (const comp of this.masterPatch) {
+            const result = NodeFactory.create(this.ctx, comp, 440, lastNode, now);
+            if (result && result.nodes) {
+                this.masterChainNodes.push(...result.nodes);
+                lastNode = result.output;
+            }
+        }
+
+        // 3. 最後連接到 Analyser
+        lastNode.connect(this.analyser);
+        this.analyser.connect(this.ctx.destination);
+    },
+
     async loadSamples() {
         const { invoke } = window.__TAURI__.core;
         try {
-            // 透過 Tauri 呼叫讀取 samples 目錄清單
             const files = await invoke('list_samples_recursive'); 
             let loadedCount = 0;
 
             for (const file of files) {
                 const { path, id } = file;
-                // 透過 Rust 指令讀取檔案位元組，繞過前端 fs 權限限制
                 const bytes = await invoke('read_sample_file', { path });
                 const audioBuffer = await this.ctx.decodeAudioData(new Uint8Array(bytes).buffer);
                 this.samples[id] = audioBuffer;
@@ -82,27 +116,23 @@ export const AudioManager = {
         this.patches = configs;
     },
 
+    setMasterPatch(patch) {
+        this.masterPatch = patch;
+        this.rebuildMasterChain();
+    },
+
     setMasterVolume(val) {
         if (!this.ctx) this.init();
         const now = this.ctx.currentTime;
         this.masterGain.gain.setTargetAtTime(val, now, 0.02);
     },
 
-    /**
-     * 觸發音符
-     * @param {number} freq 頻率
-     * @param {string} instId 樂器 ID
-     * @param {number} startTime 啟動時間 (0 代表立即)
-     */
     triggerNote(freq, instId, startTime = 0) {
         if (!this.ctx) this.init();
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
         const patch = this.patches[instId];
-        if (!patch) {
-            console.warn(`AudioManager: 找不到樂器 ID "${instId}"，可用樂器:`, Object.keys(this.patches));
-            return;
-        }
+        if (!patch) return;
 
         let voice = this.voices.find(v => !v.active);
         if (!voice) {
@@ -110,7 +140,6 @@ export const AudioManager = {
                 voice = new Voice(this.ctx, this.masterGain);
                 this.voices.push(voice);
             } else {
-                // 回收最舊的 active voice
                 voice = this.voices.shift();
                 voice.kill();
                 this.voices.push(voice);
@@ -122,16 +151,9 @@ export const AudioManager = {
         return voice;
     },
 
-    /**
-     * 釋放音符
-     * @param {number} freq 頻率
-     * @param {number} startTime 釋放時間 (0 代表立即)
-     */
     releaseNote(freq, startTime = 0) {
         if (!this.ctx) return;
         const time = startTime > 0 ? startTime : this.ctx.currentTime;
-
-        // 尋找對應頻率且尚未釋放的 Voice
         const voice = this.voices.find(v => v.active && !v.releasing && Math.abs(v.freq - freq) < 0.5);
         if (voice) voice.release(time);
     },

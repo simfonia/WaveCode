@@ -7,6 +7,14 @@ import { WaveCodeCompiler } from './compiler.js';
 // MIDI Note to Frequency (A4 = 440Hz)
 const mtof = (note) => 440 * Math.pow(2, (note - 69) / 12);
 
+// MIDI Note to Note Name (如 60 -> C4)
+const midiToName = (midi) => {
+    const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const octave = Math.floor(midi / 12) - 1;
+    const name = names[midi % 12];
+    return `${name}${octave}`;
+};
+
 // #nyx 標準對應：Q 鍵排與數字鍵排交錯模擬黑白鍵
 const KEY_MAP = {
     'q': 60, // C4
@@ -159,6 +167,12 @@ export const KeyboardController = {
             const midiNote = KEY_MAP[key] + KeyboardController.transpose;
             const freq = mtof(midiNote);
             const instId = KeyboardController.getActiveInstrumentId();
+
+            // Log 演奏資訊 (音名 -> MIDI -> 頻率)
+            if (window.LogManager) {
+                const noteName = midiToName(midiNote);
+                window.LogManager.appendLog(`Play: ${noteName} (MIDI: ${midiNote}, ${freq.toFixed(1)}Hz) [${instId}]`, 'info');
+            }
 
             try {
                 if (window.EnvelopeManager) window.EnvelopeManager.triggerStart(instId);

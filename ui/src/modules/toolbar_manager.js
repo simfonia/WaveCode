@@ -189,21 +189,33 @@ export class ToolbarManager {
                 }
             });
 
+            // --- 1. 同步音訊鏈至引擎 (核心功能) ---
+            import('./compiler.js').then(async ({ WaveCodeCompiler }) => {
+                await WaveCodeCompiler.run(workspace);
+            });
+
+            // --- 2. 執行產生的代碼 (僅當它是合法的 JavaScript 時) ---
+            // 注意：目前的產生器已改為 DSL 模式 (如 Instrument {..})，不再適合 eval。
+            // 這裡我們保留邏輯但加入 Try-Catch 保護，避免 DSL 語法導致 UI 崩潰。
             const finalCode = `
                 const _id = ${currentId};
                 try {
-                    ${rawCode}
-                } catch (err) {
-                    if (err.message !== 'Script cancelled') {
-                        throw err;
+                    // 如果 rawCode 包含 DSL 特有的符號，則視為不可執行
+                    if (!${JSON.stringify(rawCode)}.includes(' {') && !${JSON.stringify(rawCode)}.includes(' >>')) {
+                        ${rawCode}
                     }
+                } catch (err) {
+                    if (err.message !== 'Script cancelled') throw err;
                 }
             `;
 
             try {
-                const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-                const executeLogic = new AsyncFunction('WaveCode', finalCode);
-                await executeLogic(WaveCodeAPI);
+                // 只有在 rawCode 具備基本 JS 特徵時才嘗試執行
+                if (rawCode.trim().length > 0 && !rawCode.includes(' {') && !rawCode.includes(' >>')) {
+                    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                    const executeLogic = new AsyncFunction('WaveCode', finalCode);
+                    await executeLogic(WaveCodeAPI);
+                }
             } catch (err) {
                 if (err.message !== 'Script cancelled') {
                     console.error('腳本執行錯誤:', err);

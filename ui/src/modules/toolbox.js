@@ -103,7 +103,18 @@ export const WaveCodeToolbox = {
 
         { 'kind': 'sep' },
 
-        // 3. 音源定義 (Sound Sources)
+        // 3. 主輸出控制 (Master Out)
+        {
+            'kind': 'category',
+            'name': '%{BKY_CAT_MASTER}',
+            'colour': '#e74c3c',
+            'contents': [
+                { 'kind': 'block', 'type': 'wc_master' }
+            ]
+        },
+
+
+        // 4. 音源定義 (Sound Sources)
         {
             'kind': 'category',
             'name': '%{BKY_CAT_SOUND_SOURCES}',
@@ -116,7 +127,7 @@ export const WaveCodeToolbox = {
             ]
         },
 
-        // 4. 樂器控制 (Instrument Control)
+        // 5. 樂器控制 (Instrument Control)
         {
             'kind': 'category',
             'name': '%{BKY_CAT_INSTRUMENT_CONTROL}',
@@ -127,17 +138,57 @@ export const WaveCodeToolbox = {
             ]
         },
 
-        // 5. 音訊效果 (Audio Effects)
+        // 6. 音訊效果 (Audio Effects)
         {
             'kind': 'category',
             'name': '%{BKY_CAT_EFFECTS}',
             'colour': '%{BKY_EFFECTS_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'wc_component_filter' }
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_filter',
+                    'inputs': {
+                        'FREQ': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1000 } } },
+                        'Q': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_delay',
+                    'inputs': {
+                        'TIME': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } },
+                        'FEEDBACK': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_bitcrush',
+                    'inputs': {
+                        'BITS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 8 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_distortion',
+                    'inputs': {
+                        'AMOUNT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_compressor',
+                    'inputs': {
+                        'THRESH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': -24 } } },
+                        'RATIO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 12 } } },
+                        'ATTACK': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.003 } } },
+                        'RELEASE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.25 } } },
+                        'MAKEUP': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
+                    }
+                }
             ]
         },
 
-        // 6. 演奏指令 (Performance)
+        // 7. 演奏指令 (Performance)
         {
             'kind': 'category',
             'name': '%{BKY_CAT_PERFORMANCE}',

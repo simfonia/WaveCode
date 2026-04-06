@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>主輸出控制 - WaveCode 說明文件</title>
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; padding: 30px; color: #dfe6e9; background-color: #050505; max-width: 1000px; margin: 0 auto; }
+        h1 { color: #e74c3c; border-bottom: 3px solid #e74c3c; padding-bottom: 15px; font-weight: 800; font-size: 2.5em; }
+        h2 { color: #ff7675; border-bottom: 2px solid #3d3d45; padding-bottom: 8px; margin-top: 50px; font-size: 1.8em; }
+        .block-box { margin-bottom: 35px; padding: 25px; background: #1a1a20; border-radius: 16px; border-left: 8px solid #e74c3c; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        code { background: #2d3436; color: #fdcb6e; padding: 3px 8px; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.95em; }
+        .important { background-color: rgba(231, 76, 60, 0.15); border-left: 5px solid #e74c3c; padding: 20px; margin: 25px 0; border-radius: 0 16px 16px 0; color: #ff7675; }
+        .tip { background-color: rgba(52, 152, 219, 0.15); border-left: 5px solid #3498db; padding: 20px; margin: 25px 0; border-radius: 0 16px 16px 0; color: #81ecec; }
+        .physics { background-color: rgba(241, 196, 15, 0.1); border: 1px dashed #f1c40f; padding: 15px; margin: 15px 0; border-radius: 12px; font-size: 0.95em; color: #dfe6e9; }
+        .physics strong { color: #f1c40f; }
+        ul { padding-left: 25px; }
+        li { margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <h1>主輸出控制 (Master Out)</h1>
+    <p><code>主輸出控制</code> 是所有聲音進入喇叭前的「最後一關」。無論您定義了多少種樂器，它們最終都會匯聚到這裡進行總體的音效處理。</p>
+
+    <div class="block-box">
+        <h2>為什麼需要主輸出控制？</h2>
+        <p>當多個聲音同時播放時，它們的能量會發生「疊加」。</p>
+        
+        <div class="physics">
+            <strong>聲學原理：增益疊加 (Gain Staging)</strong><br>
+            假設樂器 A 的音量是 0.6，樂器 B 的音量也是 0.6。當兩者同時彈奏時，總能量會變成 1.2。在數位音訊系統中，能量上限是 1.0 (0dB)。超過這個數值的波形會被強行削平，產生刺耳的數位雜音，這就是 <strong>Clipping (破音)</strong>。
+        </div>
+
+        <p>主輸出控制積木的主要任務，就是讓我們在聲音輸出前，使用動態處理工具（如壓縮器或限制器）來確保總音量不超標。</p>
+    </div>
+
+    <div class="block-box">
+        <h2>教學實作：修復 Clipping</h2>
+        <p>您可以依照以下步驟觀察並修復破音現象：</p>
+        <ol>
+            <li><strong>觀察破音</strong>：在工作區放入 <code>演奏和弦</code> 積木（彈奏三個以上的音）。觀察示波器，您會發現波形衝出頂部，且右下角的 <code>CLIP</code> 警告燈亮起。</li>
+            <li><strong>加入 Master 鏈</strong>：拖入 <code>主輸出控制</code> 積木。</li>
+            <li><strong>插入壓縮器</strong>：在 <code>主輸出控制</code> 內插入一個 <code>壓縮器 (Compressor)</code> 積木。</li>
+            <li><strong>調整參數</strong>：
+                <ul>
+                    <li>將 <code>閾值 (Threshold)</code> 設為 <code>-12</code>。</li>
+                    <li>將 <code>壓縮比 (Ratio)</code> 設為 <code>12</code>。</li>
+                    <li>觀察示波器：波形會被壓制在安全範圍內，<code>CLIP</code> 警告燈熄滅，聲音聽起來變得更紮實。</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="important">
+        <strong>注意：</strong> 如果您在主輸出控制放入過多失真 (Distortion) 或過大的補償增益 (Makeup Gain)，即便有壓縮器，依然可能導致破音。請隨時監控示波器的狀態。
+    </div>
+
+    <div class="tip">
+        <strong>專業建議：</strong> 在專業音訊製作中，主輸出鏈通常會放置 <code>Limiter (限制器)</code>。這是一種壓縮比無限大的極端壓縮器，專門用來確保輸出絕對不會超過 0dB。在 WaveCode 中，您可以將壓縮器的 Ratio 調到最大 (20) 來模擬 Limiter 的效果。
+    </div>
+</body>
+</html>

@@ -350,3 +350,19 @@ body.resizing-panel {
     fill-opacity: 0.6 !important; 
     stroke: rgba(0,0,0,0.2) !important; 
 }
+
+/* --- Live Code 語法高亮 (DSL) --- */
+#generated-code {
+    white-space: pre-wrap;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #dfe6e9;
+    padding: 15px;
+}
+
+.code-keyword { color: #c678dd; font-weight: bold; } /* 紫色 */
+.code-string  { color: #98c379; } /* 綠色 */
+.code-number  { color: #d19a66; } /* 橘色 */
+.code-comment { color: #5c6370; font-style: italic; } /* 灰色 */
+.code-error   { color: #e06c75; background: rgba(224, 108, 117, 0.1); padding: 2px 4px; border-radius: 4px; }

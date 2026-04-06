@@ -4,65 +4,115 @@
     <meta charset="UTF-8">
     <title>音訊效果器 - WaveCode 說明文件</title>
     <style>
-        body { font-family: 'Inter', sans-serif; line-height: 1.6; padding: 25px; color: #dfe6e9; background-color: #050505; max-width: 900px; margin: 0 auto; }
-        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 10px; font-weight: 800; }
-        h2 { color: #a29bfe; border-bottom: 2px solid #3d3d45; padding-bottom: 5px; margin-top: 40px; }
-        .block-box { margin-bottom: 25px; padding: 20px; background: #1a1a20; border-radius: 12px; border-left: 6px solid #8E44AD; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        code { background: #2d3436; color: #fdcb6e; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-        .important { background-color: rgba(142, 68, 173, 0.1); border-left: 4px solid #8E44AD; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #d63031; }
-        .tip { background-color: rgba(116, 185, 255, 0.1); border-left: 4px solid #3498db; padding: 18px; margin: 20px 0; border-radius: 0 12px 12px 0; color: #81ecec; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; padding: 30px; color: #dfe6e9; background-color: #050505; max-width: 1000px; margin: 0 auto; }
+        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 15px; font-weight: 800; font-size: 2.5em; }
+        h2 { color: #a29bfe; border-bottom: 2px solid #3d3d45; padding-bottom: 8px; margin-top: 50px; font-size: 1.8em; }
+        h3 { color: #81ecec; margin-top: 25px; font-size: 1.2em; border-left: 4px solid #81ecec; padding-left: 12px; }
+        .block-box { margin-bottom: 35px; padding: 25px; background: #1a1a20; border-radius: 16px; border-left: 8px solid #8E44AD; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        code { background: #2d3436; color: #fdcb6e; padding: 3px 8px; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.95em; }
+        .important { background-color: rgba(231, 76, 60, 0.15); border-left: 5px solid #e74c3c; padding: 20px; margin: 25px 0; border-radius: 0 16px 16px 0; color: #ff7675; }
+        .tip { background-color: rgba(52, 152, 219, 0.15); border-left: 5px solid #3498db; padding: 20px; margin: 25px 0; border-radius: 0 16px 16px 0; color: #81ecec; }
+        .physics { background-color: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; padding: 15px; margin: 15px 0; border-radius: 12px; font-size: 0.95em; color: #b2bec3; }
+        .physics strong { color: #2ecc71; }
         ul { padding-left: 25px; }
-        li { margin-bottom: 10px; }
-        .range { color: #a0a0a0; font-size: 0.9em; font-style: italic; }
+        li { margin-bottom: 12px; }
+        .range { color: #636e72; font-size: 0.85em; font-weight: 600; text-transform: uppercase; margin-left: 10px; }
+        .param-name { color: #fab1a0; font-weight: 700; }
     </style>
 </head>
 <body>
     <h1>音訊效果器 (Audio Effects)</h1>
-    <p>效果器能讓聲音產生質變。在 WaveCode 中，您可以將效果器積木放在「定義樂器」內，直接整合進 DSP 訊號鏈中。</p>
+    <p>效果器是音訊合成的「鍊金術」。它們透過數學運算與物理模擬，改變原始振盪器產生的波形。在 WaveCode 中，效果器遵循<strong>串行連接 (Series Connection)</strong> 原則：訊號會從上至下流經每個積木，前一個效果器的輸出即為下一個的輸入。</p>
 
     <div class="important">
-        <strong>串接順序決定音色：</strong> 效果器是「由上而下」串接的。例如：先放「濾波器」再放「音量」，濾波後的訊號會被調整音量；若順序顛倒，則是對調整過音量的訊號進行濾波。
+        <strong>順序的重要性：</strong> 不同的排列會產生截然不同的音色。例如：<code>失真 -> 濾波</code> 會產生溫暖的電子音色；而 <code>濾波 -> 失真</code> 則會讓失真效果作用於特定頻段，產生更具侵略性的聲音。
     </div>
 
+    <!-- 1. Filter -->
     <div class="block-box">
         <h2>1. 濾波器 (Filter)</h2>
-        <p>修飾聲音的明暗度。WaveCode 提供高效能的低通與高通濾波。</p>
+        <p>濾波器透過移除或增強特定頻譜範圍來修飾音色。這是合成器中最核心的塑音工具。</p>
+        
+        <div class="physics">
+            <strong>物理原理：</strong> 濾波器本質上是「頻率依賴性增益器」。<strong>低通濾波器</strong>透過電路中的電容特性阻礙高頻電流，物理上模擬了聲音在穿過牆壁或水面時，高頻能量被吸收現象。<strong>Q 值</strong>則是在截止頻率點產生的「正回饋」，會導致特定頻率的能量疊加，產生尖銳的共振。
+        </div>
+
         <ul>
-            <li><strong>類型</strong>：
+            <li><span class="param-name">類型 (Type)</span>：
                 <ul>
-                    <li><strong>低通 (Low Pass)</strong>：保留低音，濾除高音。讓聲音變悶、變暖。</li>
-                    <li><strong>高通 (High Pass)</strong>：保留高音，濾除低音。讓聲音變尖細、變薄。</li>
+                    <li><strong>低通 (Low Pass)</strong>：濾除截止頻率以上的聲音。適合模擬「悶音」或「溫暖」的質感。</li>
+                    <li><strong>高通 (High Pass)</strong>：濾除截止頻率以下的聲音。適合移除低頻噪音或製作尖銳、薄弱的音色。</li>
+                    <li><strong>帶通 (Band Pass)</strong>：僅保留截止頻率附近的聲音。</li>
                 </ul>
             </li>
-            <li><strong>頻率 (Frequency)</strong> <span class="range">[20 - 20000 Hz]</span>：切斷點。</li>
-            <li><strong>Q 值 (Resonance)</strong> <span class="range">[0.1 - 10.0]</span>：共振峰。數值越大，在截止點產生的強調越明顯。</li>
+            <li><span class="param-name">頻率 (Frequency)</span> <span class="range">[20 - 20000 Hz]</span>：設定「切斷點」。人耳聽覺範圍約為 20Hz 至 20kHz。</li>
+            <li><span class="param-name">Q 值 (Quality Factor)</span> <span class="range">[0.1 - 10.0]</span>：共振強度。高 Q 值會在切斷點產生一個突出的波峰，讓聲音聽起來帶有「哨音」感。</li>
         </ul>
     </div>
 
+    <!-- 2. Delay -->
     <div class="block-box">
-        <h2>2. 音量與總增益 (Volume)</h2>
-        <p>控制訊號的強弱。建議在訊號鏈的最末端放置音量積木，以防止因振盪器與濾波器疊加產生的破音。</p>
+        <h2>2. 延遲 (Delay)</h2>
+        <p>將訊號儲存在暫存器中並延後一段時間輸出，模擬聲音在空間中反射產生的回聲。</p>
+
+        <div class="physics">
+            <strong>物理原理：</strong> 聲音在空氣中傳播速度約為 340m/s。延遲效果器模擬了牆面反射。當<strong>回饋量 (Feedback)</strong> 很高時，訊號會不斷重複進入延遲鏈，如果延遲時間極短（低於 20ms），會產生<strong>梳狀濾波 (Comb Filtering)</strong>，導致特定頻率因相位抵消而消失。
+        </div>
+
         <ul>
-            <li><strong>百分比 (%)</strong> <span class="range">[0% - 500%]</span>：預設為 80%。若超過 100% 可能會導致 Clipping。</li>
+            <li><span class="param-name">延遲時間 (Time)</span> <span class="range">[0.01 - 5.0 秒]</span>：原始音與反射音之間的時間差。</li>
+            <li><span class="param-name">回饋量 (Feedback)</span> <span class="range">[0.0 - 0.95]</span>：反射音再次進入延遲鏈的比例。0 代表只重複一次；0.9 代表會產生長久不散的回聲鏈。</li>
+        </ul>
+    </div>
+
+    <!-- 3. BitCrush -->
+    <div class="block-box">
+        <h2>3. 位元粉碎 (BitCrush)</h2>
+        <p>一種數位失真技術，透過降低數位音訊的精確度來產生粗糙、懷舊的 8-bit 風格音色。</p>
+
+        <div class="physics">
+            <strong>物理原理：</strong> 數位音訊利用「位元深度」來決定動態範圍。<strong>量化誤差 (Quantization Error)</strong> 是當位元不足時，平滑的波形被迫變成「階梯狀」的過程。這會產生大量的奇數諧波，聽起來像是數位化的雜音。
+        </div>
+
+        <ul>
+            <li><span class="param-name">位元深度 (Bits)</span> <span class="range">[1 - 16]</span>：數值越小，聲音越粗糙。1-bit 代表只有「開/關」，會產生極其劇烈的雜音；8-bit 是典型的復古遊戲機質感。</li>
+        </ul>
+    </div>
+
+    <!-- 4. Distortion -->
+    <div class="block-box">
+        <h2>4. 失真 (Distortion / Waveshaper)</h2>
+        <p>模擬類比電路因超載而產生的波形「削頂」現象，賦予聲音攻擊性與厚實感。</p>
+
+        <div class="physics">
+            <strong>物理原理：</strong> 透過非線性函數（如 Sigmoid）將波形的峰值壓平。這種波形變形在頻譜上表現為<strong>諧波增加 (Harmonic Generation)</strong>。正弦波經過失真後會接近方波，從而獲得豐富的高頻泛音。
+        </div>
+
+        <ul>
+            <li><span class="param-name">失真程度 (Amount)</span> <span class="range">[1 - 100]</span>：數值越大，波形被壓縮與削平得越嚴重，聲音越「炸」。</li>
+        </ul>
+    </div>
+
+    <!-- 5. Compressor -->
+    <div class="block-box">
+        <h2>5. 壓縮器 (Compressor)</h2>
+        <p>壓縮器是自動音量管理員。它會縮小訊號的「動態範圍」（最大聲與最小聲的差距），讓聲音更紮實、一致。</p>
+
+        <div class="physics">
+            <strong>物理原理：</strong> 壓縮器透過偵測輸入能量，當超過<strong>閾值</strong>時，依據<strong>比率</strong>調低增益。<strong>啟動時間</strong>決定了聲音的「瞬態 (Transient)」是否被保留。壓縮後聲音通常會變小，因此需要<strong>補償增益</strong>來拉回總體音量。
+        </div>
+
+        <ul>
+            <li><span class="param-name">閾值 (Threshold)</span> <span class="range">[-60 - 0 dB]</span>：超過此分貝值時，壓縮器開始工作。</li>
+            <li><span class="param-name">壓縮比率 (Ratio)</span> <span class="range">[1 - 20]</span>：例如 4 代表每超過閾值 4dB，輸出僅增加 1dB。</li>
+            <li><span class="param-name">啟動時間 (Attack)</span> <span class="range">[0.001 - 0.5s]</span>：壓縮器反應的速度。極短的 Attack 會消滅鼓點的打擊感。</li>
+            <li><span class="param-name">釋放時間 (Release)</span> <span class="range">[0.01 - 2.0s]</span>：音量恢復正常的速度。</li>
+            <li><span class="param-name">補償增益 (Makeup Gain)</span> <span class="range">[0 - 20 dB]</span>：壓縮後將整體音量補回，使聲音聽起來更宏亮且細節清晰。</li>
         </ul>
     </div>
 
     <div class="tip">
-        <strong>視覺監測：</strong> 觀察示波器畫面。如果波形出現紅色的「CLIP」警告，代表您的音量或濾波器參數設定過高，請降低音量以獲得更乾淨的音質。
-    </div>
-
-    <div class="block-box">
-        <h2>3. 延遲與混響 (即將實作)</h2>
-        <p>WaveCode 正在持續移植更多效果組件，包含：</p>
-        <ul>
-            <li><strong>Delay</strong>：重複的回聲。</li>
-            <li><strong>Reverb</strong>：大空間的殘響感。</li>
-            <li><strong>Waveshaper</strong>：數位失真效果。</li>
-        </ul>
-    </div>
-
-    <div class="tip">
-        <strong>小秘訣：</strong> 在 WaveCode 中，您不需在 draw 迴圈中頻繁更新參數，除非您想實作動態的動態掃描。定義好樂器鏈後，引擎會全權接手低延遲的運算。
+        <strong>混合建議：</strong> 使用「壓縮器」放在訊號鏈末端（音量積木之前），可以有效防止多個效果器疊加導致的 Clipping，並讓您的合成器音色在混音中更具存在感。
     </div>
 </body>
 </html>

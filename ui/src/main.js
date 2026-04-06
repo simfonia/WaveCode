@@ -128,14 +128,33 @@ function debouncedUpdateLiveCode() {
     clearTimeout(liveCodeTimeout);
     liveCodeTimeout = setTimeout(() => {
         const workspace = toolbarManager.workspace;
-        if (!workspace) return;
+        if (!workspace || workspace.isDragging()) return;
         
-        // 【關鍵修復】確保產生器已初始化，防止 CodeGenerator init 報錯
-        Blockly.JavaScript.init(workspace);
-        const code = Blockly.JavaScript.workspaceToCode(workspace);
-        
-        const codeEl = document.getElementById('generated-code');
-        if (codeEl) codeEl.textContent = code;
+        // 【關鍵修復】取得正確的產生器實例並初始化，防止 CodeGenerator init 報錯
+        const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;
+        if (generator && generator.init) {
+            generator.init(workspace);
+            let code = generator.workspaceToCode(workspace);
+            const codeEl = document.getElementById('generated-code');
+            if (codeEl) {
+                // 先轉義基本的 HTML 字元
+                let html = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                // 1. 處理註解 (最優先，防止內部的字元被高亮)
+                html = html.replace(/(\/\/.*)/g, '<span class="code-comment">$1</span>');
+
+                // 2. 處理字串
+                html = html.replace(/("(.*?)")/g, '<span class="code-string">$1</span>');
+
+                // 3. 處理關鍵字 (使用 \b 確保只匹配完整單字，且此時 class="code-string" 的引號不會被抓到)
+                html = html.replace(/\b(Instrument|MasterOut|Perform|OnInit|Oscillator|ADSR|Volume|Sampler|Filter|Delay|BitCrush|Distortion|Compressor)\b/g, '<span class="code-keyword">$1</span>');
+
+                // 4. 處理數值與單位 (支援小數、負數、以及帶單位的數字如 500ms, -12dB)
+                html = html.replace(/(-?\d+\.?\d*(?:ms|s|Hz|%|dB)?)/g, '<span class="code-number">$1</span>');
+
+                codeEl.innerHTML = html || '<span class="code-comment">// 尚未編寫積木...</span>';
+            }
+        }
     }, 500);
 }
 

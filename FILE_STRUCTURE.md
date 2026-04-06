@@ -2,29 +2,25 @@
 
 ## 根目錄
 - `src-tauri/`: Tauri 後端 (Rust)
-    - `src/main.rs`: 程式進入點
-    - `src/lib.rs`: **Tauri 指令、檔案 IO 與 open_url 本地路徑解析**
-    - `src/engine.rs`: **[已轉型] 資源管理器 (負責高效載入音訊檔並傳送 Buffer 至前端)**
-    - `src/utils.rs`: **資源與快取路徑偵測 (支援開發與生產環境)**
-    - `Cargo.toml`: Rust 依賴管理 (**lazy_static, rayon, serde**)
-    - `resources/`: **應用程式資源 (統一存放於此處，支援 Tauri v2 打包)**
-        - `examples/`: 內建積木範例檔 (.wave)
-        - `samples/`: 多取樣音色庫 (WAV/MP3)
+    - `src/lib.rs`: Tauri 指令、檔案 IO 與本地路徑解析
+    - `src/engine.rs`: [已轉型] 資源管理器 (負責載入音訊檔至前端)
+    - `resources/`: 應用程式資源 (範例與音訊庫)
+        - `docs/`: **[更新] 多語系輔助說明文件 (新增 master_zh-hant.html, 優化 effects_zh-hant.html)**
 - `ui/`: 前端程式碼 (Vite + JavaScript)
-    - `index.html`: **雙欄即時分析儀介面 (Waveform + Spectrum)**
-    - `src/main.js`: 前端主進入點 (第一行 import preinit.js)
-    - `src/preinit.js`: **[新增] 預初始化模組，定義全域工具與 Mutators**
-    - `src/blocks/`: Blockly 積木定義 (含 wc_create_additive_synth 與 Mutator)
+    - `src/main.js`: 前端主進入點 (整合 DSL 即時語法高亮)
+    - `src/blocks/`: 積木定義
+        - `audio_instruments.js`: **[重大更新] 拆分 wc_effect_ 獨立效果器, 新增 wc_master 總線積木**
+    - `src/generators/`: **[重大更新] 轉型為「音訊 DSL」產生器模式**
+        - `javascript/audio_instruments.js`: 產生結構化 DSL 語法 (Instrument, MasterOut)
+        - `javascript/audio_performance.js`: 產生演奏 DSL 指令 (Perform, play_note)
     - `src/modules/`: 功能模組
-        - `audio/`: **[新增] Web Audio API 核心引擎**
-            - `manager.js`: 核心管理員 (支援背景預載與 Context 持久化)
-            - `voice.js`: 聲部封裝 (含 ADSR 邏輯與數值安全檢查)
-            - `factory.js`: 節點工廠 (支援音名頻率自動轉換與多重取樣尋找)
-            - `visualizer.js`: 實時分析儀資料提取器
-        - `api.js`: **[更新] 旋律解析 (支援連結線/附點/三連音) 與 ADSR 視覺化聯動**
-        - `ui_utils.js`: **[更新] IME 中文搜尋優化與 Unicode 正規化索引**
-        - (其餘模組保持穩定...)
-        - `src/lang/`: i18n 語系檔 (更新演奏音符與音名標籤)
+        - `audio/`: Web Audio API 核心引擎
+            - `manager.js`: **[更新] 支援動態主鏈 rebuildMasterChain, 移除強制 Limiter**
+            - `factory.js`: **[更新] 修正 distortion (WaveShaper) 與 compressor 邏輯**
+        - `compiler.js`: **[更新] 支援掃描全域主輸出配置 (scanMaster)**
+        - `keyboard_controller.js`: **[更新] 加入 MIDI -> 音名 -> 頻率 詳細日誌輸出**
+        - `ui_utils.js`: **[更新] 將 wc_master 加入 Orphan Block 白名單**
+    - `src/style.css`: **[新增] Code DSL 語法高亮配色樣式**
 
-        ---
-        *最後更新：2026-04-06 (Melody Parser Refactor, IME Search Optimization, Background Loading)*
+---
+*最後更新：2026-04-06 (Effect Block Splitting, Master Bus System, Audio DSL Transformation)*

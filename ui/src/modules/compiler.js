@@ -11,6 +11,12 @@ export const WaveCodeCompiler = {
   scanInstruments: (workspace) => {
     if (!workspace || workspace.isClearing) return {};
     
+    // 【關鍵修復】確保產生器已初始化，並統一使用該實例進行轉換
+    const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;
+    if (generator && generator.init) {
+        generator.init(workspace);
+    }
+
     const instrumentConfigs = {};
     const instrumentBlocks = workspace.getBlocksByType('wc_instrument');
     
@@ -55,7 +61,37 @@ export const WaveCodeCompiler = {
             });
           } else if (current.type === 'wc_component_volume') {
             chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) / 100 });
+          } else if (current.type.startsWith('wc_effect_')) {
+            // 處理拆分後的效果器積木
+            const effectType = current.type.replace('wc_effect_', '');
+            const effectCfg = { type: 'effect', effect_type: effectType };
+
+            const getVal = (name) => {
+                const val = generator.valueToCode(current, name, generator.ORDER_ATOMIC);
+                return val ? parseFloat(val) : null;
+            };
+
+            if (effectType === 'filter') {
+                effectCfg.filter_type = current.getFieldValue('TYPE');
+                effectCfg.freq = getVal('FREQ') ?? 1000;
+                effectCfg.q = getVal('Q') ?? 1;
+            } else if (effectType === 'delay') {
+                effectCfg.delay_time = getVal('TIME') ?? 0.5;
+                effectCfg.feedback = getVal('FEEDBACK') ?? 0.5;
+            } else if (effectType === 'bitcrush') {
+                effectCfg.bitdepth = getVal('BITS') ?? 8;
+            } else if (effectType === 'distortion') {
+                effectCfg.distortion = getVal('AMOUNT') ?? 10;
+            } else if (effectType === 'compressor') {
+                effectCfg.threshold = getVal('THRESH') ?? -24;
+                effectCfg.ratio = getVal('RATIO') ?? 12;
+                effectCfg.attack = getVal('ATTACK') ?? 0.003;
+                effectCfg.release = getVal('RELEASE') ?? 0.25;
+                effectCfg.makeup = getVal('MAKEUP') ?? 0;
+            }
+            chain.push(effectCfg);
           }
+
         }
         current = current.getNextBlock();
       }
@@ -74,7 +110,65 @@ export const WaveCodeCompiler = {
 
     console.log("WaveCode: 開始 Web Audio 鏈式編譯...");
     
+    // 【關鍵修復】確保產生器已初始化，防止 CodeGenerator init 報錯
+    const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;
+    if (generator && generator.init) {
+        generator.init(workspace);
+    }
+
     const instrumentConfigs = WaveCodeCompiler.scanInstruments(workspace);
+    const masterConfig = WaveCodeCompiler.scanMaster(workspace);
+
     AudioManager.setInstruments(instrumentConfigs);
+    AudioManager.setMasterPatch(masterConfig);
+  },
+
+  /**
+   * 掃描全域主輸出配置
+   */
+  scanMaster: (workspace) => {
+    const masterBlock = workspace.getBlocksByType('wc_master')[0];
+    if (!masterBlock || !masterBlock.isEnabled()) return [];
+
+    const chain = [];
+    const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;
+    
+    let current = masterBlock.getInputTargetBlock('CHAIN');
+    while (current) {
+        if (current.isEnabled()) {
+            if (current.type === 'wc_component_volume') {
+                chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) / 100 });
+            } else if (current.type.startsWith('wc_effect_')) {
+                const effectType = current.type.replace('wc_effect_', '');
+                const effectCfg = { type: 'effect', effect_type: effectType };
+                const getVal = (name) => {
+                    const val = generator.valueToCode(current, name, generator.ORDER_ATOMIC);
+                    return val ? parseFloat(val) : null;
+                };
+
+                if (effectType === 'filter') {
+                    effectCfg.filter_type = current.getFieldValue('TYPE');
+                    effectCfg.freq = getVal('FREQ') ?? 1000;
+                    effectCfg.q = getVal('Q') ?? 1;
+                } else if (effectType === 'delay') {
+                    effectCfg.delay_time = getVal('TIME') ?? 0.5;
+                    effectCfg.feedback = getVal('FEEDBACK') ?? 0.5;
+                } else if (effectType === 'bitcrush') {
+                    effectCfg.bitdepth = getVal('BITS') ?? 8;
+                } else if (effectType === 'distortion') {
+                    effectCfg.distortion = getVal('AMOUNT') ?? 10;
+                } else if (effectType === 'compressor') {
+                    effectCfg.threshold = getVal('THRESH') ?? -24;
+                    effectCfg.ratio = getVal('RATIO') ?? 12;
+                    effectCfg.attack = getVal('ATTACK') ?? 0.003;
+                    effectCfg.release = getVal('RELEASE') ?? 0.25;
+                    effectCfg.makeup = getVal('MAKEUP') ?? 0;
+                }
+                chain.push(effectCfg);
+            }
+        }
+        current = current.getNextBlock();
+    }
+    return chain;
   }
 };

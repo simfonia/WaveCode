@@ -24,6 +24,20 @@ Blockly.defineBlocksWithJsonArray([
     "extensions": ["wc_instrument_dropdown_sync"]
   },
 
+  // --- 0.1 全域主輸出 ---
+  {
+    "type": "wc_master",
+    "message0": "%{BKY_AUDIO_DEFINE_MASTER}",
+    "message1": "%{BKY_AUDIO_INSTRUMENT_CHAIN}",
+    "args1": [
+      { "type": "input_statement", "name": "CHAIN" }
+    ],
+    "colour": "#e74c3c",
+    "hat": "cap",
+    "tooltip": "%{BKY_AUDIO_MASTER_TOOLTIP}",
+    "helpUrl": "master"
+  },
+
   // --- 0.1 樂器組件 ---
   {
     "type": "wc_component_osc",
@@ -113,23 +127,6 @@ Blockly.defineBlocksWithJsonArray([
     "extensions": ["wc_adsr_visual_sync"]
   },
   {
-    "type": "wc_component_filter",
-    "message0": "%{BKY_AUDIO_COMP_FILTER}",
-    "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "TYPE",
-        "options": [ ["%{BKY_AUDIO_FILTER_LP}", "LP"], ["%{BKY_AUDIO_FILTER_HP}", "HP"] ]
-      },
-      { "type": "field_number", "name": "FREQ", "value": 1000, "min": 20, "max": 20000 },
-      { "type": "field_number", "name": "Q", "value": 1, "min": 0.1, "max": 10 }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "%{BKY_EFFECTS_HUE}",
-    "helpUrl": "effects"
-  },
-  {
     "type": "wc_component_volume",
     "message0": "%{BKY_AUDIO_COMP_VOLUME}",
     "args0": [
@@ -138,6 +135,88 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}"
+  },
+
+  // --- 0.2 專業效果器 (拆分版) ---
+  {
+    "type": "wc_effect_filter",
+    "message0": "%{BKY_AUDIO_EFFECT_FILTER}",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TYPE",
+        "options": [
+          [Blockly.Msg['AUDIO_FILTER_LP'] || "lowpass", "lowpass"], 
+          [Blockly.Msg['AUDIO_FILTER_HP'] || "highpass", "highpass"], 
+          ["bandpass", "bandpass"]
+        ]
+      },
+      { "type": "input_value", "name": "FREQ", "check": "Number" },
+      { "type": "input_value", "name": "Q", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_FILTER_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
+  },
+  {
+    "type": "wc_effect_delay",
+    "message0": "%{BKY_AUDIO_EFFECT_DELAY}",
+    "args0": [
+      { "type": "input_value", "name": "TIME", "check": "Number" },
+      { "type": "input_value", "name": "FEEDBACK", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_DELAY_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
+  },
+  {
+    "type": "wc_effect_bitcrush",
+    "message0": "%{BKY_AUDIO_EFFECT_BITCRUSH}",
+    "args0": [
+      { "type": "input_value", "name": "BITS", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_BITCRUSH_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
+  },
+  {
+    "type": "wc_effect_distortion",
+    "message0": "%{BKY_AUDIO_EFFECT_DISTORTION}",
+    "args0": [
+      { "type": "input_value", "name": "AMOUNT", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_DISTORTION_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
+  },
+  {
+    "type": "wc_effect_compressor",
+    "message0": "%{BKY_AUDIO_EFFECT_COMPRESSOR}",
+    "args0": [
+      { "type": "input_value", "name": "THRESH", "check": "Number" },
+      { "type": "input_value", "name": "RATIO", "check": "Number" },
+      { "type": "input_value", "name": "ATTACK", "check": "Number" },
+      { "type": "input_value", "name": "RELEASE", "check": "Number" },
+      { "type": "input_value", "name": "MAKEUP", "check": "Number" }
+    ],
+    "inputsInline": false,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_COMPRESSOR_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
   }
 ]);
 
