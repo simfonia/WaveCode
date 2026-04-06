@@ -3,6 +3,7 @@
  * 封裝單一發聲通道的節點鏈與生命週期。
  */
 import { NodeFactory } from './factory.js';
+import { AudioManager } from './manager.js';
 
 export class Voice {
     constructor(ctx, destination) {
@@ -32,7 +33,7 @@ export class Voice {
         let lastNode = null;
         
         patch.forEach(comp => {
-            const result = NodeFactory.create(this.ctx, comp, freq, lastNode, startTime);
+            const result = NodeFactory.create(this.ctx, comp, freq, lastNode, startTime, AudioManager);
             if (result) {
                 if (result.nodes) this.nodes.push(...result.nodes);
                 if (result.output) lastNode = result.output;

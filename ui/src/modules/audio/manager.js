@@ -11,6 +11,7 @@ export const AudioManager = {
     voices: [],
     maxVoices: 32,
     patches: {},
+    samples: {}, // ID -> AudioBuffer
 
     async init() {
         if (this.ctx) return;
@@ -30,7 +31,33 @@ export const AudioManager = {
         this.visualizer = new Visualizer(this.analyser);
         this.visualizer.start();
 
+        // 只有在取樣庫為空時才載入，避免每次執行都重新解碼耗時
+        if (Object.keys(this.samples).length === 0) {
+            await this.loadSamples();
+        }
+
         console.log("WaveCode Engine: Web Audio Manager Initialized");
+    },
+
+    async loadSamples() {
+        const { invoke } = window.__TAURI__.core;
+        try {
+            // 透過 Tauri 呼叫讀取 samples 目錄清單
+            const files = await invoke('list_samples_recursive'); 
+            let loadedCount = 0;
+
+            for (const file of files) {
+                const { path, id } = file;
+                // 透過 Rust 指令讀取檔案位元組，繞過前端 fs 權限限制
+                const bytes = await invoke('read_sample_file', { path });
+                const audioBuffer = await this.ctx.decodeAudioData(new Uint8Array(bytes).buffer);
+                this.samples[id] = audioBuffer;
+                loadedCount++;
+            }
+            console.log(`WaveCode Engine: 已載入 ${loadedCount} 個取樣檔案 (Web Audio)`);
+        } catch (e) {
+            console.error("WaveCode Engine: 載入取樣失敗:", e);
+        }
     },
 
     async restart() {

@@ -3,7 +3,7 @@
     <field name="ID">my_sampler</field>
     <statement name="CHAIN">
       <block type="wc_component_sampler" id="{{.]iCHR_(M$rWhjpAmV">
-        <field name="SAMPLE_ID">Roland_TR-909_BT0A0D0</field>
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
         <next>
           <block type="wc_component_adsr" id="$-Q#6Byn/,e%[+NM(?eC">
             <field name="A">0.05</field>

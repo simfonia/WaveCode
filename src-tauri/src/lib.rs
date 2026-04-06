@@ -184,6 +184,48 @@ fn log(app_handle: tauri::AppHandle, message: String, level: String) {
     let _ = app_handle.emit(event_name, message);
 }
 
+#[derive(serde::Serialize)]
+struct SampleInfo {
+    path: String,
+    id: String,
+}
+
+#[tauri::command]
+fn list_samples_recursive(app_handle: tauri::AppHandle) -> Vec<SampleInfo> {
+    let samples_dir = utils::get_resource_path(&app_handle, "samples");
+    let mut results = Vec::new();
+    scan_samples_to_list(&samples_dir, &mut results, "", &samples_dir);
+    results
+}
+
+#[tauri::command]
+async fn read_sample_file(path: String) -> Result<Vec<u8>, String> {
+    std::fs::read(path).map_err(|e| e.to_string())
+}
+
+fn scan_samples_to_list(dir: &std::path::Path, results: &mut Vec<SampleInfo>, prefix: &str, base_dir: &std::path::Path) {
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            let path = entry.path();
+            if path.is_dir() {
+                let folder_name = path.file_name().unwrap().to_str().unwrap();
+                let new_prefix = if prefix.is_empty() { folder_name.to_string() } else { format!("{}_{}", prefix, folder_name) };
+                scan_samples_to_list(&path, results, &new_prefix, base_dir);
+            } else {
+                let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_lowercase();
+                if ext == "wav" || ext == "mp3" || ext == "ogg" || ext == "flac" {
+                    let file_stem = path.file_stem().unwrap().to_str().unwrap();
+                    let id = if prefix.is_empty() { file_stem.to_string() } else { format!("{}_{}", prefix, file_stem) };
+                    results.push(SampleInfo {
+                        path: path.to_string_lossy().to_string(),
+                        id,
+                    });
+                }
+            }
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -199,7 +241,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
-        set_master_volume, log
+        set_master_volume, log, list_samples_recursive, read_sample_file
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

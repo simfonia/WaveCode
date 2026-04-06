@@ -14,6 +14,7 @@ export class ToolbarManager {
         this.currentFilename = '';
         this.isProcessing = false;
         this.currentLang = 'zh-hant'; // 預設
+        this.animationTimeout = null; 
 
         // DOM Elements
         this.elements = {
@@ -139,6 +140,10 @@ export class ToolbarManager {
         };
 
         this.elements.runBtn.onclick = async () => {
+            if (this.animationTimeout) {
+                clearTimeout(this.animationTimeout);
+                this.animationTimeout = null;
+            }
             await WaveCodeAPI.restartAudio(); // 確保引擎重置並初始化 Context
             this.elements.runBtn.classList.add('is-running');
             this.elements.runBtn.classList.add('pulse-animation');
@@ -209,16 +214,22 @@ export class ToolbarManager {
             } finally {
                 if (currentId === WaveCodeAPI._execId) {
                     this.elements.runBtn.classList.remove('is-running');
-                    // 程式結束後，縮放動畫持續 2 秒才停止
-                    setTimeout(() => {
-                        this.elements.runBtn.classList.remove('pulse-animation');
-                    }, 2000);
                     this.isProcessing = false;
+
+                    // 程式結束後，延遲 2 秒才停止縮放動畫
+                    this.animationTimeout = setTimeout(() => {
+                        this.elements.runBtn.classList.remove('pulse-animation');
+                        this.animationTimeout = null;
+                    }, 2000);
                 }
             }
         };
 
         this.elements.stopBtn.onclick = async () => {
+            if (this.animationTimeout) {
+                clearTimeout(this.animationTimeout);
+                this.animationTimeout = null;
+            }
             this.isProcessing = false;
             await WaveCodeAPI.reset();
             this.elements.runBtn.classList.remove('is-running');

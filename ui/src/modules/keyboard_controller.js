@@ -42,7 +42,7 @@ export const KeyboardController = {
         window.addEventListener('keydown', KeyboardController.handleKeyDown);
         window.addEventListener('keyup', KeyboardController.handleKeyUp);
         window.addEventListener('blur', () => KeyboardController.stopAll());
-        console.log("WaveCode: 鍵盤演奏模式已啟動 (對齊 HarmoNyx #nyx 標準)");
+        console.log("WaveCode: 鍵盤演奏模式已啟動");
     },
 
     /**
