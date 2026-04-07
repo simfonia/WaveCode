@@ -14,6 +14,10 @@ export const WaveCodeAPI = {
     _bpm: 120,            // 預設 BPM
     _currentInstrument: 'none', // 當前預設樂器
     _loopCounters: new Map(), // 追蹤每個腳本的同步迴圈次數
+    _chords: {}, // 儲存定義的和弦
+    
+    // 追蹤所有活躍的樂器，由 Compiler 填充
+    _instruments: {},
 
     /**
      * 初始化排程器時間
@@ -23,8 +27,11 @@ export const WaveCodeAPI = {
         WaveCodeAPI._loopCounters.set(WaveCodeAPI._execId, 0);
         WaveCodeAPI._bpm = 120; // 重置 BPM
         WaveCodeAPI._currentInstrument = 'none';
+        WaveCodeAPI._chords = {};
+        
         if (AudioManager.ctx) {
-            WaveCodeAPI._playbackTime = AudioManager.ctx.currentTime;
+            // 從目前的 AudioContext 時間點開始排程
+            WaveCodeAPI._playbackTime = AudioManager.ctx.currentTime + 0.1;
         } else {
             WaveCodeAPI._playbackTime = 0;
         }
@@ -58,201 +65,243 @@ export const WaveCodeAPI = {
         WaveCodeAPI._currentInstrument = name;
     },
 
+    setInstruments: (configs) => {
+        WaveCodeAPI._instruments = configs;
+        AudioManager.setInstruments(configs);
+    },
+
     /**
-     * 手動觸發 (現場演奏專用，不帶 startTime 則立即發聲)
+     * 基礎等待函式 (含安樂死檢查)
      */
-    triggerNote: async (freq, instId, startTime = 0) => {
+    wait: async (ms) => {
+        const id = WaveCodeAPI._execId;
+        return new Promise(resolve => {
+            setTimeout(() => {
+                if (WaveCodeAPI.isScriptCancelled(id)) return; // 終止
+                // 成功等待後，重置迴圈計數器
+                WaveCodeAPI._loopCounters.set(id, 0);
+                resolve();
+            }, ms);
+        });
+    },
+
+    /**
+     * 手動觸發 (現場演奏或非同步觸發專用)
+     */
+    triggerNote: async (freq, instId = 'none', startTime = 0, durationMs = 0) => {
         const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
         
-        // 觸發 ADSR 視覺化 (0 代表 Hold 模式)
+        const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+        const start = startTime > 0 ? startTime : now;
+        const delayMs = Math.max(0, (start - now) * 1000);
+
+        // --- 視覺化同步 ---
         if (window.EnvelopeManager) {
-            window.EnvelopeManager.trigger(inst, 0);
+            if (durationMs > 0) {
+                setTimeout(() => {
+                    if (WaveCodeAPI.isScriptCancelled(WaveCodeAPI._execId)) return;
+                    window.EnvelopeManager.trigger(inst, durationMs);
+                }, delayMs);
+            } else {
+                setTimeout(() => {
+                    if (WaveCodeAPI.isScriptCancelled(WaveCodeAPI._execId)) return;
+                    window.EnvelopeManager.triggerStart(inst);
+                }, delayMs);
+            }
         }
         
-        return AudioManager.triggerNote(freq, inst, startTime);
+        const voice = AudioManager.triggerNote(freq, inst, startTime);
+        if (voice && durationMs > 0) {
+            voice.release(start + (durationMs / 1000));
+        }
+        return voice;
     },
 
     releaseNote: async (freq, startTime = 0) => {
-        // 結束 ADSR 視覺化 (這裡較難精確對應單一音符，暫時針對樂器結束 Hold)
-        if (window.EnvelopeManager) {
-            // 注意：這裡我們不知道是哪個樂器釋放的，通常由 KeyboardController 傳入
-            window.EnvelopeManager.triggerEnd();
-        }
+        if (window.EnvelopeManager) window.EnvelopeManager.triggerEnd();
         return AudioManager.releaseNote(freq, startTime);
     },
 
     /**
-     * 播放一個定時音符 (自動序列專用)
-     * 使用 _playbackTime 進行精確排程
+     * 播放一個定時音符 (同步阻塞模式)
      */
-    playNote: async (freq, durationMs, instId) => {
-        const startTime = WaveCodeAPI._playbackTime;
-        const durationSec = durationMs / 1000;
+    playNote: async (freq, durationMs, instId = 'none') => {
+        const id = WaveCodeAPI._execId;
         const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
         
-        // 觸發 ADSR 視覺化 (排程模式)
-        // 由於 Web Audio 是預約排程，視覺化也需要考慮延遲
-        const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-        const delayMs = Math.max(0, (startTime - now) * 1000);
-        
+        const startTime = WaveCodeAPI._playbackTime;
+        const durationSec = durationMs / 1000;
+        const releaseTime = startTime + durationSec;
+
         if (window.EnvelopeManager) {
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            const delayMs = Math.max(0, (startTime - now) * 1000);
             setTimeout(() => {
-                if (window.EnvelopeManager) window.EnvelopeManager.trigger(inst, durationMs);
+                if (WaveCodeAPI.isScriptCancelled(id)) return;
+                window.EnvelopeManager.trigger(inst, durationMs);
             }, delayMs);
         }
 
-        // 預約未來發聲
         const voice = AudioManager.triggerNote(freq, inst, startTime);
-        // 直接對該聲部預約未來釋放
-        if (voice) voice.release(startTime + durationSec);
+        if (voice) voice.release(releaseTime);
+
+        WaveCodeAPI._playbackTime += durationSec;
+        await WaveCodeAPI.wait(durationMs);
     },
 
     /**
-     * 播放旋律字串 (完全對齊 #nyx 與 melody_zh-hant.html 規格)
-     * 格式範例: C4Q, D4E, RQ, CM7H.+E, G4Q_T
+     * 旋律解析核心 (對齊 melody_zh-hant.html)
      */
-    playMelody: async (melodyStr, instId) => {
-        const tokens = melodyStr.replace(/\n/g, ' ').split(/[\s,]+/).map(s => s.trim()).filter(s => s.length > 0);
-        const beatMs = 60000 / WaveCodeAPI._bpm;
+    _parseDuration: (code) => {
+        if (!code) return 0;
+        const baseMap = { 'W': 4, 'H': 2, 'Q': 1, 'E': 0.5, 'S': 0.25 };
         
-        const lengthMap = { 'W': 4, 'H': 2, 'Q': 1, 'E': 0.5, 'S': 0.25, 'T': 0.125 };
+        // 處理連結線 +
+        if (code.includes('+')) {
+            return code.split('+').reduce((acc, part) => acc + WaveCodeAPI._parseDuration(part), 0);
+        }
 
-        /**
-         * 內部函式：解析複雜時值 (如 H.+E)
-         */
-        const parseDuration = (durStr) => {
-            const parts = durStr.split('+');
-            let totalBeats = 0;
-            for (let p of parts) {
-                // 比對 [時值字母][附點?][三連音標記?]
-                const m = p.match(/([WwHhQqEeSsTt])(\.?)(_T)?/);
-                if (!m) continue;
-                
-                let val = lengthMap[m[1].toUpperCase()] || 0;
-                if (m[2] === '.') val *= 1.5;
-                if (m[3] === '_T') val *= (2 / 3);
-                totalBeats += val;
-            }
-            return totalBeats;
-        };
+        // 提取基礎時值與修飾符
+        const match = code.match(/([WHQES])(\.*)(_T)?/);
+        if (!match) return 0;
+
+        let beats = baseMap[match[1]] || 0;
+        // 附點 .
+        if (match[2]) {
+            for (let i = 0; i < match[2].length; i++) beats *= 1.5;
+        }
+        // 三連音 _T
+        if (match[3]) beats *= (2/3);
+
+        return beats;
+    },
+
+    /**
+     * 播放旋律字串 (對齊完整語法)
+     */
+    playMelody: async (score, instId = 'none') => {
+        const id = WaveCodeAPI._execId;
+        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        const beatDuration = 60 / WaveCodeAPI._bpm; // 一拍幾秒
+
+        // 移除註解並分割標記
+        const tokens = score.replace(/\/\/.*$/gm, '').split(/[\s,]+/).filter(t => t.length > 0);
 
         for (const token of tokens) {
-            // 分離「音名/和弦/R」與「時值部分」
-            // 正則解釋：從開頭匹配任意字元直到遇到最後一個時值字母 (W,H,Q,E,S,T)
-            const match = token.match(/^(.+?)([WwHhQqEeSsTt][\w+._]*)$/);
+            if (WaveCodeAPI.isScriptCancelled(id)) return;
+
+            // 分離「音高/和弦」與「時值」
+            // 語法規律：[Note/Chord][Duration] 如 C4Q, CM7H, RQ
+            const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES].*)$/);
             if (!match) continue;
 
             const noteOrChord = match[1];
-            const durationPart = match[2];
-            
-            const beats = parseDuration(durationPart);
-            const durMs = beats * beatMs;
-            
-            if (durMs <= 0) continue;
+            const durCode = match[2];
+            const beats = WaveCodeAPI._parseDuration(durCode);
+            const durationSec = beats * beatDuration;
+            const durationMs = durationSec * 1000;
 
-            if (noteOrChord.toUpperCase() === 'R') {
-                // 休止符
-                await WaveCodeAPI.sleep(durMs, WaveCodeAPI._execId);
-            } else if (WaveCodeAPI._chords[noteOrChord]) {
-                // 已定義的和弦
-                await WaveCodeAPI.playChord(noteOrChord, durMs, instId);
-                await WaveCodeAPI.sleep(durMs, WaveCodeAPI._execId);
-            } else {
-                // 單音
-                await WaveCodeAPI.playNote(noteOrChord, durMs, instId);
-                await WaveCodeAPI.sleep(durMs, WaveCodeAPI._execId);
+            const startTime = WaveCodeAPI._playbackTime;
+            const releaseTime = startTime + durationSec;
+
+            if (noteOrChord.toUpperCase() !== 'R') {
+                // 1. 處理視覺化
+                if (window.EnvelopeManager) {
+                    const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+                    const delayMs = Math.max(0, (startTime - now) * 1000);
+                    setTimeout(() => {
+                        if (WaveCodeAPI.isScriptCancelled(id)) return;
+                        window.EnvelopeManager.trigger(inst, durationMs);
+                    }, delayMs);
+                }
+
+                // 2. 處理發聲 (單音或和弦)
+                if (WaveCodeAPI._chords[noteOrChord]) {
+                    // 是和弦
+                    WaveCodeAPI._chords[noteOrChord].forEach(n => {
+                        const voice = AudioManager.triggerNote(n, inst, startTime);
+                        if (voice) voice.release(releaseTime);
+                    });
+                } else {
+                    // 是單音
+                    const voice = AudioManager.triggerNote(noteOrChord, inst, startTime);
+                    if (voice) voice.release(releaseTime);
+                }
             }
+
+            // 3. 更新排程時間
+            WaveCodeAPI._playbackTime += durationSec;
+            // 4. 實體等待
+            await WaveCodeAPI.wait(durationMs);
         }
     },
 
     /**
-     * 高精度 Sleep (排程器核心)
+     * 定義和弦
      */
-    sleep: (ms, execId) => {
-        WaveCodeAPI._loopCounters.set(execId, 0); // 歸零迴圈守衛
-        const msToSec = ms / 1000;
-        WaveCodeAPI._playbackTime += msToSec;
-
-        return new Promise((resolve, reject) => {
-            const realWaitMs = Math.max(0, ms - (WaveCodeAPI._lookAhead * 1000));
-            setTimeout(() => {
-                if (execId && WaveCodeAPI.isScriptCancelled(execId)) {
-                    reject(new Error('Script cancelled'));
-                } else {
-                    resolve();
-                }
-            }, realWaitMs);
-        });
-    },
-
-    stopAudio: async () => {
-        WaveCodeAPI._execId++; 
-        return AudioManager.stopAll();
-    },
-
-    restartAudio: async () => {
-        await WaveCodeAPI.reset(); 
-        return AudioManager.restart();
-    },
-
-    reset: async () => {
-        WaveCodeAPI._execId++; 
-        WaveCodeAPI._loopCounters.clear();
-        WaveCodeAPI._playbackTime = 0;
-        return AudioManager.stopAll();
-    },
-
-    setMasterVolume: async (val) => {
-        return AudioManager.setMasterVolume(val);
-    },
-
-    // --- 和弦定義 ---
-    _chords: {},
-    defineChord: async (name, notes) => {
+    defineChord: async (name, notesStr) => {
+        const notes = notesStr.split(/[\s,]+/).filter(n => n.length > 0);
         WaveCodeAPI._chords[name] = notes;
     },
 
-    playChord: async (chordName, durationMs, instId) => {
-        const notes = WaveCodeAPI._chords[chordName];
-        if (!notes) {
-            console.warn(`未定義的和弦: ${chordName}`);
-            return;
-        }
+    /**
+     * 播放和弦 (同步模式)
+     */
+    playChord: async (name, durationMs, instId = 'none') => {
+        const notes = WaveCodeAPI._chords[name];
+        if (!notes || notes.length === 0) return;
+
+        const id = WaveCodeAPI._execId;
+        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        
         const startTime = WaveCodeAPI._playbackTime;
         const durationSec = durationMs / 1000;
-        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
-
-        // 觸發 ADSR 視覺化 (排程模式)
-        const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-        const delayMs = Math.max(0, (startTime - now) * 1000);
+        const releaseTime = startTime + durationSec;
 
         if (window.EnvelopeManager) {
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            const delayMs = Math.max(0, (startTime - now) * 1000);
             setTimeout(() => {
-                if (window.EnvelopeManager) window.EnvelopeManager.trigger(inst, durationMs);
+                if (WaveCodeAPI.isScriptCancelled(id)) return;
+                window.EnvelopeManager.trigger(inst, durationMs);
             }, delayMs);
         }
 
         notes.forEach(note => {
             const voice = AudioManager.triggerNote(note, inst, startTime);
-            if (voice) voice.release(startTime + durationSec);
+            if (voice) voice.release(releaseTime);
         });
+
+        WaveCodeAPI._playbackTime += durationSec;
+        await WaveCodeAPI.wait(durationMs);
     },
 
-    // --- 樂器定義 ---
-    _instruments: {},
-    setInstruments: async (configs) => {
-        WaveCodeAPI._instruments = configs;
-        return AudioManager.setInstruments(configs);
+    /**
+     * 停止所有音訊並清除腳本
+     */
+    stopAudio: async () => {
+        WaveCodeAPI._execId++; 
+        AudioManager.stopAll();
+        if (window.EnvelopeManager) window.EnvelopeManager.stopAll();
     },
 
-    // --- 系統控制 ---
+    reset: async () => {
+        await WaveCodeAPI.stopAudio();
+    },
+
+    restartAudio: async () => {
+        await WaveCodeAPI.stopAudio();
+        await AudioManager.restart();
+    },
+
+    setMasterVolume: (val) => {
+        AudioManager.setMasterVolume(val);
+    },
+
     getInvoke: () => {
-        const invoke = (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke) || 
-                       (window.__TAURI__ && window.__TAURI__.invoke);
-        if (typeof invoke === 'function') return invoke;
+        if (window.__TAURI__ && window.__TAURI__.core) return window.__TAURI__.core.invoke;
         return async (cmd, args) => {
             console.warn(`[Tauri Mock] 指令: ${cmd}`, args);
-            if (cmd === 'get_doc_content') return null; 
             return null;
         };
     }

@@ -171,47 +171,23 @@ export class ToolbarManager {
             generator.init(this.workspace);
 
             // 【安全性強化】同步迴圈守衛：防止無窮迴圈鎖死 UI
-            // 此陷阱會被注入到產生器輸出的每一個循環 (while, for, repeat)
             generator.INFINITE_LOOP_TRAP = `WaveCode.checkLoop(_id);\n`;
             
-            const topBlocks = this.workspace.getTopBlocks(true);
-            topBlocks.forEach(block => {
-                // 樂器定義由 Compiler 處理，演奏積木才產生代碼
-                if (block.type === 'wc_instrument') return; 
+            // 【關鍵修正】直接獲取完整工作區代碼，這能自動處理帽子積木 (wc_perform) 的順序與同步
+            rawCode = generator.workspaceToCode(this.workspace);
 
-                // 透過產生器實例進行轉換，自動處理 this.valueToCode 等上下文綁定
-                let code = generator.blockToCode(block);
-                
-                if (code) {
-                    // 若是運算積木 (含 ORDER)，取其字串部分
-                    if (Array.isArray(code)) code = code[0];
-                    rawCode += code + '\n';
-                }
-            });
-
-            // --- 1. 同步音訊鏈至引擎 (核心功能) ---
-            import('./compiler.js').then(async ({ WaveCodeCompiler }) => {
-                await WaveCodeCompiler.run(workspace);
-            });
-
-            // --- 2. 執行產生的代碼 (僅當它是合法的 JavaScript 時) ---
-            // 注意：目前的產生器已改為 DSL 模式 (如 Instrument {..})，不再適合 eval。
-            // 這裡我們保留邏輯但加入 Try-Catch 保護，避免 DSL 語法導致 UI 崩潰。
+            // --- 2. 執行產生的代碼 ---
             const finalCode = `
                 const _id = ${currentId};
                 try {
-                    // 如果 rawCode 包含 DSL 特有的符號，則視為不可執行
-                    if (!${JSON.stringify(rawCode)}.includes(' {') && !${JSON.stringify(rawCode)}.includes(' >>')) {
-                        ${rawCode}
-                    }
+                    ${rawCode}
                 } catch (err) {
                     if (err.message !== 'Script cancelled') throw err;
                 }
             `;
 
             try {
-                // 只有在 rawCode 具備基本 JS 特徵時才嘗試執行
-                if (rawCode.trim().length > 0 && !rawCode.includes(' {') && !rawCode.includes(' >>')) {
+                if (rawCode.trim().length > 0) {
                     const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
                     const executeLogic = new AsyncFunction('WaveCode', finalCode);
                     await executeLogic(WaveCodeAPI);

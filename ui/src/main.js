@@ -137,19 +137,47 @@ function debouncedUpdateLiveCode() {
             let code = generator.workspaceToCode(workspace);
             const codeEl = document.getElementById('generated-code');
             if (codeEl) {
-                // 先轉義基本的 HTML 字元
+                // --- DSL 視覺轉譯 (僅影響顯示，不影響執行) ---
+                
+                // 1. 將 JS 呼叫轉為 DSL 風格 (使用 [ \t]* 處理可能的縮排)
+                code = code.replace(/^[ \t]*await WaveCode\.playNote\((.*?), (.*?), "(.*?)"\);/gm, '  play_note(note: $1, dur: $2ms, inst: "$3");');
+                code = code.replace(/^[ \t]*await WaveCode\.wait\((.*?)\);/gm, '  sleep($1ms);');
+                code = code.replace(/^[ \t]*await WaveCode\.setBPM\((.*?)\);/gm, '  set_bpm($1);');
+                code = code.replace(/^[ \t]*await WaveCode\.setCurrentInstrument\("(.*?)"\);/gm, '  select_instrument("$1");');
+                code = code.replace(/^[ \t]*await WaveCode\.playMelody\("(.*?)", "(.*?)"\);/gm, '  play_melody("$1", inst: "$2");');
+                code = code.replace(/^[ \t]*await WaveCode\.defineChord\("(.*?)", "(.*?)"\);/gm, '  define_chord("$1", notes: "$2");');
+                code = code.replace(/^[ \t]*await WaveCode\.playChord\("(.*?)", (.*?), "(.*?)"\);/gm, '  play_chord("$1", dur: $2ms, inst: "$3");');
+                code = code.replace(/^[ \t]*WaveCode\.stopAudio\(\);/gm, '  panic_stop();');
+                
+                // 2. 將註解組件轉為 DSL 結構，並移除所有隱藏的註解符號
+                code = code.replace(/^\/\/ Instrument\("(.*?)"\) \{/gm, 'Instrument("$1") {');
+                code = code.replace(/^\/\/ MasterOut \{/gm, 'MasterOut {');
+                code = code.replace(/^[ \t]*\/\/ \};/gm, '}');
+                code = code.replace(/^[ \t]*\/\/ >> (.*)/gm, '  >> $1');
+                // 移除樂器鏈內部的 // 符號，但保留一般註解
+                code = code.replace(/^[ \t]*\/\/[ \t]+>>/gm, '  >>');
+
+                // 3. 處理結構化區塊 (將 AsyncFunction 的大括號與 Perform 映射)
+                // 如果代碼包含關鍵字但沒有外層，幫它補上視覺上的 Perform 區塊
+                if (code.includes('play_note') || code.includes('sleep') || code.includes('play_melody')) {
+                    if (!code.includes('Perform {')) {
+                        code = `Perform {\n${code}\n}`;
+                    }
+                }
+
+                // 4. 先轉義基本的 HTML 字元
                 let html = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-                // 1. 處理註解 (最優先，防止內部的字元被高亮)
+                // 5. 處理註解
                 html = html.replace(/(\/\/.*)/g, '<span class="code-comment">$1</span>');
 
-                // 2. 處理字串
+                // 6. 處理字串
                 html = html.replace(/("(.*?)")/g, '<span class="code-string">$1</span>');
 
-                // 3. 處理關鍵字 (使用 \b 確保只匹配完整單字，且此時 class="code-string" 的引號不會被抓到)
-                html = html.replace(/\b(Instrument|MasterOut|Perform|OnInit|Oscillator|ADSR|Volume|Sampler|Filter|Delay|BitCrush|Distortion|Compressor)\b/g, '<span class="code-keyword">$1</span>');
+                // 7. 處理關鍵字
+                html = html.replace(/\b(Instrument|MasterOut|Perform|OnInit|Oscillator|ADSR|Volume|Sampler|Filter|Delay|BitCrush|Distortion|Compressor|play_note|sleep|set_bpm|select_instrument|play_melody|panic_stop)\b/g, '<span class="code-keyword">$1</span>');
 
-                // 4. 處理數值與單位 (支援小數、負數、以及帶單位的數字如 500ms, -12dB)
+                // 8. 處理數值與單位
                 html = html.replace(/(-?\d+\.?\d*(?:ms|s|Hz|%|dB)?)/g, '<span class="code-number">$1</span>');
 
                 codeEl.innerHTML = html || '<span class="code-comment">// 尚未編寫積木...</span>';
