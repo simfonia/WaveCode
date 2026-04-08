@@ -25,5 +25,20 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "#7f8c8d",
     "tooltip": "%{BKY_WC_COMMENT_TOOLTIP}"
+  },
+  {
+    "type": "math_map",
+    "message0": "將 %1 從 [ %2 , %3 ] 映射至 [ %4 , %5 ]",
+    "args0": [
+      { "type": "input_value", "name": "VALUE", "check": "Number" },
+      { "type": "input_value", "name": "FROM_LOW", "check": "Number" },
+      { "type": "input_value", "name": "FROM_HIGH", "check": "Number" },
+      { "type": "input_value", "name": "TO_LOW", "check": "Number" },
+      { "type": "input_value", "name": "TO_HIGH", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "將數值從一個範圍按比例轉換到另一個範圍 (Arduino Style Map)。"
   }
 ]);

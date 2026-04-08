@@ -217,10 +217,85 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_EFFECTS_HUE}",
     "tooltip": "%{BKY_AUDIO_COMPRESSOR_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
     "helpUrl": "effects"
+  },
+
+  // --- 0.3 即時控制 ---
+  {
+    "type": "wc_set_effect_param",
+    "message0": "%{BKY_AUDIO_SET_EFFECT_PARAM}",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "INSTRUMENT",
+        "options": [["(目前樂器)", "none"]]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "EFFECT_TYPE",
+        "options": [
+          ["%{BKY_AUDIO_FILTER_TYPE}", "filter"],
+          ["音量 (Volume)", "volume"],
+          ["延遲 (Delay)", "delay"],
+          ["位元粉碎 (BitCrush)", "bitcrush"],
+          ["失真 (Distortion)", "distortion"]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "PARAM_NAME",
+        "options": [["頻率", "freq"]]
+      },
+      { "type": "input_value", "name": "VALUE", "check": "Number" }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_SET_EFFECT_PARAM_TOOLTIP}",
+    "extensions": ["wc_play_note_instrument_dropdown", "wc_set_effect_param_sync"]
   }
 ]);
 
 // --- Extensions ---
+
+Blockly.Extensions.register('wc_set_effect_param_sync', function() {
+  const block = this;
+  const effectField = this.getField('EFFECT_TYPE');
+  const paramField = this.getField('PARAM_NAME');
+  
+  const updateParams = (type) => {
+    let options = [];
+    if (type === 'filter') {
+      options = [['頻率 (Frequency)', 'freq'], ['Q值 (Q)', 'q']];
+    } else if (type === 'volume') {
+      options = [['音量百分比 (Value)', 'val']];
+    } else if (type === 'delay') {
+      options = [['延遲時間 (Time)', 'time'], ['回授 (Feedback)', 'feedback']];
+    } else if (type === 'bitcrush') {
+      options = [['位元數 (Bits)', 'bits']];
+    } else if (type === 'distortion') {
+      options = [['失真量 (Amount)', 'amount']];
+    }
+    
+    // 如果目前的選項不在新清單中，重置為第一個
+    const currentVal = paramField.getValue();
+    paramField.menuGenerator_ = options;
+    const isValid = options.some(opt => opt[1] === currentVal);
+    if (!isValid && options.length > 0) {
+      paramField.setValue(options[0][1]);
+    }
+  };
+
+  this.setOnChange(function(event) {
+    if (event.type === Blockly.Events.BLOCK_CHANGE && event.name === 'EFFECT_TYPE' && event.blockId === block.id) {
+      updateParams(block.getFieldValue('EFFECT_TYPE'));
+    }
+  });
+  
+  // 延遲初始化，確保多國語言與欄位已載入
+  setTimeout(() => {
+    if (block.workspace) updateParams(block.getFieldValue('EFFECT_TYPE'));
+  }, 100);
+});
 
 Blockly.Extensions.register('wc_instrument_dropdown_sync', function() {});
 

@@ -82,6 +82,9 @@
     "AUDIO_DISTORTION_TOOLTIP": "產生類比風格的飽和失真效果。",
     "AUDIO_COMPRESSOR_TOOLTIP": "動態壓縮音訊，使大聲變小、小聲變大，平衡動態。",
 
+    "AUDIO_SET_EFFECT_PARAM": "樂器 %1 效果器 %2 參數 %3 數值 %4",
+    "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "動態更新正在發聲的樂器參數。這對於使用外部感測器（如光敏電阻、滑桿）進行實時控制非常有用。",
+
     "AUDIO_FILTER_TYPE": "濾波器",
 
     // 組件選項
@@ -105,6 +108,17 @@
     "AUDIO_STOP_TOOLTIP": "立即關閉所有聲部的閘門並停止聲音。",
     "AUDIO_PERFORM_ONCE": "演奏 %1",
     "AUDIO_PERFORM_ONCE_TOOLTIP": "在背景執行一次內部的演奏積木，適合用於單次表演。多個演奏積木可同時進行多聲部合奏。",
+
+    "AUDIO_SERIAL_DATA_RECEIVED_TITLE": "當序列埠收到資料",
+    "AUDIO_SERIAL_DATA_RECEIVED_VAR": "存入變數 %1",
+    "AUDIO_SERIAL_DATA_RECEIVED_TOOLTIP": "當序列埠收到以換行符號結尾的資料時，自動執行內部的程式碼。",
+    "AUDIO_SERIAL_INIT": "連接序列埠 %1 波特率 %2",
+    "AUDIO_SERIAL_INIT_TOOLTIP": "掃描並連接實體裝置 (如 Arduino)。請確保裝置已插入且波特率設定正確。",
+    "AUDIO_SERIAL_CHECK_TTP": "當狀態 %1 的第 %2 個按鍵被按下",
+    "AUDIO_SERIAL_CHECK_TTP_TOOLTIP": "解析 TTP229 的 16-bit 狀態字串。僅在該按鍵從「放開」變為「按下」的瞬間回傳 True (邊緣偵測)。",
+
+    "AUDIO_SERIAL_GET_FIELD_TITLE": "序列埠欄位數值 [前綴 %1]",
+    "AUDIO_SERIAL_GET_FIELD_TOOLTIP": "從序列埠資料中解析並抓取 Prefix:Value 格式的數值 (例如 LDR:512)。",
 
     "AUDIO_SET_BPM": "設定演奏速度 (BPM) %1",
     "AUDIO_SET_BPM_TOOLTIP": "設定全域的演奏速度。這會影響「演奏旋律」中的節拍長度。",

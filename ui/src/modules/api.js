@@ -15,7 +15,17 @@ export const WaveCodeAPI = {
     _currentInstrument: 'none', // 當前預設樂器
     _loopCounters: new Map(), // 追蹤每個腳本的同步迴圈次數
     _chords: {}, // 儲存定義的和弦
+    _variables: {}, // 儲存積木變數
     
+    // --- 序列埠狀態 ---
+    _serialPort: null,
+    _serialState: "0000000000000000",
+    _lastSerialState: "0000000000000000",
+    _serialRaw: "",
+    _serialFields: {},   // 儲存所有前綴的最新數值 (如 "LDR", "TTP")
+    _lastFields: {},     // 儲存上一次的數值，用於偵測變化
+    _serialHandlers: [], // 儲存當前腳本註冊的處理器
+
     // 追蹤所有活躍的樂器，由 Compiler 填充
     _instruments: {},
 
@@ -23,12 +33,8 @@ export const WaveCodeAPI = {
      * 初始化排程器時間
      */
     startScript: () => {
-        WaveCodeAPI._execId++;
-        WaveCodeAPI._loopCounters.set(WaveCodeAPI._execId, 0);
-        WaveCodeAPI._bpm = 120; // 重置 BPM
-        WaveCodeAPI._currentInstrument = 'none';
-        WaveCodeAPI._chords = {};
-        
+        WaveCodeAPI.reset(); // 啟動前先徹底重置
+
         if (AudioManager.ctx) {
             // 從目前的 AudioContext 時間點開始排程
             WaveCodeAPI._playbackTime = AudioManager.ctx.currentTime + 0.1;
@@ -56,6 +62,14 @@ export const WaveCodeAPI = {
         WaveCodeAPI._loopCounters.set(id, count);
     },
 
+    // --- 變數存取 (確保在非同步回呼中也能運作) ---
+    setVar: (name, val) => {
+        WaveCodeAPI._variables[name] = val;
+    },
+    getVar: (name) => {
+        return WaveCodeAPI._variables[name];
+    },
+
     // --- 音訊控制 ---
     setBPM: async (val) => {
         WaveCodeAPI._bpm = Math.max(1, val);
@@ -68,6 +82,14 @@ export const WaveCodeAPI = {
     setInstruments: (configs) => {
         WaveCodeAPI._instruments = configs;
         AudioManager.setInstruments(configs);
+    },
+
+    /**
+     * 動態更新樂器效果器參數 (實現表現力控制)
+     */
+    setEffectParam: async (instId, compType, paramName, val) => {
+        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        AudioManager.updateInstrumentParam(inst, compType, paramName, val);
     },
 
     /**
@@ -191,7 +213,6 @@ export const WaveCodeAPI = {
             if (WaveCodeAPI.isScriptCancelled(id)) return;
 
             // 分離「音高/和弦」與「時值」
-            // 語法規律：[Note/Chord][Duration] 如 C4Q, CM7H, RQ
             const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES].*)$/);
             if (!match) continue;
 
@@ -205,7 +226,6 @@ export const WaveCodeAPI = {
             const releaseTime = startTime + durationSec;
 
             if (noteOrChord.toUpperCase() !== 'R') {
-                // 1. 處理視覺化
                 if (window.EnvelopeManager) {
                     const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
                     const delayMs = Math.max(0, (startTime - now) * 1000);
@@ -215,23 +235,18 @@ export const WaveCodeAPI = {
                     }, delayMs);
                 }
 
-                // 2. 處理發聲 (單音或和弦)
                 if (WaveCodeAPI._chords[noteOrChord]) {
-                    // 是和弦
                     WaveCodeAPI._chords[noteOrChord].forEach(n => {
                         const voice = AudioManager.triggerNote(n, inst, startTime);
                         if (voice) voice.release(releaseTime);
                     });
                 } else {
-                    // 是單音
                     const voice = AudioManager.triggerNote(noteOrChord, inst, startTime);
                     if (voice) voice.release(releaseTime);
                 }
             }
 
-            // 3. 更新排程時間
             WaveCodeAPI._playbackTime += durationSec;
-            // 4. 實體等待
             await WaveCodeAPI.wait(durationMs);
         }
     },
@@ -276,21 +291,133 @@ export const WaveCodeAPI = {
         await WaveCodeAPI.wait(durationMs);
     },
 
+    // --- 序列埠核心功能 ---
+
+    listSerialPorts: async () => {
+        const invoke = WaveCodeAPI.getInvoke();
+        return await invoke('list_serial_ports');
+    },
+
+    openSerial: async (port, baud) => {
+        try {
+            const invoke = WaveCodeAPI.getInvoke();
+            await invoke('open_serial', { portName: port, baudRate: parseInt(baud) });
+            WaveCodeAPI._serialPort = port;
+            console.log(`WaveCode: Serial Port ${port} opened at ${baud} baud.`);
+        } catch (err) {
+            // 取得原始錯誤字串
+            let msg = typeof err === 'string' ? err : (err.message || String(err));
+            // 優化錯誤訊息：將技術性的「檔案」改為語意化的「裝置」
+            msg = msg.replace(/系統找不到指定的檔案/g, "系統找不到指定的裝置");
+            msg = msg.replace(/The system cannot find the file specified/g, "系統找不到指定的裝置");
+            
+            console.warn("WaveCode Serial Error:", msg);
+            throw msg; // 拋出處理後的字串
+        }
+    },
+
+    closeSerial: async () => {
+        const invoke = WaveCodeAPI.getInvoke();
+        await invoke('close_serial');
+        WaveCodeAPI._serialPort = null;
+    },
+
     /**
-     * 停止所有音訊並清除腳本
+     * 判斷指定欄位 (通常是 TTP) 的特定按鍵是否剛被按下 (邊緣偵測)
+     * @param {string} prefix 欄位名稱 (如 "TTP")
+     * @param {number} keyIndex 1-based 按鍵索引
      */
-    stopAudio: async () => {
-        WaveCodeAPI._execId++; 
+    isTtpTriggered: (prefix, keyIndex) => {
+        const current = WaveCodeAPI._serialFields[prefix] || "0000000000000000";
+        const last = WaveCodeAPI._lastFields[prefix] || "0000000000000000";
+        const idx = keyIndex - 1;
+        // 偵測 0 -> 1 的變化
+        return current[idx] === '1' && last[idx] === '0';
+    },
+
+    /**
+     * 獲取指定欄位的最新數值
+     */
+    getSerialField: (prefix) => {
+        return WaveCodeAPI._serialFields[prefix] || "";
+    },
+
+    /**
+     * 註冊序列埠資料處理器
+     */
+    registerSerialHandler: (handler) => {
+        WaveCodeAPI._serialHandlers.push(handler);
+    },
+
+    /**
+     * 處理收到的原始資料並更新狀態
+     */
+    handleSerialData: (data) => {
+        if (!data || data === WaveCodeAPI._serialRaw) return;
+        WaveCodeAPI._serialRaw = data;
+
+        let prefix = "RAW";
+        let value = data;
+
+        // 1. 智慧欄位解析 (格式 Prefix:Value)
+        if (data.includes(":")) {
+            const parts = data.split(":");
+            prefix = parts[0];
+            value = parts[1];
+        } else if (data === "Kick") {
+            prefix = "EVENT";
+            value = "Kick";
+        }
+
+        // 2. 更新欄位快取 (隔離狀態)
+        // 注意：我們必須先備份舊狀態，再更新新狀態
+        WaveCodeAPI._lastFields[prefix] = WaveCodeAPI._serialFields[prefix] || value;
+        WaveCodeAPI._serialFields[prefix] = value;
+
+        // 3. 執行所有已註冊的處理器
+        const currentId = WaveCodeAPI._execId;
+        WaveCodeAPI._serialHandlers.forEach(handler => {
+            try {
+                // 傳遞原始資料，積木內部可以透過 WaveCode.getSerialField 獲取歸一化數值
+                handler(data, currentId);
+            } catch (err) {
+                console.error("WaveCode: Serial handler error:", err);
+            }
+        });
+
+        // 4. 發出全域事件
+        if (window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('wavecode-serial', { detail: data }));
+        }
+    },
+
+    /**
+     * 重設引擎與所有狀態 (停止或開始新腳本時呼叫)
+     */
+    reset: () => {
+        WaveCodeAPI._execId++; // 遞增 ID 以安樂死舊腳本
+        WaveCodeAPI._playbackTime = 0;
+        WaveCodeAPI._bpm = 120;
+        WaveCodeAPI._loopCounters.clear();
+        WaveCodeAPI._serialHandlers = []; // 清空序列埠處理器
+        WaveCodeAPI._serialFields = {};   // 重置欄位快取
+        WaveCodeAPI._lastFields = {};
+        WaveCodeAPI._currentInstrument = 'none';
+        WaveCodeAPI._chords = {};
+        
         AudioManager.stopAll();
         if (window.EnvelopeManager) window.EnvelopeManager.stopAll();
     },
 
-    reset: async () => {
-        await WaveCodeAPI.stopAudio();
+    /**
+     * 停止所有音訊並清除腳本
+     */
+    stopAudio: async () => {
+        WaveCodeAPI.reset();
     },
 
     restartAudio: async () => {
-        await WaveCodeAPI.stopAudio();
+        WaveCodeAPI.reset();
         await AudioManager.restart();
     },
 
@@ -306,5 +433,12 @@ export const WaveCodeAPI = {
         };
     }
 };
+
+// 監聽來自 Rust 的序列埠事件
+if (window.__TAURI__ && window.__TAURI__.event) {
+    window.__TAURI__.event.listen('serial-data', (e) => {
+        WaveCodeAPI.handleSerialData(e.payload);
+    });
+}
 
 window.WaveCode = WaveCodeAPI;

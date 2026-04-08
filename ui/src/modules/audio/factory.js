@@ -82,6 +82,7 @@ export const NodeFactory = {
                 const effectType = comp.effect_type;
                 let nodes = [];
                 let output = null;
+                let namedNodes = {};
 
                 if (effectType === 'filter') {
                     const filter = ctx.createBiquadFilter();
@@ -102,6 +103,7 @@ export const NodeFactory = {
                     
                     nodes.push(delay, feedback);
                     output = delay;
+                    namedNodes = { delay, feedback };
                 } else if (effectType === 'compressor') {
                     const compNode = ctx.createDynamicsCompressor();
                     compNode.threshold.setValueAtTime(comp.threshold || -24, time);

@@ -70,6 +70,17 @@ export const WaveCodeToolbox = {
                 { 'kind': 'block', 'type': 'math_on_list' },
                 { 'kind': 'block', 'type': 'math_modulo', 'inputs': { 'DIVIDEND': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 64 } } }, 'DIVISOR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } } } },
                 { 'kind': 'block', 'type': 'math_constrain', 'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 50 } } }, 'LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }, 'HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } } },
+                {
+                    'kind': 'block',
+                    'type': 'math_map',
+                    'inputs': {
+                        'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 512 } } },
+                        'FROM_LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
+                        'FROM_HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1023 } } },
+                        'TO_LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
+                        'TO_HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
+                    }
+                },
                 { 'kind': 'block', 'type': 'math_random_int', 'inputs': { 'FROM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }, 'TO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } } },
                 { 'kind': 'block', 'type': 'math_random_float' }
             ]
@@ -184,6 +195,13 @@ export const WaveCodeToolbox = {
                         'RELEASE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.25 } } },
                         'MAKEUP': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
                     }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_set_effect_param',
+                    'inputs': {
+                        'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1000 } } }
+                    }
                 }
             ]
         },
@@ -232,6 +250,21 @@ export const WaveCodeToolbox = {
                 { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
                 { 'kind': 'block', 'type': 'wc_note' },
                 { 'kind': 'block', 'type': 'wc_stop' }
+            ]
+        },
+
+        { 'kind': 'sep' },
+        
+        // 8. 序列埠與硬體 (Serial & Hardware)
+        {
+            'kind': 'category',
+            'name': '序列埠通訊',
+            'colour': '#2c3e50',
+            'contents': [
+                { 'kind': 'block', 'type': 'wc_serial_init' },
+                { 'kind': 'block', 'type': 'wc_serial_data_received' },
+                { 'kind': 'block', 'type': 'wc_serial_check_ttp' },
+                { 'kind': 'block', 'type': 'wc_serial_get_field' }
             ]
         }
     ]

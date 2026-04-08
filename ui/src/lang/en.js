@@ -108,6 +108,9 @@
     "FUNCTIONS_HUE": "#d22f73",
     "TEXT_HUE": "#6a8871",
     "WC_TEXT_PRINT": "print %1",
-    "WC_TEXT_PRINT_TOOLTIP": "Output message to the browser console (F12)."
+    "WC_TEXT_PRINT_TOOLTIP": "Output message to the browser console (F12).",
+
+    "AUDIO_SET_EFFECT_PARAM": "instrument %1 effect %2 param %3 value %4",
+    "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "Dynamically update effect parameters for active voices. Useful for real-time control with external sensors."
   });
 })(Blockly);

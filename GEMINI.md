@@ -3,29 +3,37 @@
 ## 專案概述
 WaveCode 是一個結合了 Tauri (Rust) 與 **Web Audio API (JavaScript)** 的獨立音訊編程 IDE。它利用瀏覽器內建的高效能 C++ 音訊引擎處理實時合成，並由 Rust 負責系統外殼與高效檔案管理。
 
-## ⚠️ 核心架構：Web Audio 混合模式 (2026-04-05 遷移)
-**本專案已棄用純 Rust (cpal + fundsp) 的後端 DSP 方案，全面轉向 Web Audio API 以解決 Windows 平台下的音訊振動與效能瓶頸。**
+## ⚠️ 核心行為規範 (Critical Mandates)
+
+### 1. 禁止盲目覆寫 (No Blind Overwrite)
+- **鐵律**：在使用 `write_file` 進行全檔寫入、或進行涉及多個邏輯點的大型重構前，**必須先執行 `read_file` 讀取最新內容**。
+- **目的**：杜絕因長對話導致的「記憶混亂」，防止功能倒退。
+
+### 2. 日誌追加保護 (Append-Only)
+- 處理 `log/` 下的檔案時，嚴禁覆寫歷史。必須使用追加模式，確保開發軌跡完整。
+
+### 3. 語法轉譯與執行分離
+- **原則**：產生器 (.js) 必須產出合法的 JavaScript 以供底層執行，但在側邊面板顯示時，應透過 `main.js` 的轉譯規則美化為 **「音訊 DSL」** 風格。
+
+## ⚠️ 技術架構：Web Audio 混合模式
 
 ### 1. 前端音訊引擎 (ui/src/modules/audio/)
-- **AudioManager (`manager.js`)**: 核心管理員單例。負責 AudioContext 生命週期、全域 Gain 與 AnalyserNode。
-- **Voice (`voice.js`)**: 封裝單一發聲通道。處理 Web Audio 節點連線與 ADSR 狀態機。支援最高 32+ 複音。
-- **NodeFactory (`factory.js`)**: 組件工廠。將積木輸出的 Patch 數據轉換為實體 Web Audio 節點鏈。
-- **Visualizer (`visualizer.js`)**: 視覺數據提取。實作了 **滯後觸發 (Hysteresis Trigger)** 邏輯，確保示波器波形水平固定。
+- **AudioManager (`manager.js`)**: 核心管理員。負責 Context 生命週期與 **Master Bus (主輸出總線)** 重建。
+- **Master Bus 系統**: 使用者可透過 `wc_master` 積木自定義全域效果鏈（如 Limiter），以防止多聲部合奏破音 (Clipping)。
+- **Voice (`voice.js`)**: 封裝單一發聲通道。支援 32+ 複音，具備精確的 ADSR 狀態機與排程釋放。
+- **NodeFactory (`factory.js`)**: 組件工廠。支援 Oscillator, Sampler, Additive Synth 及拆分後的獨立效果器 (Filter, Delay, Distortion, Compressor)。
 
-### 2. Rust 後端角色轉型 (src-tauri/src/)
-- **資源供應器**: Rust 僅負責讀取 samples/ 下的音訊檔，並將數據解碼傳回前端 `AudioBuffer`。
-- **系統外殼**: 負責 Tauri 指令呼叫、檔案存取、範例載入與版本更新檢查。
-- **[已轉型] `engine.rs`**: 原本的 DSP 邏輯已廢棄，現作為資源與狀態同步的橋接器。
+### 2. 安全性與穩定性 (Safety Guard)
+- **Loop Guard**: 在所有產生代碼的循環中注入 `WaveCode.checkLoop(_id)`，防止同步無窮迴圈鎖死 UI。
+- **Euthanasia (安樂死)**：所有異步任務（`wait`, `setTimeout`）必須綁定 `_execId` 檢查，確保點擊停止時舊腳本立即終止。
 
-### 3. 前端通訊與指令 (api.js & compiler.js)
-- **聯邦編譯器**: `WaveCodeCompiler` 將積木解析為 JSON Patch 後，直接同步至前端 `AudioManager` 而非 Rust。
-- **指令分流**: `triggerNote` 與 `releaseNote` 透過 `api.js` 直接調用 Web Audio 引擎，路徑極短，演奏延遲極低。
+### 3. 精確排程系統 (api.js)
+- **邏輯節拍**: 使用 `_playbackTime` 維護線性拍點時間，確保 `await playNote` 能精確銜接，不因 JS 執行緒延遲而節奏混亂。
 
 ## 工程規範
-- **積木前綴 (Namespace)**: 所有自訂積木必須使用 **`wc_`** 前綴 (例如: `wc_instrument`, `wc_play_note`)。
-- **孤兒檢測 (Orphan Blocks)**: 對齊 #nyx 規範。有效的根積木必須包含在 `UIUtils.VALID_ROOTS` (含 `wc_instrument`, `wc_perform`, `wc_comment`)。
-- **零 IPC 視覺**: 示波器數據必須直接從前端音訊流獲取，嚴禁透過 Tauri Event 傳輸樣本數據以保護處理頻寬。
-- **持久化設定**: 系統偏好（如 `scroll_options`）儲存於 `localStorage` 並於 `main.js` 初始化時讀取。
+- **積木前綴 (Namespace)**: 所有自訂積木必須使用 **`wc_`** 前綴。
+- **孤兒檢測 (Orphan Blocks)**: 對齊 #nyx 規範。有效的根積木必須包含在 `UIUtils.VALID_ROOTS` (含 `wc_instrument`, `wc_master`, `wc_perform`, `wc_init`, `wc_serial_data_received`)。
+- **音訊 DSL 高亮**: Live Code 面板更名為「音訊腳本 (Audio DSL)」，具備自定義配色系統。
 
 ---
-*最後更新日期：2026-04-05 (Web Audio Architecture Transition)*
+*最後更新日期：2026-04-06 (Discipline Update, Master Bus & DSL Transformation)*

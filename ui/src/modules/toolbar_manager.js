@@ -173,8 +173,12 @@ export class ToolbarManager {
             // 【安全性強化】同步迴圈守衛：防止無窮迴圈鎖死 UI
             generator.INFINITE_LOOP_TRAP = `WaveCode.checkLoop(_id);\n`;
             
-            // 【關鍵修正】直接獲取完整工作區代碼，這能自動處理帽子積木 (wc_perform) 的順序與同步
-            rawCode = generator.workspaceToCode(this.workspace);
+            // 【關鍵修正】直接獲取完整工作區代碼，這能自動處理帽子積木 (wc_perform) 的順序 with 同步
+            const blocksCode = generator.workspaceToCode(this.workspace);
+            rawCode = generator.finish(blocksCode);
+
+            // 偵錯用：將生成的代碼印出
+            console.log("=== WaveCode Generated Script ===\n" + rawCode + "\n================================");
 
             // --- 2. 執行產生的代碼 ---
             const finalCode = `
@@ -220,6 +224,7 @@ export class ToolbarManager {
             }
             this.isProcessing = false;
             await WaveCodeAPI.reset();
+            await WaveCodeAPI.closeSerial(); // 停止時徹底釋放序列埠，方便 Arduino 上傳
             this.elements.runBtn.classList.remove('is-running');
             this.elements.runBtn.classList.remove('pulse-animation'); // 手動停止時立即移除
         };
@@ -238,22 +243,32 @@ export class ToolbarManager {
             e.stopPropagation();
             try {
                 const examples = await invoke('list_examples');
+                
+                // --- 排序範例：將 General 排到最上面 ---
+                examples.sort((a, b) => {
+                    const nameA = (a.category || a.name || "").toLowerCase();
+                    const nameB = (b.category || b.name || "").toLowerCase();
+                    if (nameA === 'general') return -1;
+                    if (nameB === 'general') return 1;
+                    return nameA.localeCompare(nameB);
+                });
+
                 let html = '';
                 examples.forEach(ex => {
                     if (ex.category) {
                         html += `
                             <div class="dropdown-item has-submenu">
                                 <img src="/icons/folder_special_24dp_75FB4C.png" class="nyx-icon-purple" style="width:20px;">
-                                <span>${ex.category}</span>
+                                <span style="flex:1;">${ex.category}</span>
                                 <span class="arrow">▶</span>
-                            </div>
-                            <div class="submenu">
-                                ${ex.items.map(i => `
-                                    <div class="dropdown-item example-item" data-path="${i.path}">
-                                        <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;">
-                                        <span>${i.name}</span>
-                                    </div>
-                                `).join('')}
+                                <div class="submenu">
+                                    ${ex.items.map(i => `
+                                        <div class="dropdown-item example-item" data-path="${i.path}">
+                                            <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;">
+                                            <span>${i.name}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>`;
                     } else {
                         html += `

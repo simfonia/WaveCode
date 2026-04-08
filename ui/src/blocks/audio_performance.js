@@ -183,8 +183,66 @@ Blockly.defineBlocksWithJsonArray([
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_PERFORM_ONCE_TOOLTIP}",
     "hat": true
+  },
+  {
+    "type": "wc_serial_data_received",
+    "message0": "%{BKY_AUDIO_SERIAL_DATA_RECEIVED_TITLE}",
+    "message1": "%{BKY_AUDIO_SERIAL_DATA_RECEIVED_VAR}",
+    "args1": [
+      { "type": "field_variable", "name": "DATA", "variable": "serial_data" }
+    ],
+    "message2": "%1",
+    "args2": [
+      { "type": "input_statement", "name": "DO" }
+    ],
+    "colour": "#2c3e50",
+    "tooltip": "%{BKY_AUDIO_SERIAL_DATA_RECEIVED_TOOLTIP}",
+    "hat": true
+  },
+  {
+    "type": "wc_serial_init",
+    "message0": "%{BKY_AUDIO_SERIAL_INIT}",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "PORT",
+        "options": [["(掃描中...)", "none"]]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "BAUD",
+        "options": [["115200", "115200"], ["9600", "9600"], ["57600", "57600"]]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "#2c3e50",
+    "tooltip": "%{BKY_AUDIO_SERIAL_INIT_TOOLTIP}",
+    "extensions": ["wc_serial_port_scanner"]
+  },
+  {
+    "type": "wc_serial_check_ttp",
+    "message0": "解析 16-bits 字串：欄位 %1 的第 %2 個位元由 0 轉 1",
+    "args0": [
+      { "type": "field_input", "name": "PREFIX", "text": "TTP" },
+      { "type": "field_number", "name": "KEY", "value": 1, "min": 1, "max": 16 }
+    ],
+    "output": "Boolean",
+    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "tooltip": "從 16-bit 狀態字串中偵測邊緣觸發。注意：最左邊為第 1 位元。"
+  },
+  {
+    "type": "wc_serial_get_field",
+    "message0": "擷取序列埠欄位 [%1]",
+    "args0": [
+      { "type": "field_input", "name": "PREFIX", "text": "LDR" }
+    ],
+    "output": "String",
+    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "tooltip": "從目前的序列埠資料中抓取指定前綴的數值 (如 LDR:512)。"
   }
-]);
+  ]);
+// --- Extensions ---
 
 Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
   const dropdown = this.getField('INSTRUMENT');
@@ -196,5 +254,29 @@ Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
       return [id, id];
     });
     return options.length > 0 ? options : [['(無樂器)', 'none']];
+  };
+});
+
+Blockly.Extensions.register('wc_serial_port_scanner', function() {
+  const block = this;
+  const dropdown = block.getField('PORT');
+  
+  const updatePorts = async () => {
+    if (!window.WaveCode || !window.WaveCode.listSerialPorts) return;
+    try {
+      const ports = await window.WaveCode.listSerialPorts();
+      const options = ports.length > 0 ? ports.map(p => [p, p]) : [['(找不到裝置)', 'none']];
+      dropdown.menuGenerator_ = options;
+    } catch (e) {
+      console.warn("WaveCode: 掃描序列埠失敗", e);
+    }
+  };
+
+  // 點擊選單時刷新
+  const originalShow = dropdown.showEditor_;
+  dropdown.showEditor_ = function() {
+    updatePorts().then(() => {
+      originalShow.call(dropdown);
+    });
   };
 });

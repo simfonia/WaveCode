@@ -4,15 +4,8 @@ use tauri::Manager;
 
 /// 獲取資源目錄的輔助函式，支援開發與生產環境
 pub fn get_resource_base(app_handle: &tauri::AppHandle) -> PathBuf {
-    // 1. 優先嘗試生產環境 (已打包) 的資源路徑
-    if let Ok(resource_dir) = app_handle.path().resource_dir() {
-        let prod_path = resource_dir.join("resources");
-        if prod_path.exists() {
-            return prod_path;
-        }
-    }
-
-    // 2. 開發環境：偵測 src-tauri/resources (現在資源統一放在這裡)
+    // 1. 開發環境優先：偵測 src-tauri/resources (原始原始碼目錄)
+    // 這能避免在開發過程中，target 目錄殘留舊檔案導致的「幽靈範例」現象。
     if let Ok(mut dev_path) = std::env::current_dir() {
         // 如果是在專案根目錄，進入 src-tauri
         let target = if dev_path.ends_with("WaveCode") {
@@ -20,11 +13,20 @@ pub fn get_resource_base(app_handle: &tauri::AppHandle) -> PathBuf {
         } else if dev_path.ends_with("src-tauri") {
             dev_path.join("resources")
         } else {
+            // 回退到嘗試在目前目錄尋找 resources
             dev_path.join("resources")
         };
 
         if target.exists() {
             return target;
+        }
+    }
+
+    // 2. 生產環境 (已打包)：使用 Tauri 解析的路徑
+    if let Ok(resource_dir) = app_handle.path().resource_dir() {
+        let prod_path = resource_dir.join("resources");
+        if prod_path.exists() {
+            return prod_path;
         }
     }
 

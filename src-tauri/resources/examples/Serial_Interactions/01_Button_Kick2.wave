@@ -1,0 +1,126 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="eez(bzkTF3bP*HVoT?DM">serial_data</variable>
+    <variable id="{OwPFFqqiesuUc69g8Q.">btn</variable>
+    <variable id="tY!svD(Nj2MqsdifWaYN">last_state</variable>
+  </variables>
+  <block type="wc_comment" id="S#@?5a;SrKH#L6Fs)r,/" x="730" y="-50">
+    <field name="COMMENT">/*&amp;#10; * 這是一個 Arduino 程式，支援以下三個感測裝置：&amp;#10; * TTP229觸控板、按鈕 與 光敏電阻&amp;#10;&amp;#10; * ==========================================&amp;#10; * 接線說明 (Wiring Guide)&amp;#10; * ==========================================&amp;#10; * &amp;#10; * [1. TTP229 觸控板] (16鍵模式需將 TP2 跳線接地)&amp;#10; * - VCC  -&gt; 5V&amp;#10; * - GND  -&gt; GND&amp;#10; * - SCL  -&gt; D2&amp;#10; * - SDO  -&gt; D3&amp;#10; * &amp;#10; * [2. 按鈕 (Button)]&amp;#10; * - 一腳  -&gt; D4&amp;#10; * - 一腳  -&gt; GND (程式已啟用內建上拉電阻)&amp;#10; * &amp;#10; * [3. 光敏電阻 (LDR)]&amp;#10; * - VCC  -&gt; LDR 一腳&amp;#10; * - A0   -&gt; LDR 另一腳 &amp; 10k電阻一腳&amp;#10; * - GND  -&gt; 10k電阻另一腳 (分壓電路)&amp;#10; * &amp;#10; * ==========================================&amp;#10; */&amp;#10;&amp;#10;// --- 腳位設定 ---&amp;#10;#define TTP229_SCL_PIN 2&amp;#10;#define TTP229_SDO_PIN 3&amp;#10;#define BUTTON_PIN     4&amp;#10;#define LDR_PIN        A0&amp;#10;&amp;#10;// --- 變數宣告 ---&amp;#10;&amp;#10;// 1. TTP229 相關&amp;#10;unsigned long lastTtpTime = 0;&amp;#10;unsigned long ttpInterval = 20; // 50Hz 掃描頻率&amp;#10;&amp;#10;// 2. 按鈕相關 &amp;#10;int buttonState = HIGH;         &amp;#10;int lastReading = HIGH;     &amp;#10;unsigned long lastDebounceTime = 0;&amp;#10;unsigned long debounceDelay = 5; // 音樂觸發只需 5ms 防抖&amp;#10;&amp;#10;// 3. LDR 相關&amp;#10;unsigned long lastLdrTime = 0;&amp;#10;unsigned long ldrInterval = 20; // 提高 LDR 取樣率至 50Hz (20ms)&amp;#10;&amp;#10;void setup() {&amp;#10;  Serial.begin(115200); // 確保高波特率&amp;#10;  &amp;#10;  // TTP229 初始化&amp;#10;  pinMode(TTP229_SCL_PIN, OUTPUT);&amp;#10;  pinMode(TTP229_SDO_PIN, INPUT);&amp;#10;  digitalWrite(TTP229_SCL_PIN, HIGH);&amp;#10;  &amp;#10;  // 按鈕 初始化&amp;#10;  pinMode(BUTTON_PIN, INPUT_PULLUP);&amp;#10;&amp;#10;  // 上電穩定時間&amp;#10;  delay(500);&amp;#10;}&amp;#10;&amp;#10;void loop() {&amp;#10;  unsigned long now = millis();&amp;#10;&amp;#10;  // ==========================================&amp;#10;  // 任務 1: 讀取 TTP229 (16-bit 字串模式)&amp;#10;  // ==========================================&amp;#10;  if (now - lastTtpTime &gt;= ttpInterval) {&amp;#10;    lastTtpTime = now;&amp;#10;    uint16_t currentKeys = 0;&amp;#10;    &amp;#10;    for (int i = 0; i &lt; 16; i++) {&amp;#10;      digitalWrite(TTP229_SCL_PIN, LOW);&amp;#10;      delayMicroseconds(50); &amp;#10;      if (digitalRead(TTP229_SDO_PIN) == LOW) {&amp;#10;        currentKeys |= (1 &lt;&lt; i); &amp;#10;      }&amp;#10;      digitalWrite(TTP229_SCL_PIN, HIGH);&amp;#10;      delayMicroseconds(50);&amp;#10;    }&amp;#10;&amp;#10;    // 發送格式：TTP:1000000000000000 (16位元)&amp;#10;    Serial.print("TTP:");&amp;#10;    for (int i = 0; i &lt; 16; i++) {&amp;#10;      if (currentKeys &amp; (1 &lt;&lt; i)) {&amp;#10;        Serial.print("1");&amp;#10;      } else {&amp;#10;        Serial.print("0");&amp;#10;      }&amp;#10;    }&amp;#10;    Serial.println();&amp;#10;  }&amp;#10;&amp;#10;  // ==========================================&amp;#10;  // 任務 2: 處理按鈕 (KICK) - 立即觸發邏輯&amp;#10;  // ==========================================&amp;#10;  int reading = digitalRead(BUTTON_PIN);&amp;#10;&amp;#10;  if (reading != lastReading) {&amp;#10;    lastDebounceTime = now;&amp;#10;  }&amp;#10;&amp;#10;  if ((now - lastDebounceTime) &gt; debounceDelay) {&amp;#10;    if (reading != buttonState) {&amp;#10;      buttonState = reading;&amp;#10;      // 偵測按下 (立即觸發)&amp;#10;      if (buttonState == LOW) {&amp;#10;        Serial.println("EVENT:KICK");&amp;#10;      }&amp;#10;      else {&amp;#10;        Serial.println("EVENT:");&amp;#10;      }&amp;#10;    }&amp;#10;  }&amp;#10;  lastReading = reading;&amp;#10;&amp;#10;  // ==========================================&amp;#10;  // 任務 3: 讀取光敏電阻 (LDR)&amp;#10;  // ==========================================&amp;#10;  if (now - lastLdrTime &gt;= ldrInterval) {&amp;#10;    lastLdrTime = now;&amp;#10;    int val = analogRead(LDR_PIN);&amp;#10;    Serial.print("LDR:");&amp;#10;    Serial.println(val);&amp;#10;  }&amp;#10;  &amp;#10;  // 極短暫休息&amp;#10;  delay(1); &amp;#10;}&amp;#10;</field>
+  </block>
+  <block type="wc_instrument" id="wvSW;JCsJUw5c9C)AoqG" x="10" y="10">
+    <field name="ID">Kick</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="-{g7^2uPxwhzi(H^4M@J">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+        <next>
+          <block type="wc_component_adsr" id="$8]-dbDSc`d^}:AXCr9G">
+            <field name="A">0.01</field>
+            <field name="D">0.1</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="!bf^gy/8v/){htPX-E=H">
+                <field name="VOL">100</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id=",Y36fC/SG(Q!C5PIx|8g" x="10" y="210">
+    <statement name="DO">
+      <block type="wc_serial_init" id="N@*e^WP_SdXin6@OoOqD">
+        <field name="PORT">none</field>
+        <field name="BAUD">115200</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_serial_data_received" id="zmEO0rD5z-63hhdZyBo6" x="10" y="310">
+    <field name="DATA" id="eez(bzkTF3bP*HVoT?DM">serial_data</field>
+    <statement name="DO">
+      <block type="variables_set" id="~La9SN10+?[z~:q_H?_`">
+        <field name="VAR" id="{OwPFFqqiesuUc69g8Q.">btn</field>
+        <value name="VALUE">
+          <block type="wc_serial_get_field" id="9cN%Hy=Q7O~6@1guGvr+">
+            <field name="PREFIX">EVENT</field>
+          </block>
+        </value>
+        <next>
+          <block type="wc_text_print" id="?b~Gf4B|ze,a%,`/6f-X">
+            <value name="TEXT">
+              <block type="variables_get" id="L)l(t6_f-4tGGU14:6t!">
+                <field name="VAR" id="{OwPFFqqiesuUc69g8Q.">btn</field>
+              </block>
+            </value>
+            <next>
+              <block type="controls_if" id="ES,OI-etuM{o$gL0$rS:">
+                <value name="IF0">
+                  <block type="logic_operation" id="UHHmwDDrIjuu7~^rG]Od">
+                    <field name="OP">AND</field>
+                    <value name="A">
+                      <block type="logic_compare" id="8f32C2UzGwBH]`!IUK*3">
+                        <field name="OP">EQ</field>
+                        <value name="A">
+                          <block type="variables_get" id="nVw6*17SA~pd#wP(L-8z">
+                            <field name="VAR" id="{OwPFFqqiesuUc69g8Q.">btn</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="text" id="zUuS2yzL=N7I:(NM]cbr">
+                            <field name="TEXT">KICK</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="logic_compare" id="RG^49ex6!2j*H}w8]IFC">
+                        <field name="OP">EQ</field>
+                        <value name="A">
+                          <block type="variables_get" id="~HC9?`HppS-JU71/]~^N">
+                            <field name="VAR" id="tY!svD(Nj2MqsdifWaYN">last_state</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="text" id="N{WE],neP-)Dx)^y1giQ">
+                            <field name="TEXT"></field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="wc_play_note_async" id="[%PQC.8uZyh{Fj=E9==v">
+                    <field name="INSTRUMENT">Kick</field>
+                    <value name="FREQ">
+                      <shadow type="wc_note" id="MAIsn])h]pam.X^7AL#x">
+                        <field name="NOTE">C</field>
+                        <field name="OCTAVE">0</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="math_number" id="z8v*/W7SZGYc%`|ZFNnr">
+                        <field name="NUM">500</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="variables_set" id="i9(LQc.:(hH|OFu=#.m$">
+                    <field name="VAR" id="tY!svD(Nj2MqsdifWaYN">last_state</field>
+                    <value name="VALUE">
+                      <block type="variables_get" id="s0rq4ZWCcxWP3Pg*+n4?">
+                        <field name="VAR" id="{OwPFFqqiesuUc69g8Q.">btn</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

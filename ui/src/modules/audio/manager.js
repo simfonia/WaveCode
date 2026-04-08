@@ -116,6 +116,34 @@ export const AudioManager = {
         this.patches = configs;
     },
 
+    /**
+     * 即時更新樂器參數 (實現 Wah-wah 等表現效果)
+     * @param {string} instId 樂器 ID
+     * @param {string} compType 組件類型 (如 'filter')
+     * @param {string} paramName 參數名稱 (如 'freq')
+     * @param {number} val 數值
+     */
+    updateInstrumentParam(instId, compType, paramName, val) {
+        if (!this.ctx) return;
+        const patch = this.patches[instId];
+        if (!patch) return;
+
+        // 1. 更新模板 (讓新音符套用此數值)
+        patch.forEach(comp => {
+            const actualType = comp.type === 'effect' ? comp.effect_type : comp.type;
+            if (actualType === compType) {
+                comp[paramName] = val;
+            }
+        });
+
+        // 2. 更新活躍音符 (實現實時變動效果)
+        this.voices.forEach(voice => {
+            if (voice.active && voice.instId === instId) {
+                voice.updateParam(compType, paramName, val);
+            }
+        });
+    },
+
     setMasterPatch(patch) {
         this.masterPatch = patch;
         this.rebuildMasterChain();
@@ -147,6 +175,7 @@ export const AudioManager = {
         }
 
         const time = startTime > 0 ? startTime : this.ctx.currentTime;
+        voice.instId = instId; // 記錄樂器 ID 以便後續更新
         voice.play(freq, patch, time);
         return voice;
     },

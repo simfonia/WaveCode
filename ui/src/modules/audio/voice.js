@@ -10,9 +10,11 @@ export class Voice {
         this.ctx = ctx;
         this.destination = destination;
         this.active = false;
-        this.releasing = false; // 是否正在釋放階段
+        this.releasing = false; 
+        this.instId = null;
         this.freq = 0;
         this.nodes = [];
+        this.nodesMap = new Map(); // 新增：組件類型 -> Web Audio 節點 (用於實時更新)
         this.envNode = null;
         this.adsr = null;
         this.releaseTimer = null;
@@ -20,9 +22,6 @@ export class Voice {
 
     /**
      * 演奏音符
-     * @param {number} freq 頻率
-     * @param {Array} patch 樂器配置
-     * @param {number} startTime 啟動時間
      */
     play(freq, patch, startTime) {
         this.kill(); 
@@ -35,7 +34,23 @@ export class Voice {
         patch.forEach(comp => {
             const result = NodeFactory.create(this.ctx, comp, freq, lastNode, startTime, AudioManager);
             if (result) {
-                if (result.nodes) this.nodes.push(...result.nodes);
+                if (result.nodes) {
+                    this.nodes.push(...result.nodes);
+                    
+                    // --- 儲存節點以便後續更新 ---
+                    const key = comp.type === 'effect' ? `effect_${comp.effect_type}` : comp.type;
+                    
+                    if (result.namedNodes) {
+                        // 如果有具名子節點 (例如 delay/feedback)，分別儲存
+                        for (const name in result.namedNodes) {
+                            this.nodesMap.set(`${key}_${name}`, result.namedNodes[name]);
+                        }
+                        // 同時將主輸出存入基本 key
+                        this.nodesMap.set(key, result.output);
+                    } else {
+                        this.nodesMap.set(key, result.output);
+                    }
+                }
                 if (result.output) lastNode = result.output;
                 if (result.isEnv) {
                     this.envNode = result.output;
@@ -45,7 +60,6 @@ export class Voice {
         });
 
         if (lastNode) {
-            // 基礎 Gate (若無 ADSR)
             if (!this.envNode) {
                 const gate = this.ctx.createGain();
                 gate.gain.setValueAtTime(1, startTime);
@@ -54,6 +68,42 @@ export class Voice {
                 lastNode = gate;
             }
             lastNode.connect(this.destination);
+        }
+    }
+
+    /**
+     * 即時更新聲部內的組件參數 (如變動濾波頻率)
+     */
+    updateParam(compType, paramName, val) {
+        // --- 智慧 Key 匹配 ---
+        // 優先嘗試效果器前綴 (如 effect_filter)，若找不到則嘗試原始類型 (如 volume)
+        const effectKey = `effect_${compType}`;
+        const node = this.nodesMap.get(effectKey) || this.nodesMap.get(compType);
+        
+        if (!node) return;
+        const now = this.ctx.currentTime;
+
+        // 映射積木參數名到 Web Audio AudioParam 名稱
+        if (compType === 'filter') {
+            if (paramName === 'freq' || paramName === 'frequency') {
+                node.frequency.setTargetAtTime(val, now, 0.05); 
+            } else if (paramName === 'q' || paramName === 'Q') {
+                node.Q.setTargetAtTime(val, now, 0.05);
+            }
+        } else if (compType === 'volume') {
+            if (paramName === 'val' || paramName === 'VOL') {
+                const gain = val / 100;
+                node.gain.setTargetAtTime(gain, now, 0.05);
+            }
+        } else if (compType === 'delay') {
+            // Delay 比較特殊，它在 nodesMap 中可能有子節點
+            const delayNode = this.nodesMap.get(`${effectKey}_delay`) || node;
+            if (paramName === 'time' || paramName === 'delay_time') {
+                delayNode.delayTime.setTargetAtTime(val, now, 0.05);
+            } else if (paramName === 'feedback') {
+                const feedbackNode = this.nodesMap.get(`${effectKey}_feedback`);
+                if (feedbackNode) feedbackNode.gain.setTargetAtTime(val, now, 0.05);
+            }
         }
     }
 

@@ -4,17 +4,26 @@ mod utils;
 use engine::{AudioEngine, Component};
 use tauri::{State, Manager, Emitter};
 use std::fs;
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc, atomic::{AtomicBool, Ordering}};
 use std::path::PathBuf;
 use std::collections::HashMap;
 use std::process::Command;
+use std::io::{BufRead, BufReader};
+use serialport;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
+/// 序列埠管理狀態
+struct SerialState {
+    port_name: Mutex<Option<String>>,
+    is_running: Arc<AtomicBool>,
+}
+
 /// 應用程式全域狀態
 struct AppState {
     last_dir: Mutex<Option<PathBuf>>,
+    serial: SerialState,
 }
 
 // --- WaveCode 複音指令集 ---
@@ -71,6 +80,9 @@ async fn save_project(app_state: State<'_, AppState>, xml_content: String, path:
 #[tauri::command]
 async fn load_project(app_state: State<'_, AppState>, path: String) -> Result<String, String> {
     let path_buf = PathBuf::from(&path);
+    if !path_buf.exists() {
+        return Err("檔案不存在，可能已被移動或改名。".to_string());
+    }
     let content = fs::read_to_string(&path_buf).map_err(|e| e.to_string())?;
     if let Some(parent) = path_buf.parent() {
         let mut last_dir = app_state.last_dir.lock().unwrap();
@@ -82,33 +94,53 @@ async fn load_project(app_state: State<'_, AppState>, path: String) -> Result<St
 #[tauri::command]
 async fn list_examples(app_handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
     let examples_dir = utils::get_resource_path(&app_handle, "examples");
-    
+    println!("Scanning examples in: {:?}", examples_dir);
     let mut result = Vec::new();
-    if let Ok(entries) = fs::read_dir(examples_dir) {
-        for entry in entries.filter_map(|e| e.ok()) {
+    let mut general_items = Vec::new();
+
+    if let Ok(entries) = fs::read_dir(&examples_dir) {
+        let mut all_entries: Vec<_> = entries.filter_map(|e| e.ok()).collect();
+        all_entries.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+
+        for entry in all_entries {
             let path = entry.path();
+            if !path.exists() { continue; }
+
+            let file_name = path.file_name().unwrap().to_str().unwrap();
+            println!("- Checking entry: {:?} (Full path: {:?})", file_name, path);
+
             if path.is_dir() {
-                let category = path.file_name().unwrap().to_str().unwrap().to_string();
-                let mut items = Vec::new();
+                // --- 1. 處理子目錄 (分類) ---
+                let mut sub_items = Vec::new();
                 if let Ok(sub_entries) = fs::read_dir(&path) {
-                    for sub_entry in sub_entries.filter_map(|e| e.ok()) {
+                    let mut sub_vec: Vec<_> = sub_entries.filter_map(|e| e.ok()).collect();
+                    sub_vec.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+
+                    for sub_entry in sub_vec {
                         let sub_path = sub_entry.path();
-                        let ext = sub_path.extension().and_then(|s| s.to_str()).unwrap_or("");
-                        if ext == "wave" || ext == "xml" {
-                            items.push(serde_json::json!({
-                                "name": sub_path.file_stem().unwrap().to_str().unwrap(),
-                                "path": sub_path.to_str().unwrap()
-                            }));
+                        if sub_path.is_file() && sub_path.exists() {
+                            let ext = sub_path.extension().and_then(|s| s.to_str()).unwrap_or("").to_lowercase();
+                            if ext == "wave" || ext == "xml" {
+                                sub_items.push(serde_json::json!({
+                                    "name": sub_path.file_stem().unwrap().to_str().unwrap(),
+                                    "path": sub_path.to_str().unwrap()
+                                }));
+                            }
                         }
                     }
                 }
-                if !items.is_empty() {
-                    result.push(serde_json::json!({ "category": category, "items": items }));
-                }
-            } else {
-                let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-                if ext == "wave" || ext == "xml" {
+                
+                if !sub_items.is_empty() {
                     result.push(serde_json::json!({
+                        "category": file_name,
+                        "items": sub_items
+                    }));
+                }
+            } else if path.is_file() {
+                // --- 2. 處理根目錄檔案 (General) ---
+                let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_lowercase();
+                if ext == "wave" || ext == "xml" {
+                    general_items.push(serde_json::json!({
                         "name": path.file_stem().unwrap().to_str().unwrap(),
                         "path": path.to_str().unwrap()
                     }));
@@ -116,6 +148,15 @@ async fn list_examples(app_handle: tauri::AppHandle) -> Result<serde_json::Value
             }
         }
     }
+
+    // 將 General 分類排在最後
+    if !general_items.is_empty() {
+        result.push(serde_json::json!({
+            "category": "General",
+            "items": general_items
+        }));
+    }
+
     Ok(serde_json::json!(result))
 }
 
@@ -128,7 +169,6 @@ async fn get_doc_content(app_handle: tauri::AppHandle, filename: String) -> Resu
         return fs::read_to_string(full_path).map_err(|e| e.to_string());
     }
     
-    // 嘗試不同語系後綴
     let lang_path = docs_dir.join(filename.replace(".html", "_zh-hant.html"));
     if lang_path.exists() {
         return fs::read_to_string(lang_path).map_err(|e| e.to_string());
@@ -160,7 +200,6 @@ async fn open_url(app_handle: tauri::AppHandle, url: String) -> Result<(), Strin
         let target = if url.starts_with("http") {
             url
         } else {
-            // 如果不是 http 開頭，視為本地說明文件，解析完整路徑
             let docs_dir = utils::get_resource_path(&app_handle, "docs");
             let full_path = docs_dir.join(&url);
             if !full_path.exists() {
@@ -182,6 +221,92 @@ async fn open_url(app_handle: tauri::AppHandle, url: String) -> Result<(), Strin
 fn log(app_handle: tauri::AppHandle, message: String, level: String) {
     let event_name = if level == "error" { "processing-error" } else { "processing-log" };
     let _ = app_handle.emit(event_name, message);
+}
+
+// --- 序列埠核心指令 ---
+
+#[tauri::command]
+fn list_serial_ports() -> Vec<String> {
+    serialport::available_ports()
+        .map(|ports| ports.into_iter().map(|p| p.port_name).collect())
+        .unwrap_or_else(|_| Vec::new())
+}
+
+#[tauri::command]
+fn open_serial(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    port_name: String,
+    baud_rate: u32,
+) -> Result<(), String> {
+    // 1. 如果已經開啟同一個埠，先檢查狀態
+    {
+        let name_lock = state.serial.port_name.lock().unwrap();
+        if let Some(ref current_name) = *name_lock {
+            if current_name == &port_name && state.serial.is_running.load(Ordering::SeqCst) {
+                // 如果已經在跑同一個埠，不重複開啟
+                return Ok(());
+            }
+        }
+    }
+
+    // 2. 請求停止舊執行緒
+    state.serial.is_running.store(false, Ordering::SeqCst);
+    
+    // 3. 給予短暫延遲 (100ms)，讓舊執行緒退出並釋放實體埠資源
+    std::thread::sleep(std::time::Duration::from_millis(150));
+
+    {
+        let mut name_lock = state.serial.port_name.lock().unwrap();
+        *name_lock = Some(port_name.clone());
+    }
+
+    state.serial.is_running.store(true, Ordering::SeqCst);
+    let is_running = state.serial.is_running.clone();
+
+    std::thread::spawn(move || {
+        println!("Attempting to open serial port: {}", port_name);
+        let port_result = serialport::new(&port_name, baud_rate)
+            .timeout(std::time::Duration::from_millis(50))
+            .open();
+
+        match port_result {
+            Ok(p) => {
+                let mut reader = BufReader::new(p);
+                while is_running.load(Ordering::SeqCst) {
+                    let mut line = String::new();
+                    // 使用 read_line 可能會阻塞，timeout 設短一點
+                    if let Ok(_) = reader.read_line(&mut line) {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() {
+                            let _ = app_handle.emit("serial-data", trimmed.to_string());
+                        }
+                    }
+                }
+                println!("Serial thread exiting for {}", port_name);
+            }
+            Err(e) => {
+                // 使用 serialport 專用的 ErrorKind 進行匹配
+                let friendly_msg = match e.kind() {
+                    serialport::ErrorKind::NoDevice => "系統找不到指定的裝置，請檢查序列埠選取是否正確。".to_string(),
+                    serialport::ErrorKind::Io(std::io::ErrorKind::PermissionDenied) => "存取被拒絕，可能該埠已被其他程式佔用。".to_string(),
+                    serialport::ErrorKind::Io(std::io::ErrorKind::TimedOut) => "連線逾時。".to_string(),
+                    _ => e.to_string(),
+                };
+                
+                let _ = app_handle.emit("processing-error", format!("無法開啟序列埠 {}: {}", port_name, friendly_msg));
+            }
+        }
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+fn close_serial(state: State<'_, AppState>) {
+    state.serial.is_running.store(false, Ordering::SeqCst);
+    let mut name_lock = state.serial.port_name.lock().unwrap();
+    *name_lock = None;
 }
 
 #[derive(serde::Serialize)]
@@ -237,11 +362,18 @@ pub fn run() {
         app.manage(engine);
         Ok(())
     })
-    .manage(AppState { last_dir: Mutex::new(None) })
+    .manage(AppState { 
+        last_dir: Mutex::new(None),
+        serial: SerialState {
+            port_name: Mutex::new(None),
+            is_running: Arc::new(AtomicBool::new(false)),
+        }
+    })
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
-        set_master_volume, log, list_samples_recursive, read_sample_file
+        set_master_volume, log, list_samples_recursive, read_sample_file,
+        list_serial_ports, open_serial, close_serial
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

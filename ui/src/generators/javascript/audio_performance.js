@@ -48,6 +48,14 @@ Blockly.JavaScript.forBlock['wc_select_current_instrument'] = function(block) {
   return `await WaveCode.setCurrentInstrument("${inst}");\n`;
 };
 
+Blockly.JavaScript.forBlock['wc_set_effect_param'] = function(block) {
+  const inst = block.getFieldValue('INSTRUMENT');
+  const type = block.getFieldValue('EFFECT_TYPE');
+  const param = block.getFieldValue('PARAM_NAME');
+  const val = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+  return `await WaveCode.setEffectParam("${inst}", "${type}", "${param}", ${val});\n`;
+};
+
 Blockly.JavaScript.forBlock['wc_play_melody'] = function(block) {
   const score = block.getFieldValue('MELODY'); // 注意：積木欄位名是 MELODY
   const inst = block.getFieldValue('INSTRUMENT');
@@ -80,11 +88,42 @@ Blockly.JavaScript.forBlock['wc_text_print'] = function(block) {
 };
 
 Blockly.JavaScript.forBlock['wc_comment'] = function(block) {
-    const text = block.getFieldValue('TEXT') || block.getFieldValue('COMMENT');
-    return `// ${text}\n`;
+    const text = block.getFieldValue('TEXT') || block.getFieldValue('COMMENT') || "";
+    // 將每一行都加上 // 註解符號，這能安全處理包含 */ 的文字
+    const commentedText = text.split('\n').map(line => `// ${line}`).join('\n');
+    return `${commentedText}\n`;
+};
+Blockly.JavaScript.forBlock['wc_serial_data_received'] = function(block) {
+  const varId = block.getFieldValue('DATA');
+  const varName = Blockly.JavaScript.nameDB_.getName(varId, Blockly.Variables.NAME_TYPE);
+  const code = Blockly.JavaScript.statementToCode(block, 'DO');
+
+  // 使用 WaveCode.registerSerialHandler 訂閱
+  // 使用 setVar 賦值，解決變數作用域與宣告問題
+  return `
+WaveCode.registerSerialHandler(async (data, id) => {
+  if (WaveCode.isScriptCancelled(id)) return;
+  WaveCode.setVar("${varName}", data);
+  ${code}
+});
+`;
 };
 
-Blockly.JavaScript.forBlock['wc_serial_data_received'] = function(block) {
-  // 目前序列埠在 Web Audio 模式下尚無全域 Event 監聽實作，暫產生註解代碼
-  return `// OnSerialData Event\n`;
+Blockly.JavaScript.forBlock['wc_serial_init'] = function(block) {
+  const port = block.getFieldValue('PORT');
+  const baud = block.getFieldValue('BAUD');
+  return `await WaveCode.openSerial("${port}", ${baud});\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_serial_check_ttp'] = function(block) {
+  const prefix = block.getFieldValue('PREFIX');
+  const key = block.getFieldValue('KEY');
+  const code = `WaveCode.isTtpTriggered("${prefix}", ${key})`;
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript.forBlock['wc_serial_get_field'] = function(block) {
+  const prefix = block.getFieldValue('PREFIX');
+  const code = `WaveCode.getSerialField("${prefix}")`;
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };

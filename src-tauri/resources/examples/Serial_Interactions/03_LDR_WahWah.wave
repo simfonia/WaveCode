@@ -1,0 +1,175 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="v_serial">serial_data</variable>
+    <variable id="v_ldr">ldr_raw</variable>
+    <variable id="v_freq">filter_freq</variable>
+  </variables>
+  <block type="wc_instrument" id="inst1" x="10" y="10">
+    <field name="ID">WahSynth</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="osc1">
+        <field name="WAVE">1</field>
+        <next>
+          <block type="wc_effect_filter" id="filt1">
+            <field name="TYPE">lowpass</field>
+            <value name="FREQ">
+              <shadow type="math_number" id="V2PflOMt+wyGREzhct:!">
+                <field name="NUM">10000</field>
+              </shadow>
+            </value>
+            <value name="Q">
+              <shadow type="math_number" id="F*{L3]Q0K/1ixX[N5#~^">
+                <field name="NUM">1.5</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_component_adsr" id="adsr1">
+                <field name="A">0.05</field>
+                <field name="D">0.2</field>
+                <field name="S">0.5</field>
+                <field name="R">0.5</field>
+                <next>
+                  <block type="wc_component_volume" id="vol1">
+                    <field name="VOL">80</field>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="c1" x="610" y="10">
+    <field name="COMMENT">/*&amp;#10; * 【光控 Wah-wah 效果器】&amp;#10; * &amp;#10; * 1. 樂器定義：使用 SAW 波形並串接一個 Lowpass Filter。&amp;#10; * 2. 序列埠：初始化後監聽 LDR: 欄位。&amp;#10; * 3. 動態控制：將光敏電阻數值映射後，即時更新濾波頻率。&amp;#10; *&amp;#10; * 接線：LDR 接 A0 (分壓電路)，Arduino 程式請參考旁邊註解。&amp;#10; */&amp;#10;&amp;#10;// --- Arduino Code ---&amp;#10;void setup() {&amp;#10;  Serial.begin(115200);&amp;#10;}&amp;#10;&amp;#10;void loop() {&amp;#10;  int val = analogRead(A0);&amp;#10;  Serial.print("LDR:");&amp;#10;  Serial.println(val);&amp;#10;  delay(20);&amp;#10;}</field>
+  </block>
+  <block type="wc_init" id="init1" x="10" y="250">
+    <statement name="DO">
+      <block type="wc_serial_init" id="ser1">
+        <field name="PORT">COM6</field>
+        <field name="BAUD">115200</field>
+        <next>
+          <block type="wc_select_current_instrument" id="sel1">
+            <field name="INSTRUMENT">WahSynth</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_serial_data_received" id="kBImEAPBFo.m12$Vg^:U" x="10" y="390">
+    <field name="DATA" id="v_serial">serial_data</field>
+    <statement name="DO">
+      <block type="variables_set" id=",4r8[^wEsns^]+DX9h}%">
+        <field name="VAR" id="v_ldr">ldr_raw</field>
+        <value name="VALUE">
+          <block type="wc_serial_get_field" id="|#._?-zcMb.KkF=_E3X_">
+            <field name="PREFIX">LDR</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="J=^kB`U1eVR_m1|Z2e8?">
+            <field name="VAR" id="v_freq">filter_freq</field>
+            <value name="VALUE">
+              <block type="math_constrain" id="W:-qKw:^7j:o:md21tit">
+                <value name="VALUE">
+                  <shadow type="math_number" id="PZy2jTeyf3N8IuIzA7Dq">
+                    <field name="NUM">50</field>
+                  </shadow>
+                  <block type="variables_get" id="k=nl+a5n}C.=ZokJ,6iZ">
+                    <field name="VAR" id="v_ldr">ldr_raw</field>
+                  </block>
+                </value>
+                <value name="LOW">
+                  <shadow type="math_number" id="Z(EEg@(pYDzJl4,KVCjL">
+                    <field name="NUM">350</field>
+                  </shadow>
+                </value>
+                <value name="HIGH">
+                  <shadow type="math_number" id="I=O9Yhk[icwROZUj8}?O">
+                    <field name="NUM">800</field>
+                  </shadow>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="zP;S`yZTmUV8Pp|Kw!O%">
+                <field name="VAR" id="v_freq">filter_freq</field>
+                <value name="VALUE">
+                  <block type="math_map" id="Inl.U.3vfmA#3Z`vcbF3">
+                    <value name="VALUE">
+                      <shadow type="math_number" id="7Pf+teOa4C!oioFQL-qz">
+                        <field name="NUM">512</field>
+                      </shadow>
+                      <block type="variables_get" id=".AXZ0%@WD(P0bc#OwSb$">
+                        <field name="VAR" id="v_freq">filter_freq</field>
+                      </block>
+                    </value>
+                    <value name="FROM_LOW">
+                      <shadow type="math_number" id="LugN!6Hk7zWw?6mCZitC">
+                        <field name="NUM">350</field>
+                      </shadow>
+                    </value>
+                    <value name="FROM_HIGH">
+                      <shadow type="math_number" id="DX)PEePXiD|C`J9c0#pD">
+                        <field name="NUM">800</field>
+                      </shadow>
+                    </value>
+                    <value name="TO_LOW">
+                      <shadow type="math_number" id="JwfDl6y8kHtdGsPCAnR#">
+                        <field name="NUM">5000</field>
+                      </shadow>
+                    </value>
+                    <value name="TO_HIGH">
+                      <shadow type="math_number" id="77aVvW;/f_!qr~V!@H#-">
+                        <field name="NUM">200</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="wc_set_effect_param" id="KKKt5Q3lB_zqw3-N@+qV">
+                    <field name="INSTRUMENT">WahSynth</field>
+                    <field name="EFFECT_TYPE">filter</field>
+                    <field name="PARAM_NAME">freq</field>
+                    <value name="VALUE">
+                      <shadow type="math_number" id="]ZERssZEj%Wk|TZD{-%F">
+                        <field name="NUM">1000</field>
+                      </shadow>
+                      <block type="variables_get" id="K9V%MSxt5Wn^1bvzKc1m">
+                        <field name="VAR" id="v_freq">filter_freq</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="wc_text_print" id="))EZHO)M7kauGxvb;i8i">
+                        <value name="TEXT">
+                          <block type="text_join" id="T8GAxLQlc;J0X.tvL~ed">
+                            <mutation items="3"></mutation>
+                            <value name="ADD0">
+                              <block type="variables_get" id="0nA!/vE77(+*7A@W8nH=">
+                                <field name="VAR" id="v_ldr">ldr_raw</field>
+                              </block>
+                            </value>
+                            <value name="ADD1">
+                              <block type="text" id="O:2SoQ[;P96RqbJ1ggY]">
+                                <field name="TEXT"> -&gt; </field>
+                              </block>
+                            </value>
+                            <value name="ADD2">
+                              <block type="variables_get" id="j:}^4EP@_k!$Fv)q;er[">
+                                <field name="VAR" id="v_freq">filter_freq</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
