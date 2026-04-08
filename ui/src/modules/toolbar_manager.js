@@ -3,6 +3,7 @@
  */
 import { WaveCodeAPI } from './api.js';
 import { WaveCodeCompiler } from './compiler.js';
+import { KeyboardController } from './keyboard_controller.js';
 import '../toolbar.css';
 
 export class ToolbarManager {
@@ -145,6 +146,11 @@ export class ToolbarManager {
                 this.animationTimeout = null;
             }
             await WaveCodeAPI.restartAudio(); // 確保引擎重置並初始化 Context
+            
+            // --- 關鍵修正：重置後立刻重新同步鍵盤選取的樂器 ---
+            const currentInst = KeyboardController.getActiveInstrumentId();
+            WaveCodeAPI.setCurrentInstrument(currentInst);
+
             this.elements.runBtn.classList.add('is-running');
             this.elements.runBtn.classList.add('pulse-animation');
             this.isProcessing = true;
@@ -224,6 +230,11 @@ export class ToolbarManager {
             }
             this.isProcessing = false;
             await WaveCodeAPI.reset();
+
+            // --- 關鍵修正：停止後重新同步鍵盤選取的樂器 ---
+            const currentInst = KeyboardController.getActiveInstrumentId();
+            WaveCodeAPI.setCurrentInstrument(currentInst);
+
             await WaveCodeAPI.closeSerial(); // 停止時徹底釋放序列埠，方便 Arduino 上傳
             this.elements.runBtn.classList.remove('is-running');
             this.elements.runBtn.classList.remove('pulse-animation'); // 手動停止時立即移除
@@ -448,6 +459,17 @@ export class ToolbarManager {
         
         setTimeout(() => {
             if (!this.workspace) return;
+
+            // 掃描樂器並更新 API
+            const configs = WaveCodeCompiler.scanInstruments(this.workspace);
+            WaveCodeAPI.setInstruments(configs);
+
+            // 自動選取第一個樂器並顯示
+            const keys = Object.keys(configs);
+            if (keys.length > 0) {
+                WaveCodeAPI.setCurrentInstrument(keys[0]);
+            }
+
             const instruments = this.workspace.getBlocksByType('wc_instrument');
             instruments.forEach(b => {
                 if (!b) return;

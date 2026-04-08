@@ -82,20 +82,33 @@ export const AudioManager = {
 
     async loadSamples() {
         const { invoke } = window.__TAURI__.core;
+        const startTime = performance.now();
         try {
             const files = await invoke('list_samples_recursive'); 
             let loadedCount = 0;
 
-            for (const file of files) {
+            // --- 全並行處理 (不再分 Chunk) ---
+            // 瀏覽器與 Tauri 的非同步機制會自動處理執行緒調度
+            await Promise.all(files.map(async (file) => {
                 const { path, id } = file;
-                const bytes = await invoke('read_sample_file', { path });
-                const audioBuffer = await this.ctx.decodeAudioData(new Uint8Array(bytes).buffer);
-                this.samples[id] = audioBuffer;
-                loadedCount++;
-            }
-            console.log(`WaveCode Engine: 已載入 ${loadedCount} 個取樣檔案 (Web Audio)`);
+                try {
+                    // 1. 讀取二進位位元組 (傳輸 Vec<u8> 在 Tauri 中極快，不經過 JSON 數值序列化)
+                    const bytes = await invoke('read_sample_file', { path });
+                    
+                    // 2. 利用瀏覽器內建的原生解碼器 (具備 C++ 級別的多執行緒優化)
+                    const audioBuffer = await this.ctx.decodeAudioData(new Uint8Array(bytes).buffer);
+                    
+                    this.samples[id] = audioBuffer;
+                    loadedCount++;
+                } catch (err) {
+                    console.error(`WaveCode Engine: 載入取樣 "${id}" 失敗:`, err);
+                }
+            }));
+
+            const endTime = performance.now();
+            console.log(`WaveCode Engine: 已載入 ${loadedCount} 個取樣檔案，耗時 ${((endTime - startTime)/1000).toFixed(2)} 秒 (並行優化版)`);
         } catch (e) {
-            console.error("WaveCode Engine: 載入取樣失敗:", e);
+            console.error("WaveCode Engine: 載入取樣清單失敗:", e);
         }
     },
 

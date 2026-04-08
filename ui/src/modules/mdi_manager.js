@@ -136,6 +136,12 @@ export class MDIManager {
                 const configs = WaveCodeCompiler.scanInstruments(workspace);
                 WaveCodeAPI.setInstruments(configs);
 
+                // 自動選取第一個樂器並顯示 UI
+                const keys = Object.keys(configs);
+                if (keys.length > 0) {
+                    WaveCodeAPI.setCurrentInstrument(keys[0]);
+                }
+
                 setTimeout(() => {
                     workspace.isClearing = false;
                     Blockly.svgResize(workspace);
@@ -218,6 +224,12 @@ export class MDIManager {
             if (WaveCodeCompiler) {
                 const configs = WaveCodeCompiler.scanInstruments(newTab.workspace);
                 WaveCodeAPI.setInstruments(configs);
+
+                // 自動選取第一個樂器並顯示 UI
+                const keys = Object.keys(configs);
+                if (keys.length > 0) {
+                    WaveCodeAPI.setCurrentInstrument(keys[0]);
+                }
             }
 
             setTimeout(() => {

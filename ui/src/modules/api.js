@@ -77,6 +77,12 @@ export const WaveCodeAPI = {
 
     setCurrentInstrument: async (name) => {
         WaveCodeAPI._currentInstrument = name;
+        // 更新示波器標題列的樂器顯示
+        const display = document.getElementById('current-instrument-display');
+        if (display) {
+            display.textContent = name === 'none' ? '' : `(${name})`;
+            display.classList.toggle('active', name !== 'none');
+        }
     },
 
     setInstruments: (configs) => {

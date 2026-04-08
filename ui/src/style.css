@@ -115,6 +115,27 @@ body.resizing-panel {
 .mini-btn { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; }
 .mini-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
 
+/* 樂器顯示標籤 */
+.current-instrument-badge {
+    margin-left: 4px;
+    padding: 0;
+    background-color: transparent;
+    color: var(--nyx-purple-glow);
+    border: none;
+    border-radius: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.current-instrument-badge.active {
+    display: inline-block;
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(155, 89, 182, 0.2);
+}
+
 /* Visualizer Section (Oscilloscope & FFT) */
 #waveform-section {
     background-color: var(--nyx-bg-dark);

@@ -91,8 +91,8 @@ export const KeyboardController = {
         KeyboardController.instrumentIndex = (KeyboardController.instrumentIndex + delta + keys.length) % keys.length;
         const instId = keys[KeyboardController.instrumentIndex];
         
-        // 同步更新 API 中的當前預設樂器
-        WaveCodeAPI._currentInstrument = instId;
+        // 同步更新 API 中的當前預設樂器並更新 UI
+        WaveCodeAPI.setCurrentInstrument(instId);
         
         if (window.LogManager) {
             const switchMsg = (Blockly.Msg['WAVECODE_KEYBOARD_SWITCH'] || 'Keyboard: 已切換至樂器 [%1]')

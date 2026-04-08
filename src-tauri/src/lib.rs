@@ -5,11 +5,19 @@ use engine::{AudioEngine, Component};
 use tauri::{State, Manager, Emitter};
 use std::fs;
 use std::sync::{Mutex, Arc, atomic::{AtomicBool, Ordering}};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::collections::HashMap;
 use std::process::Command;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Cursor};
 use serialport;
+use rodio::Source;
+
+#[derive(serde::Serialize)]
+struct DecodedPCM {
+    channels: Vec<Vec<f32>>,
+    sample_rate: u32,
+    id: String,
+}
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -309,6 +317,30 @@ fn close_serial(state: State<'_, AppState>) {
     *name_lock = None;
 }
 
+#[tauri::command]
+async fn decode_audio_to_pcm(path: String) -> Result<DecodedPCM, String> {
+    let file_bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+    let cursor = Cursor::new(file_bytes);
+    let source = rodio::Decoder::new(cursor).map_err(|e| format!("解碼失敗 ({}): {}", path, e))?;
+    
+    let sample_rate = source.sample_rate();
+    let channels_count = source.channels() as usize;
+    let samples: Vec<f32> = source.convert_samples().collect();
+    
+    let mut channels = vec![Vec::with_capacity(samples.len() / channels_count); channels_count];
+    for (i, sample) in samples.into_iter().enumerate() {
+        channels[i % channels_count].push(sample);
+    }
+    
+    let id = Path::new(&path).file_stem().unwrap_or_default().to_string_lossy().to_string();
+    
+    Ok(DecodedPCM {
+        channels,
+        sample_rate,
+        id,
+    })
+}
+
 #[derive(serde::Serialize)]
 struct SampleInfo {
     path: String,
@@ -372,7 +404,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
-        set_master_volume, log, list_samples_recursive, read_sample_file,
+        set_master_volume, log, list_samples_recursive, read_sample_file, decode_audio_to_pcm,
         list_serial_ports, open_serial, close_serial
     ])
     .run(tauri::generate_context!())
