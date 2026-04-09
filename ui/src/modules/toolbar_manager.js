@@ -481,6 +481,7 @@ export class ToolbarManager {
                 }
             });
             this.workspace.isClearing = false;
-        }, 100);
+            this.setDirty(false); // 載入後強制標記為非 Dirty
+        }, 150);
     }
 }

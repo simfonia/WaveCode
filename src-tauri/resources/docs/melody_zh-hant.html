@@ -2,77 +2,92 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>旋律清單編寫指南</title>
+    <title>旋律與節奏編寫指南 - WaveCode</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; }
-        h1 { color: #E67E22; }
-        h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .type-box { margin-bottom: 20px; padding: 15px; background: #FFF8F2; border-radius: 8px; border-left: 5px solid #E67E22; }
-        code { background: #eee; padding: 2px 4px; border-radius: 4px; color: #d35400; font-weight: bold; }
-        .example { background: #fffbe6; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; font-family: monospace; white-space: pre; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; padding: 30px; color: #2c3e50; background-color: #fdfdfd; }
+        h1 { color: #e67e22; border-bottom: 3px solid #e67e22; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; border-left: 5px solid #e67e22; padding-left: 15px; }
+        .type-box { margin-bottom: 25px; padding: 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        code { background: #f8f9fa; padding: 3px 6px; border-radius: 4px; color: #d35400; font-family: 'Consolas', monospace; font-weight: bold; font-size: 1.1em; }
+        .example { background: #2d3436; padding: 15px; border-radius: 8px; color: #fab1a0; font-family: 'Consolas', monospace; white-space: pre; overflow-x: auto; margin: 15px 0; border-left: 6px solid #e67e22; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #7f8c8d; text-transform: uppercase; font-size: 0.9em; }
+        .highlight { color: #e67e22; font-weight: bold; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        .tip { background: #e8f4fd; border-left: 5px solid #3498db; padding: 15px; border-radius: 4px; margin: 20px 0; }
     </style>
 </head>
 <body>
-    <h1>旋律清單編寫指南</h1>
-    <p>「演奏旋律清單」積木使用一種簡化的文字格式。它支援單一音符、已定義的和弦名稱，以及強大的連結線功能。</p>
+    <h1>旋律與節奏編寫指南</h1>
+    <p>WaveCode 使用音樂性的單位（拍數與力度）來取代傳統的毫秒，讓程式設計更貼近音樂創作。本指南適用於所有「演奏」分類下的積木。</p>
 
     <div class="type-box">
-        <h2>1. 音名與八度表示 (Note Names)</h2>
-        <p>音符由<strong>音名 (A-G)</strong>、<strong>升降號 (#/b)</strong> 與 <strong>八度數字 (0-9)</strong> 組成：</p>
+        <h2>1. 音符與和弦 (Notes & Chords)</h2>
+        <p>在「音符」欄位中，你可以輸入以下內容：</p>
         <ul>
-            <li><strong>基本格式</strong>：如 <code>C4</code> (中央 C)、<code>G#3</code> (升 G)、<code>Bb5</code> (降 B)。</li>
-            <li><strong>不分大小寫</strong>：<code>c4</code> 與 <code>C4</code> 相同。</li>
-            <li><strong>八度範圍</strong>：標準 MIDI 範圍為 0 到 9，預設通常為 4。</li>
-            <li><strong>省略八度</strong>：若只寫 <code>C</code>，則會套用當前預設的八度。</li>
+            <li><span class="highlight">單音</span>：如 <code>C4</code> (中央C)、<code>F#3</code> (升F)、<code>Bb5</code> (降B)。</li>
+            <li><span class="highlight">休止符</span>：使用 <code>R</code> 代表不發聲。</li>
+            <li><span class="highlight">和弦名稱</span>：若你已使用「定義和弦」積木，可直接輸入名稱如 <code>MyChord</code>。</li>
+            <li><span class="highlight">頻率</span>：直接輸入數字如 <code>440</code> (Hz)。</li>
         </ul>
     </div>
 
     <div class="type-box">
-        <h2>2. 時值代碼對照表 (Duration Codes)</h2>
+        <h2>2. 持續時間與時值代碼 (Duration)</h2>
+        <p>持續時間以「拍 (Beats)」為單位。你可以輸入數字，或使用以下代碼：</p>
         <table>
-            <tr>
-                <th>代碼</th>
-                <th>名稱</th>
-                <th>拍數 (4/4)</th>
-            </tr>
-            <tr><td><code>W</code></td><td>全音符</td><td>4 拍</td></tr>
-            <tr><td><code>H</code></td><td>二分音符</td><td>2 拍</td></tr>
-            <tr><td><code>Q</code></td><td>四分音符</td><td>1 拍</td></tr>
-            <tr><td><code>E</code></td><td>八分音符</td><td>0.5 拍</td></tr>
-            <tr><td><code>S</code></td><td>十六分音符</td><td>0.25 拍</td></tr>
+            <tr><th>代碼</th><th>名稱</th><th>拍數 (以 4/4 拍為例)</th></tr>
+            <tr><td><code>W</code></td><td>全音符 (Whole)</td><td>4 拍</td></tr>
+            <tr><td><code>H</code></td><td>二分音符 (Half)</td><td>2 拍</td></tr>
+            <tr><td><code>Q</code></td><td>四分音符 (Quarter)</td><td>1 拍</td></tr>
+            <tr><td><code>E</code></td><td>八分音符 (Eighth)</td><td>0.5 拍</td></tr>
+            <tr><td><code>S</code></td><td>十六分音符 (Sixteenth)</td><td>0.25 拍</td></tr>
         </table>
-    </div>
-
-    <div class="type-box">
-        <h2>2. 進階符號</h2>
+        <p><strong>進階修飾符：</strong></p>
         <ul>
-            <li><strong>休止符 <code>R</code></strong>：如 <code>RQ</code> (休止一拍)。</li>
-            <li><strong>附點 <code>.</code></strong>：時值增加 50%。如 <code>Q.</code> (1.5 拍)。</li>
-            <li><strong>三連音 <code>_T</code></strong>：時值縮短為 2/3。如 <code>Q_T</code>。</li>
-            <li><strong>連結線 <code>+</code></strong>：累加多個時值。如 <code>H.+E</code> (三拍半)。</li>
+            <li><strong>附點 <code>.</code></strong>：增加 50% 長度。例如 <code>Q.</code> 代表 1.5 拍。</li>
+            <li><strong>三連音 <code>_T</code></strong>：縮短為 2/3 長度。例如 <code>Q_T</code>。</li>
+            <li><strong>連結線 <code>+</code></strong>：累加多個時值。例如 <code>H+Q</code> 代表 3 拍。</li>
         </ul>
     </div>
 
     <div class="type-box">
-        <h2>3. 排隊播放機制</h2>
-        <p>在桌面版中，旋律積木具備<strong>自動排隊</strong>功能：</p>
+        <h2>3. 演奏力度 (Velocity)</h2>
+        <p>力度範圍為 <span class="highlight">0 到 100</span>，這會直接影響：</p>
         <ul>
-            <li>如果你連續放置多個「演奏旋律」積木，它們會一段接一段順序播放，而不會疊在一起。</li>
-            <li>你可以利用這個特性，將長篇樂曲拆解成多個積木來管理。</li>
+            <li><strong>ADSR 峰值</strong>：力度越高，音色的 Attack 頂點越響亮。</li>
+            <li><strong>取樣器音量</strong>：力度 100 會以取樣原始音量播放。</li>
+            <li><strong>音量組件</strong>：與樂器定義中的音量積木進行乘算。</li>
         </ul>
     </div>
 
+    <div class="tip">
+        <strong>💡 專業小技巧：</strong><br>
+        「演奏旋律清單」積木支援 <code>音名+時值代碼</code> 的混合寫法，中間用空格或逗號隔開。
+    </div>
+
     <div class="type-box">
-        <h2>4. 範例</h2>
+        <h2>4. 語法範例</h2>
         <div class="example">
-// 混合單音與和弦
-C4Q D4E E4E CM7H
+// 基本四分音符 (1拍)
+C4 Q
 
-// 複雜節奏 (三拍半)
-C4H.+E  G4Q</div>
+// 帶有力度的八分音符 (0.5拍)
+G3 E 80
+
+// 複雜的旋律清單語法 (playMelody)
+C4Q E4Q G4H R Q C5W // C大三和弦分解音 -> 休止 -> 高音C全音符</div>
     </div>
+
+    <div class="type-box">
+        <h2>5. 多軌並行 (Multi-tracking)</h2>
+        <p>當你在多個「演奏帽子積木」中編寫代碼時，WaveCode 會為每個帽子積木建立獨立的「音軌」。每個音軌擁有獨立的計時器，彼此互不干擾，這讓你可以輕鬆實現複雜的合奏。</p>
+    </div>
+
+    <p style="text-align: center; color: #95a5a6; font-size: 0.8em; margin-top: 50px;">
+        WaveCode Documentation System &copy; 2026
+    </p>
 </body>
 </html>

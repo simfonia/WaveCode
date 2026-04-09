@@ -4,22 +4,30 @@
 
 Blockly.JavaScript.forBlock['wc_perform'] = function(block) {
   const code = Blockly.JavaScript.statementToCode(block, 'DO');
-  // 由於是 AsyncFunction，我們可以直接寫代碼
-  return code;
+  return `
+(async () => {
+  const _id = typeof _execId !== 'undefined' ? _execId : window.WaveCode._execId;
+  const _track = window.WaveCode.createTrack();
+  const WaveCode = _track; // 作用域遮蔽
+  ${code}
+})();
+`;
 };
 
 Blockly.JavaScript.forBlock['wc_play_note'] = function(block) {
-  const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
-  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '500';
+  const note = Blockly.JavaScript.valueToCode(block, 'NOTE', Blockly.JavaScript.ORDER_ATOMIC) || '"C4"';
+  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+  const velocity = Blockly.JavaScript.valueToCode(block, 'VELOCITY', Blockly.JavaScript.ORDER_ATOMIC) || '100';
   const inst = block.getFieldValue('INSTRUMENT') || 'none';
-  return `await WaveCode.playNote(${freq}, ${dur}, "${inst}");\n`;
+  return `await WaveCode.playNote(${note}, ${dur}, "${inst}", ${velocity});\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_play_note_async'] = function(block) {
-  const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
-  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '500';
+  const note = Blockly.JavaScript.valueToCode(block, 'NOTE', Blockly.JavaScript.ORDER_ATOMIC) || '"C4"';
+  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+  const velocity = Blockly.JavaScript.valueToCode(block, 'VELOCITY', Blockly.JavaScript.ORDER_ATOMIC) || '100';
   const inst = block.getFieldValue('INSTRUMENT') || 'none';
-  return `WaveCode.triggerNote(${freq}, "${inst}", 0, ${dur});\n`;
+  return `WaveCode.triggerNote(${note}, "${inst}", 0, ${dur}, ${velocity});\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_wait'] = function(block) {
@@ -68,13 +76,6 @@ Blockly.JavaScript.forBlock['wc_define_chord'] = function(block) {
   const name = block.getFieldValue('NAME');
   const notes = block.getFieldValue('NOTES');
   return `await WaveCode.defineChord("${name}", "${notes}");\n`;
-};
-
-Blockly.JavaScript.forBlock['wc_play_chord'] = function(block) {
-  const name = block.getFieldValue('CHORD'); // 注意：積木欄位名是 CHORD
-  const dur = Blockly.JavaScript.valueToCode(block, 'DUR', Blockly.JavaScript.ORDER_ATOMIC) || '500';
-  const inst = block.getFieldValue('INSTRUMENT');
-  return `await WaveCode.playChord("${name}", ${dur}, "${inst}");\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_init'] = function(block) {
@@ -126,4 +127,71 @@ Blockly.JavaScript.forBlock['wc_serial_get_field'] = function(block) {
   const prefix = block.getFieldValue('PREFIX');
   const code = `WaveCode.getSerialField("${prefix}")`;
   return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript.forBlock['wc_wait_musical'] = function(block) {
+  const val = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+  const unit = block.getFieldValue('UNIT');
+  return `await WaveCode.waitMusical(${val}, "${unit}");\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_count_in'] = function(block) {
+  const measures = Blockly.JavaScript.valueToCode(block, 'MEASURES', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+  const beats = Blockly.JavaScript.valueToCode(block, 'BEATS', Blockly.JavaScript.ORDER_ATOMIC) || '4';
+  const vel = Blockly.JavaScript.valueToCode(block, 'VELOCITY', Blockly.JavaScript.ORDER_ATOMIC) || '100';
+  return `await WaveCode.playCountIn(${measures}, ${beats}, ${vel});\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_loop'] = function(block) {
+  const interval = block.getFieldValue('INTERVAL') || '1';
+  const branch = Blockly.JavaScript.statementToCode(block, 'DO');
+  return `
+(async () => {
+  const _id = typeof _execId !== 'undefined' ? _execId : window.WaveCode._execId;
+  const _track = window.WaveCode.createTrack();
+  const WaveCode = _track; // 作用域遮蔽
+  const _loopInterval = ${interval};
+  try {
+    while (!WaveCode.isScriptCancelled(_id)) {
+      const _startLoopTime = WaveCode._playbackTime;
+      WaveCode.checkLoop(_id);
+      ${branch}
+      
+      // 自動補足小節剩餘時間 (預設 4/4 拍)
+      const _measureSec = (60 / window.WaveCode._bpm) * 4;
+      const _targetEnd = _startLoopTime + (_loopInterval * _measureSec);
+      const _waitSec = _targetEnd - WaveCode._playbackTime;
+      
+      if (_waitSec > 0) {
+          await WaveCode.waitMusical(_waitSec, 'SECONDS');
+      } else {
+          await WaveCode.wait(10); 
+      }
+    }
+  } catch (err) {
+    if (err.message !== 'Script cancelled') console.error('Loop Error:', err);
+  }
+})();
+`;
+};
+
+Blockly.JavaScript.forBlock['wc_release_note'] = function(block) {
+  const inst = block.getFieldValue('INSTRUMENT');
+  const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
+  return `await WaveCode.releaseNote(${freq}, 0, "${inst}");\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_rhythm_v2'] = function(block) {
+  const measure = block.getFieldValue('MEASURE') || '1';
+  const beats = block.getFieldValue('BEATS') || '4';
+  const res = block.getFieldValue('RESOLUTION') || '4';
+  let code = "";
+  for (let i = 0; i < block.itemCount_; i++) {
+    const inst = block.getFieldValue('INST' + i) || "none";
+    const vel = block.getFieldValue('VEL' + i) || "100";
+    const isChord = block.getFieldValue('MODE' + i) === 'TRUE';
+    const pattern = block.getFieldValue('PATTERN' + i) || "";
+    code += `await WaveCode.playRhythmV2("${inst}", "${pattern}", ${beats}, ${res}, ${vel}, ${isChord}, ${measure});\n`;
+  }
+  return code;
 };

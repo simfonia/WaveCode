@@ -100,9 +100,9 @@ Blockly.defineBlocksWithJsonArray([
           ["Drum: Tom High", "jazzkit_Roland_TR-909_TomHigh_HT7D3"],
           ["Drum: Tom Mid", "jazzkit_Roland_TR-909_TomMid_MT7D3"],
           ["Drum: Tom Low", "jazzkit_Roland_TR-909_TomLow_LT7D3"],
-          ["Piano (Multi)", "piano"], 
-          ["Violin Pizz (Multi)", "violin_pizz"],
-          ["Violin Sust (Multi)", "violin_sust"]
+          ["Piano", "piano"], 
+          ["Violin Pizz", "violin_pizz"],
+          ["Violin Sust", "violin_sust"]
         ]
       }
     ],

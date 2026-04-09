@@ -330,6 +330,7 @@ export const UIUtils = {
         'wc_instrument', 
         'wc_master', 
         'wc_perform', 
+        'wc_loop',
         'wc_serial_data_received',
         'wc_select_current_instrument', 
         'wc_comment', 

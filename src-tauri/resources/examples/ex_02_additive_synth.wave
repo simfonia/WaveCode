@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_comment" id="wrTi|%7mBWc^|t-BR+18" x="10" y="10">
-    <field name="COMMENT">此範例展示如何「設計音色」&amp;#10;&amp;#10;1. 樂器定義：&amp;#10;- 我們建立了6種樂器：&amp;#10;   Violin, Horn, Harpsichord, Electronic synthesizer, Bell 與 Scary 。&amp;#10;2. 即時切換樂器：&amp;#10;- 使用PC 鍵盤請用左右方向鍵切換樂器。&amp;#10;3. 塑造音色&amp;#10;- 定義波形：使用四種基本波形發聲。注意低頻正弦波可能無法從小型喇叭發聲。&amp;#10;- 諧波合成器：由整數倍頻疊加而成，聲音和諧。&amp;#10;- 加法合成器：包含非整數倍率，會產生不和諧的金屬撞擊感。&amp;#10;- 各別樂器的 ADSR 可分別在&lt;定義樂器&gt;積木內定義。</field>
+    <field name="TEXT">此範例展示如何「設計音色」&amp;#10;&amp;#10;1. 樂器定義：&amp;#10;- 我們建立了6種樂器：&amp;#10;   Violin, Horn, Harpsichord, Electronic synthesizer, Bell 與 Scary 。&amp;#10;2. 即時切換樂器：&amp;#10;- 使用PC 鍵盤請用左右方向鍵切換樂器。&amp;#10;3. 塑造音色&amp;#10;- 定義波形：使用四種基本波形發聲。注意低頻正弦波可能無法從小型喇叭發聲。&amp;#10;- 諧波合成器：由整數倍頻疊加而成，聲音和諧。&amp;#10;- 加法合成器：包含非整數倍率，會產生不和諧的金屬撞擊感。&amp;#10;- 各別樂器的 ADSR 可分別在&lt;定義樂器&gt;積木內定義。</field>
   </block>
   <block type="wc_instrument" id="yk~Y:-93*{6Rrw!m%kP;" x="10" y="290">
     <field name="ID">Violin</field>

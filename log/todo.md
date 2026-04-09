@@ -1,11 +1,11 @@
 # WaveCode 任務清單 (Todo List)
 
 ## [當前目標] 轉生計畫：Web Audio API 混合架構
-- [ ] **[C] Rust 後端角色轉型 (Rust Backend Transition)**
-    - [ ] 強化「取樣資源伺服器」：優化大量 Sample 檔案的載入與並行解碼效率 (Worker 化)。
-- [ ] **[E] 系統與 UI 強化**
-    - [ ] 針對高解析度螢幕優化 UI 配置 (對齊 #nyx 規範)。
-    - [ ] 徹底修復範例選單中的「幽靈項目/重複項目」問題。
+- [x] **[C] Rust 後端角色轉型 (Rust Backend Transition)**
+    - [x] 強化「取樣資源伺服器」：優化大量 Sample 檔案的載入與並行解碼效率 (Worker 化)。
+- [x] **[E] 系統與 UI 強化**
+    - [x] 針對高解析度螢幕優化 UI 配置 (對齊 #nyx 規範)。
+    - [x] 徹底修復範例選單中的「幽靈項目/重複項目」問題。
 - [ ] **[F] 搜尋系統最終修復**
     - [ ] 徹底解決中文搜尋失效問題。
 
@@ -30,6 +30,12 @@
     - [x] **[強化] ADSR 視覺化同步**: 實作定時動畫與安樂死檢查。
     - [x] **[補全] 和弦系統**: 實作 `defineChord` 與 `playChord` API。
     - [x] 實作 `wc_master` 積木與動態 Master Bus 重建。
+    - [x] **[移植] 核心演奏積木移植 (#nyx 強化版)**:
+        - 實作 `wc_loop` (並行循環音軌)。
+        - 實作 `wc_count_in` (具備 Click 與時間位移同步的預備拍)。
+        - 實作 `wc_wait_musical` (自動對齊 BPM 的拍子/小節等待)。
+        - 實作 `wc_rhythm_v2` (支援變拍號與解析度的多軌序列器)。
+        - 實作 `wc_release_note` (精確音符釋放控制)。
 - [x] **[D] 安全性與穩定性防線**
     - [x] 實作 **同步無窮迴圈鎖死守衛 (Loop Guard)**。
     - [x] 強化安樂死機制 (Euthanasia)。

@@ -33,6 +33,8 @@
     // 分類名稱
     "CAT_AUDIO_TRAIN": "音訊電路",
     "CAT_AUDIO_CMD": "演奏指令 (舊)",
+    "CAT_SYSTEM": "系統與工具",
+    "CAT_SERIAL": "序列埠通訊",
     "CAT_LOGIC": "邏輯判斷",
     "CAT_LOOPS": "迴圈控制",
     "CAT_MATH": "數學運算",
@@ -133,6 +135,26 @@
     "AUDIO_PLAY_CHORD": "演奏和弦 %1 長度 %2 毫秒 使用樂器 %3",
     "AUDIO_PLAY_CHORD_TOOLTIP": "同時演奏已定義和弦中的所有音符。這是一個同步指令，會等待長度結束才繼續執行下一個積木。",
 
+    "AUDIO_WAIT_MUSICAL": "等待 %1 %2",
+    "AUDIO_WAIT_MUSICAL_UNIT_BEATS": "拍 (Beats)",
+    "AUDIO_WAIT_MUSICAL_UNIT_MEASURES": "小節 (Measures)",
+    "AUDIO_WAIT_MUSICAL_UNIT_S": "秒 (Seconds)",
+    "AUDIO_WAIT_MUSICAL_UNIT_MS": "毫秒 (ms)",
+    "AUDIO_WAIT_MUSICAL_TOOLTIP": "音樂性等待。系統會自動根據 BPM 計算精確的排程時間，確保背景音樂節奏穩定。",
+
+    "AUDIO_COUNT_IN": "預備拍：播放 %1 小節，每小節 %2 拍 (音量 %3)",
+    "AUDIO_COUNT_IN_TOOLTIP": "在正式演奏前播放 Click 聲。這會推遲所有背景音軌的起始時間，讓現場演奏者能預備起拍。",
+
+    "AUDIO_LOOP": "背景循環執行 %1",
+    "AUDIO_LOOP_TOOLTIP": "建立一個不斷重複的背景音軌（如鼓點或貝斯線）。多個循環積木可同時並行執行。",
+
+    "AUDIO_RELEASE_NOTE": "釋放樂器 %1 的音符 %2",
+    "AUDIO_RELEASE_NOTE_TOOLTIP": "手動停止特定音符的發聲（進入 ADSR 釋放階段）。適合在現場表演時精確控制長音的結束時機。",
+
+    "AUDIO_RHYTHM_V2_HEADER": "進階序列器：第 %1 小節開始, 每小節 %2 拍, 解析度 %3",
+    "AUDIO_RHYTHM_V2_TRACK": "音軌 %1 樂器 %2 音量 %3 和弦 %4 節奏 %5",
+    "AUDIO_RHYTHM_V2_TOOLTIP": "多軌、跨小節的節奏序列器。支援自定義拍號（如 3/4, 7/8）與解析度。節奏格式：x (觸發), . (靜音), - (延音)。",
+
     "AUDIO_WAVE_SINE": "正弦波",
     "AUDIO_WAVE_SAW": "鋸齒波",
     "AUDIO_WAVE_SQUARE": "方波",
@@ -143,6 +165,8 @@
     "INSTRUMENT_CONTROL_HUE": "#FF5722",
     "EFFECTS_HUE": "#8E44AD",
     "PERFORMANCE_HUE": "#E67E22",
+    "SYSTEM_HUE": "#546e7a",
+    "SERIAL_HUE": "#2c3e50",
     "LOGIC_HUE": "#b198de",
     "LOOPS_HUE": "#7fcd81",
     "MATH_HUE": "#5C68A6",

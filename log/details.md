@@ -35,3 +35,17 @@
 - **規範內容**：在使用 `write_file` 進行全檔寫入、或進行涉及多個邏輯點的大型重構前，**必須先執行 `read_file` 讀取最新內容**。
 - **目的**：解決長對話中 AI 可能產生的「記憶混亂」，防止舊版代碼覆蓋新實作的功能。
 - **執行方式**：即便是剛修改過的檔案，若要進行第二次重大寫入，也應重新讀取以確保上下文標籤與磁碟實體狀態 100% 同步。
+## 2026-04-08 (並行載入與 IPC 瓶頸克服)
+
+### 1. IPC 序列化瓶頸 (JSON vs Binary)
+- **問題**：原先在 Rust 側解碼為 f32 陣列傳回，導致 70 個檔案產生數百 MB 的 JSON 字串，傳輸極慢。
+- **解法**：改回傳輸原始 Vec<u8> (二進位)，由瀏覽器內建的 decodeAudioData (C++ 級並行) 處理，效能提升 5 倍。
+
+### 2. UI 狀態同步 (Oscilloscope Header)
+- **設計**：在示波器標題列動態注入 (instrument_id)。
+- **同步點**：
+    - MDIManager.addNewTab: 初始化或開檔時。
+    - MDIManager.switchTab: 切換分頁時。
+    - KeyboardController.switchInstrument: 左右鍵切換時。
+    - ToolbarManager.run/stop: 腳本啟動/停止時維持選取狀態。
+

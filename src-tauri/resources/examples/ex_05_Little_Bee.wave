@@ -1,0 +1,91 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_instrument" id="|$%tndJeL-%W6.#1T4zD" x="10" y="10">
+    <field name="ID">my_piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="1TtKgN^i~7`nZyQzR=#I">
+        <field name="SAMPLE_ID">piano</field>
+        <next>
+          <block type="wc_component_adsr" id="S@EgO07J/}-vv|yN[65P">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="45LAeVRdmHC+dVz?ixl4">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="6m3@OA}Bm!yp+3.qyJ-2" x="10" y="230">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="5K}2r##C|5i}kn_{CQEx">
+        <value name="BPM">
+          <shadow type="math_number" id="ig0|;3B6d:Nt)=Tu!dxR">
+            <field name="NUM">120</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_master" id="=@Z;-]Ez}stmyLip.a9-" x="10" y="330">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="BPp!!2)Eiy3OL9Y7Q7%3">
+        <value name="THRESH">
+          <shadow type="math_number" id="7Mp=[D8CZfrIpgeDlsM,">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id=":0DH{$[(a1:u$Yzoj`D2">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="dFvmglwhU[[|swyecLUl">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="9(f!np~R[ALZ1VQ(}[?[">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="!J#*E}+V1*+rlufWqa4l">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="m)dv2m7`EjiZ%WC5ZUX%" x="10" y="530">
+    <statement name="DO">
+      <block type="wc_comment" id="B{nZmT[R:FHh}T;erS3D">
+        <field name="COMMENT">左手伴奏</field>
+        <next>
+          <block type="wc_play_melody" id="w*nICbX;bMzs2qg378ZS">
+            <field name="INSTRUMENT">my_piano</field>
+            <field name="MELODY">C4E G4E E4E G4E&amp;#10;C4E G4E E4E G4E</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="dJt^fSg}BZ8L,FOO6+#g" x="350" y="530">
+    <statement name="DO">
+      <block type="wc_comment" id="5Sbf0RO%HgwhKJl4xrPU">
+        <field name="COMMENT">右手旋律</field>
+        <next>
+          <block type="wc_play_melody" id="nExstj5(c|AqmmPx_D[L">
+            <field name="INSTRUMENT">my_piano</field>
+            <field name="MELODY">G5Q E5Q E5H</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

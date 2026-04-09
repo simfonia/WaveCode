@@ -168,7 +168,7 @@ export const AudioManager = {
         this.masterGain.gain.setTargetAtTime(val, now, 0.02);
     },
 
-    triggerNote(freq, instId, startTime = 0) {
+    triggerNote(freq, instId, startTime = 0, velocity = 1.0) {
         if (!this.ctx) this.init();
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
@@ -189,15 +189,43 @@ export const AudioManager = {
 
         const time = startTime > 0 ? startTime : this.ctx.currentTime;
         voice.instId = instId; // 記錄樂器 ID 以便後續更新
-        voice.play(freq, patch, time);
+        voice.play(freq, patch, time, velocity);
         return voice;
     },
 
-    releaseNote(freq, startTime = 0) {
+    releaseNote(freq, startTime = 0, instId = 'none') {
         if (!this.ctx) return;
         const time = startTime > 0 ? startTime : this.ctx.currentTime;
-        const voice = this.voices.find(v => v.active && !v.releasing && Math.abs(v.freq - freq) < 0.5);
+        const voice = this.voices.find(v => {
+            const freqMatch = Math.abs(v.freq - freq) < 0.5;
+            const instMatch = (instId === 'none' || v.instId === instId);
+            return v.active && !v.releasing && freqMatch && instMatch;
+        });
         if (voice) voice.release(time);
+    },
+
+    /**
+     * 播放 Click 音效 (預備拍專用)
+     */
+    triggerClick(freq, time, velocity) {
+        if (!this.ctx) return;
+        
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, time);
+
+        // 極短的衰減 (50ms)，模擬節拍器聲
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(velocity, time + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(time);
+        osc.stop(time + 0.06);
     },
 
     stopAll() {

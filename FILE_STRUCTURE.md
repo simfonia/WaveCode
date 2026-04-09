@@ -2,7 +2,8 @@
 
 ## 根目錄
 - `src-tauri/`: Tauri 後端 (Rust)
-    - `src/lib.rs`: **[更新] 實作序列埠核心指令 (Open/Close/Scan)**
+    - `src/lib.rs`: **[更新] 實作序列埠核心與並行音訊解碼支援 (decode_audio_to_pcm)**
+    - `.taurignore`: **[新增] Tauri 忽略檔，避免 resources 資料夾變動導致 App 重啟**
     - `src/engine.rs`: [已轉型] 資源管理器 (負責載入音訊檔至前端)
     - `resources/`: 應用程式資源
         - `examples/`: **[更新] 子目錄結構支援, 新增 Serial_Interactions 專題**
@@ -18,7 +19,9 @@
             - `manager.js`: 支援動態主鏈 rebuildMasterChain, 移除強制 Limiter
         - `api.js`: **[重大更新] 支援精確邏輯排程、旋律解析與序列埠全域監聽**
         - `ui_utils.js`: [更新] 補全 Orphan Block 白名單 (含序列埠事件)
-    - `src/style.css`: 加入 Code DSL 語法高亮樣式
+    - `ui/src/style.css`: 加入 Code DSL 語法高亮樣式
+    - `ui/vite.config.js`: **[新增] Vite 設定檔，已設定忽略 resources 資料夾變動以避免頻繁重啟**
+
 
 ---
 *最後更新：2026-04-07 (Serial Communication, Multi-touch Logic, Logic Scheduling)*

@@ -5,6 +5,17 @@
 export const WaveCodeToolbox = {
     'kind': 'categoryToolbox',
     'contents': [
+        // 0. 系統與硬體
+        {
+            'kind': 'category',
+            'name': '%{BKY_CAT_SYSTEM}',
+            'colour': '%{BKY_SYSTEM_HUE}',
+            'contents': [
+                { 'kind': 'block', 'type': 'wc_init' },
+                { 'kind': 'block', 'type': 'wc_text_print', 'inputs': { 'TEXT': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'Hello WaveCode' } } } } },
+                { 'kind': 'block', 'type': 'wc_comment' }
+            ]
+        },
         // 1. 邏輯與控制
         {
             'kind': 'category',
@@ -94,9 +105,7 @@ export const WaveCodeToolbox = {
                 { 'kind': 'block', 'type': 'text_join' },
                 { 'kind': 'block', 'type': 'text_append', 'inputs': { 'TEXT': { 'shadow': { 'type': 'text' } } } },
                 { 'kind': 'block', 'type': 'text_length', 'inputs': { 'VALUE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'abc' } } } } },
-                { 'kind': 'block', 'type': 'text_isEmpty', 'inputs': { 'VALUE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '' } } } } },
-                { 'kind': 'block', 'type': 'wc_text_print' },
-                { 'kind': 'block', 'type': 'wc_comment' }
+                { 'kind': 'block', 'type': 'text_isEmpty', 'inputs': { 'VALUE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '' } } } } }
             ]
         },
         {
@@ -212,8 +221,17 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_PERFORMANCE}',
             'colour': '%{BKY_PERFORMANCE_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'wc_init' },  // 初始化
                 { 'kind': 'block', 'type': 'wc_perform' },  // 演奏
+                { 'kind': 'block', 'type': 'wc_loop' },     // 背景循環
+                {
+                    'kind': 'block',
+                    'type': 'wc_count_in',   // 預備拍
+                    'inputs': {
+                        'MEASURES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
+                        'BEATS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
+                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
+                    }
+                },
                 {
                     'kind': 'block',
                     'type': 'wc_transport_set_bpm',  // 設定 BPM
@@ -226,40 +244,49 @@ export const WaveCodeToolbox = {
                     'kind': 'block',
                     'type': 'wc_play_note',
                     'inputs': {
-                        'FREQ': { 'shadow': { 'type': 'wc_note' } },
-                        'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
+                        'NOTE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'C4' } } },
+                        'DUR': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '1' } } },
+                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
                     }
                 },
                 {
                     'kind': 'block',
                     'type': 'wc_play_note_async',
                     'inputs': {
-                        'FREQ': { 'shadow': { 'type': 'wc_note' } },
-                        'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
+                        'NOTE': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'C4' } } },
+                        'DUR': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '1' } } },
+                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
                     }
                 },
                 { 'kind': 'block', 'type': 'wc_play_melody' },
-                { 'kind': 'block', 'type': 'wc_define_chord' },
+                { 'kind': 'block', 'type': 'wc_rhythm_v2' }, // 進階序列器
+                { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
                 {
                     'kind': 'block',
-                    'type': 'wc_play_chord',
+                    'type': 'wc_wait_musical', // 音樂性等待
                     'inputs': {
-                        'DUR': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } }
+                        'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
                     }
                 },
-                { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
+                {
+                    'kind': 'block',
+                    'type': 'wc_release_note', // 釋放音符
+                    'inputs': {
+                        'FREQ': { 'shadow': { 'type': 'wc_note' } }
+                    }
+                },
                 { 'kind': 'block', 'type': 'wc_note' },
                 { 'kind': 'block', 'type': 'wc_stop' }
             ]
         },
 
-        { 'kind': 'sep' },
+        { 'kind': 'sep' },  
         
-        // 8. 序列埠與硬體 (Serial & Hardware)
+        // 8. 序列埠與硬體 (Serial & Hardware)          
         {
             'kind': 'category',
-            'name': '序列埠通訊',
-            'colour': '#2c3e50',
+            'name': '%{BKY_CAT_SERIAL}',
+            'colour': '%{BKY_SERIAL_HUE}',
             'contents': [
                 { 'kind': 'block', 'type': 'wc_serial_init' },
                 { 'kind': 'block', 'type': 'wc_serial_data_received' },

@@ -144,9 +144,10 @@ export class MDIManager {
 
                 setTimeout(() => {
                     workspace.isClearing = false;
+                    this.updateTabDirty(tabId, false); // 載入後強制重置為非 Dirty
                     Blockly.svgResize(workspace);
                     if (this.toolbarManager.onWorkspaceChanged) this.toolbarManager.onWorkspaceChanged();
-                }, 50);
+                }, 100);
             }, 50);
         }
         

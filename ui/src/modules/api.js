@@ -49,6 +49,17 @@ export const WaveCodeAPI = {
     },
 
     /**
+     * 建立獨立軌道 (Multi-track)
+     * 利用 Object.create 繼承全域 API，但擁有獨立的 _playbackTime 副本
+     */
+    createTrack: function() {
+        const track = Object.create(this);
+        // 分叉目前的時間點作為該軌道的起點
+        track._playbackTime = this._playbackTime;
+        return track;
+    },
+
+    /**
      * 迴圈守衛：檢查是否產生同步卡死
      */
     checkLoop: (id) => {
@@ -115,78 +126,246 @@ export const WaveCodeAPI = {
 
     /**
      * 手動觸發 (現場演奏或非同步觸發專用)
+     * @param {string|number} note 音名(C4)、頻率(440) 或 和弦名稱(CM7)
+     * @param {string} instId 樂器 ID
+     * @param {number} startTime 啟動時間 (0 為立即)
+     * @param {string|number} duration 拍數或時值代碼
+     * @param {number} velocity 音量力度 (0-100)
      */
-    triggerNote: async (freq, instId = 'none', startTime = 0, durationMs = 0) => {
-        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+    triggerNote: async function(note, instId = 'none', startTime = 0, duration = 0, velocity = 100) {
+        const inst = instId === 'none' ? this._currentInstrument : instId;
+        const bpm = WaveCodeAPI._bpm;
+        const beatSec = 60 / bpm;
         
+        // 確保 velocity 是有效數字且在 0-100 之間
+        const velNum = parseFloat(velocity);
+        const velVal = (isNaN(velNum) ? 100 : velNum) / 100;
+
+        // 解析時值
+        let beats = 0;
+        if (typeof duration === 'string') {
+            beats = this._parseDuration(duration);
+        } else {
+            beats = parseFloat(duration) || 0;
+        }
+
+        const durationSec = beats * beatSec;
+        const durationMs = durationSec * 1000;
+
         const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
         const start = startTime > 0 ? startTime : now;
         const delayMs = Math.max(0, (start - now) * 1000);
 
         // --- 視覺化同步 ---
-        if (window.EnvelopeManager) {
-            if (durationMs > 0) {
-                setTimeout(() => {
-                    if (WaveCodeAPI.isScriptCancelled(WaveCodeAPI._execId)) return;
-                    window.EnvelopeManager.trigger(inst, durationMs);
-                }, delayMs);
-            } else {
-                setTimeout(() => {
-                    if (WaveCodeAPI.isScriptCancelled(WaveCodeAPI._execId)) return;
-                    window.EnvelopeManager.triggerStart(inst);
-                }, delayMs);
-            }
-        }
-        
-        const voice = AudioManager.triggerNote(freq, inst, startTime);
-        if (voice && durationMs > 0) {
-            voice.release(start + (durationMs / 1000));
-        }
-        return voice;
-    },
-
-    releaseNote: async (freq, startTime = 0) => {
-        if (window.EnvelopeManager) window.EnvelopeManager.triggerEnd();
-        return AudioManager.releaseNote(freq, startTime);
-    },
-
-    /**
-     * 播放一個定時音符 (同步阻塞模式)
-     */
-    playNote: async (freq, durationMs, instId = 'none') => {
-        const id = WaveCodeAPI._execId;
-        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
-        
-        const startTime = WaveCodeAPI._playbackTime;
-        const durationSec = durationMs / 1000;
-        const releaseTime = startTime + durationSec;
-
-        if (window.EnvelopeManager) {
-            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-            const delayMs = Math.max(0, (startTime - now) * 1000);
+        if (window.EnvelopeManager && durationMs > 0) {
             setTimeout(() => {
-                if (WaveCodeAPI.isScriptCancelled(id)) return;
+                if (WaveCodeAPI.isScriptCancelled(WaveCodeAPI._execId)) return;
                 window.EnvelopeManager.trigger(inst, durationMs);
             }, delayMs);
         }
 
-        const voice = AudioManager.triggerNote(freq, inst, startTime);
-        if (voice) voice.release(releaseTime);
+        // --- 觸發發聲 ---
+        if (WaveCodeAPI._chords[note]) {
+            WaveCodeAPI._chords[note].forEach(n => {
+                const voice = AudioManager.triggerNote(n, inst, start, velVal);
+                if (voice && durationSec > 0) voice.release(start + durationSec);
+            });
+            return null;
+        } else {
+            const voice = AudioManager.triggerNote(note, inst, start, velVal);
+            if (voice && durationSec > 0) voice.release(start + durationSec);
+            return voice;
+        }
+    },
 
-        WaveCodeAPI._playbackTime += durationSec;
-        await WaveCodeAPI.wait(durationMs);
+    /**
+     * 音樂性等待 (拍數或小節)
+     */
+    waitMusical: async function(val, unit) {
+        let beats = val;
+        if (unit === 'MEASURES') beats = val * 4; // 預設小節為 4 拍，除非有更進階的拍號管理
+        
+        if (unit === 'SECONDS') {
+            await this.wait(val * 1000);
+            this._playbackTime += val;
+            return;
+        }
+        if (unit === 'MS') {
+            await this.wait(val);
+            this._playbackTime += (val / 1000);
+            return;
+        }
+
+        const beatSec = 60 / WaveCodeAPI._bpm;
+        const totalSec = beats * beatSec;
+        
+        this._playbackTime += totalSec;
+        await this.wait(totalSec * 1000);
+    },
+
+    /**
+     * 播放預備拍 (Count-in)
+     */
+    playCountIn: async function(measures, beatsPerMeasure, velocity) {
+        const id = WaveCodeAPI._execId;
+        const bpm = WaveCodeAPI._bpm;
+        const beatSec = 60 / bpm;
+        const totalBeats = measures * beatsPerMeasure;
+        const totalSec = totalBeats * beatSec;
+
+        console.log(`WaveCode: Count-in start (${measures} measures, ${beatsPerMeasure} beats)`);
+
+        for (let i = 0; i < totalBeats; i++) {
+            if (this.isScriptCancelled(id)) return;
+            
+            const isDownbeat = (i % beatsPerMeasure === 0);
+            const freq = isDownbeat ? 880 : 440;
+            const time = this._playbackTime;
+
+            // 播放 Click 音效 (使用內建 Oscillator 模擬)
+            AudioManager.triggerClick(freq, time, velocity / 100);
+            
+            this._playbackTime += beatSec;
+            await this.wait(beatSec * 1000);
+        }
+        
+        console.log("WaveCode: Count-in finished, PLAY!");
+    },
+
+    /**
+     * 進階序列器 V2 核心實作
+     */
+    playRhythmV2: async function(instId, pattern, beats, res, vel, isChord, startMeasure) {
+        const id = WaveCodeAPI._execId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
+        const bpm = WaveCodeAPI._bpm;
+        
+        const stepSec = (60 / bpm) / res;
+        const totalSteps = beats * res;
+        
+        // 1. 解析 Pattern 字串 (支援空格、點、x 與音名)
+        const tokens = pattern.split(/[\s|]+/).filter(t => t.length > 0);
+        
+        // 2. 如果指定了起始小節且目前時間還沒到，先等待
+        const measureSec = (60 / bpm) * beats;
+        const targetStartTime = (startMeasure - 1) * measureSec;
+
+        for (let i = 0; i < Math.min(tokens.length, totalSteps); i++) {
+            if (this.isScriptCancelled(id)) return;
+
+            const token = tokens[i];
+            const startTime = this._playbackTime;
+
+            if (token !== '.' && token !== '-') {
+                // 偵測持續長度 (連音符 '-')
+                let sustainSteps = 1;
+                for (let j = i + 1; j < tokens.length; j++) {
+                    if (tokens[j] === '-') sustainSteps++;
+                    else break;
+                }
+                const durationSec = sustainSteps * stepSec;
+
+                // 觸發音符
+                if (token.toLowerCase() === 'x') {
+                    // 預設音符 (大鼓或 C4)
+                    const voice = AudioManager.triggerNote(60, inst, startTime);
+                    if (voice) voice.release(startTime + durationSec * 0.9);
+                } else if (isChord && WaveCodeAPI._chords[token]) {
+                    WaveCodeAPI._chords[token].forEach(n => {
+                        const voice = AudioManager.triggerNote(n, inst, startTime);
+                        if (voice) voice.release(startTime + durationSec * 0.9);
+                    });
+                } else {
+                    // 可能是音名 (如 C4, D#4)
+                    const voice = AudioManager.triggerNote(token, inst, startTime);
+                    if (voice) voice.release(startTime + durationSec * 0.9);
+                }
+
+                if (window.EnvelopeManager) {
+                    const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+                    const delayMs = Math.max(0, (startTime - now) * 1000);
+                    setTimeout(() => {
+                        if (this.isScriptCancelled(id)) return;
+                        window.EnvelopeManager.trigger(inst, durationSec * 1000);
+                    }, delayMs);
+                }
+            }
+
+            this._playbackTime += stepSec;
+            await this.wait(stepSec * 1000);
+        }
+    },
+
+    releaseNote: async (freq, startTime = 0, instId = 'none') => {
+        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        if (window.EnvelopeManager) window.EnvelopeManager.triggerEnd();
+        return AudioManager.releaseNote(freq, startTime, inst);
+    },
+
+    /**
+     * 播放一個定時音符 (同步阻塞模式)
+     * @param {string|number} note 音名(C4)、頻率(440) 或 和弦名稱(CM7)
+     * @param {string|number} duration 拍數或時值代碼
+     * @param {string} instId 樂器 ID
+     * @param {number} velocity 音量力度 (0-100)
+     */
+    playNote: async function(note, duration, instId = 'none', velocity = 100) {
+        const id = this._execId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
+        const bpm = this._bpm;
+        const beatSec = 60 / bpm;
+        const velVal = velocity / 100;
+
+        // 解析時值
+        let beats = 0;
+        if (typeof duration === 'string') {
+            beats = this._parseDuration(duration);
+        } else {
+            beats = parseFloat(duration) || 0;
+        }
+        
+        const durationSec = beats * beatSec;
+        const durationMs = durationSec * 1000;
+        const startTime = this._playbackTime;
+
+        if (window.EnvelopeManager && durationMs > 0) {
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            const delayMs = Math.max(0, (startTime - now) * 1000);
+            setTimeout(() => {
+                if (this.isScriptCancelled(id)) return;
+                window.EnvelopeManager.trigger(inst, durationMs);
+            }, delayMs);
+        }
+
+        // --- 觸發發聲 ---
+        if (this._chords[note]) {
+            this._chords[note].forEach(n => {
+                const voice = AudioManager.triggerNote(n, inst, startTime, velVal);
+                if (voice) voice.release(startTime + durationSec);
+            });
+        } else {
+            const voice = AudioManager.triggerNote(note, inst, startTime, velVal);
+            if (voice) voice.release(startTime + durationSec);
+        }
+
+        this._playbackTime += durationSec;
+        await this.wait(durationMs);
     },
 
     /**
      * 旋律解析核心 (對齊 melody_zh-hant.html)
      */
-    _parseDuration: (code) => {
+    _parseDuration: function(code) {
         if (!code) return 0;
+        
+        // 1. 如果是純數字字串，直接解析
+        if (!isNaN(code)) return parseFloat(code);
+
         const baseMap = { 'W': 4, 'H': 2, 'Q': 1, 'E': 0.5, 'S': 0.25 };
         
         // 處理連結線 +
         if (code.includes('+')) {
-            return code.split('+').reduce((acc, part) => acc + WaveCodeAPI._parseDuration(part), 0);
+            return code.split('+').reduce((acc, part) => acc + this._parseDuration(part), 0);
         }
 
         // 提取基礎時值與修飾符
@@ -207,16 +386,16 @@ export const WaveCodeAPI = {
     /**
      * 播放旋律字串 (對齊完整語法)
      */
-    playMelody: async (score, instId = 'none') => {
+    playMelody: async function(score, instId = 'none') {
         const id = WaveCodeAPI._execId;
-        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
         const beatDuration = 60 / WaveCodeAPI._bpm; // 一拍幾秒
 
         // 移除註解並分割標記
         const tokens = score.replace(/\/\/.*$/gm, '').split(/[\s,]+/).filter(t => t.length > 0);
 
         for (const token of tokens) {
-            if (WaveCodeAPI.isScriptCancelled(id)) return;
+            if (this.isScriptCancelled(id)) return;
 
             // 分離「音高/和弦」與「時值」
             const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES].*)$/);
@@ -224,11 +403,11 @@ export const WaveCodeAPI = {
 
             const noteOrChord = match[1];
             const durCode = match[2];
-            const beats = WaveCodeAPI._parseDuration(durCode);
+            const beats = this._parseDuration(durCode);
             const durationSec = beats * beatDuration;
             const durationMs = durationSec * 1000;
 
-            const startTime = WaveCodeAPI._playbackTime;
+            const startTime = this._playbackTime;
             const releaseTime = startTime + durationSec;
 
             if (noteOrChord.toUpperCase() !== 'R') {
@@ -236,7 +415,7 @@ export const WaveCodeAPI = {
                     const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
                     const delayMs = Math.max(0, (startTime - now) * 1000);
                     setTimeout(() => {
-                        if (WaveCodeAPI.isScriptCancelled(id)) return;
+                        if (this.isScriptCancelled(id)) return;
                         window.EnvelopeManager.trigger(inst, durationMs);
                     }, delayMs);
                 }
@@ -252,15 +431,15 @@ export const WaveCodeAPI = {
                 }
             }
 
-            WaveCodeAPI._playbackTime += durationSec;
-            await WaveCodeAPI.wait(durationMs);
+            this._playbackTime += durationSec;
+            await this.wait(durationMs);
         }
     },
 
     /**
      * 定義和弦
      */
-    defineChord: async (name, notesStr) => {
+    defineChord: async function(name, notesStr) {
         const notes = notesStr.split(/[\s,]+/).filter(n => n.length > 0);
         WaveCodeAPI._chords[name] = notes;
     },
@@ -268,14 +447,14 @@ export const WaveCodeAPI = {
     /**
      * 播放和弦 (同步模式)
      */
-    playChord: async (name, durationMs, instId = 'none') => {
+    playChord: async function(name, durationMs, instId = 'none') {
         const notes = WaveCodeAPI._chords[name];
         if (!notes || notes.length === 0) return;
 
         const id = WaveCodeAPI._execId;
-        const inst = instId === 'none' ? WaveCodeAPI._currentInstrument : instId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
         
-        const startTime = WaveCodeAPI._playbackTime;
+        const startTime = this._playbackTime;
         const durationSec = durationMs / 1000;
         const releaseTime = startTime + durationSec;
 
@@ -283,7 +462,7 @@ export const WaveCodeAPI = {
             const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
             const delayMs = Math.max(0, (startTime - now) * 1000);
             setTimeout(() => {
-                if (WaveCodeAPI.isScriptCancelled(id)) return;
+                if (this.isScriptCancelled(id)) return;
                 window.EnvelopeManager.trigger(inst, durationMs);
             }, delayMs);
         }
@@ -293,8 +472,8 @@ export const WaveCodeAPI = {
             if (voice) voice.release(releaseTime);
         });
 
-        WaveCodeAPI._playbackTime += durationSec;
-        await WaveCodeAPI.wait(durationMs);
+        this._playbackTime += durationSec;
+        await this.wait(durationMs);
     },
 
     // --- 序列埠核心功能 ---

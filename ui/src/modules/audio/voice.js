@@ -23,16 +23,20 @@ export class Voice {
     /**
      * 演奏音符
      */
-    play(freq, patch, startTime) {
+    play(freq, originalPatch, startTime, velocity = 1.0) {
         this.kill(); 
         this.active = true;
         this.releasing = false; 
         this.freq = freq;
+        this.velocity = (typeof velocity === 'number' && isFinite(velocity)) ? velocity : 1.0;
+
+        // --- 關鍵修正：深拷貝 Patch，防止多聲部競爭修改 ---
+        const patch = JSON.parse(JSON.stringify(originalPatch));
 
         let lastNode = null;
         
         patch.forEach(comp => {
-            const result = NodeFactory.create(this.ctx, comp, freq, lastNode, startTime, AudioManager);
+            const result = NodeFactory.create(this.ctx, comp, freq, lastNode, startTime, AudioManager, this);
             if (result) {
                 if (result.nodes) {
                     this.nodes.push(...result.nodes);

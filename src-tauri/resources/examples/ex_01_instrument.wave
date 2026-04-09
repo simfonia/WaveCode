@@ -41,89 +41,124 @@
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="[DSQZ!#W?}Ed4`nHGng4" x="10" y="410">
+  <block type="wc_init" id="8COeNMM[g!g-3t+Mft+w" x="10" y="410">
     <statement name="DO">
-      <block type="wc_play_note" id="Dmj^Uxw5lMr0yq%z@y?^">
+      <block type="wc_transport_set_bpm" id="{D`3:uT00d}!Py(zx.1k">
+        <value name="BPM">
+          <shadow type="math_number" id="^rH4%[:tAGI;!6{SrDU%">
+            <field name="NUM">60</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="[DSQZ!#W?}Ed4`nHGng4" x="10" y="510">
+    <statement name="DO">
+      <block type="wc_play_note" id="xtc}}J%Hs!c=M.%~`u[g">
         <field name="INSTRUMENT">piano</field>
-        <value name="FREQ">
-          <block type="wc_note" id=")~:YQ0_#gD]HZyQ[Px#P">
-            <field name="NOTE">C</field>
-            <field name="OCTAVE">4</field>
-          </block>
+        <value name="NOTE">
+          <shadow type="text" id="M^+J0CLTz`3ZYEYvV)2h">
+            <field name="TEXT">C4</field>
+          </shadow>
         </value>
         <value name="DUR">
-          <block type="math_number" id="NStrfS2^X#bQ]#)$xMtc">
-            <field name="NUM">2000</field>
-          </block>
+          <shadow type="text" id="PuT),K*fY=c#1t9D!E|U">
+            <field name="TEXT">1</field>
+          </shadow>
+        </value>
+        <value name="VELOCITY">
+          <shadow type="math_number" id="[U8BAV8@[8BNZ9~D;`q`">
+            <field name="NUM">100</field>
+          </shadow>
         </value>
         <next>
-          <block type="wc_play_note" id="Q2#?m$HR(7|,0|rV;djb">
+          <block type="wc_play_note" id="]_m;*!Y.ygnzE18(NPl1">
             <field name="INSTRUMENT">violin</field>
-            <value name="FREQ">
-              <block type="wc_note" id="+|Qh!@|zKfy|(SKYX2gh">
-                <field name="NOTE">E</field>
-                <field name="OCTAVE">4</field>
-              </block>
+            <value name="NOTE">
+              <shadow type="text" id="ALxjQ0)fTT^a7fvApYZ;">
+                <field name="TEXT">E4</field>
+              </shadow>
             </value>
             <value name="DUR">
-              <block type="math_number" id="Zq$Hg:?ZVhrTBWksVF)a">
-                <field name="NUM">2000</field>
-              </block>
+              <shadow type="text" id="[Sm$WvommD:#6O=$x`DQ">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="LnO$AeiArep!?*(=j?{D">
+                <field name="NUM">100</field>
+              </shadow>
             </value>
             <next>
-              <block type="wc_play_note" id="D$4Gj/+TY9iwTHJ1fF|8">
+              <block type="wc_play_note" id="wNo}=N!OtKR0=Xe_p$}x">
                 <field name="INSTRUMENT">violin</field>
-                <value name="FREQ">
-                  <block type="wc_note" id="8Pi9{oUkKaGIc#lJmx*,">
-                    <field name="NOTE">G</field>
-                    <field name="OCTAVE">4</field>
-                  </block>
+                <value name="NOTE">
+                  <shadow type="text" id="]snvlm/HV}vSUcK186S[">
+                    <field name="TEXT">G4</field>
+                  </shadow>
                 </value>
                 <value name="DUR">
-                  <block type="math_number" id="q;mPbWBuHTCts)PMO)io">
-                    <field name="NUM">2000</field>
-                  </block>
+                  <shadow type="text" id="Nh8=|AD#1V9KX;Y/PSro">
+                    <field name="TEXT">1</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="mWE$,TgkvSo86YlBA=pl">
+                    <field name="NUM">100</field>
+                  </shadow>
                 </value>
                 <next>
-                  <block type="wc_play_note_async" id="V[:VI5J`F;,27x*kVE+@">
+                  <block type="wc_play_note_async" id="`*wZupe,sLBQ6_W0fnr|">
                     <field name="INSTRUMENT">piano</field>
-                    <value name="FREQ">
-                      <shadow type="wc_note" id="x@TisZDMn:wV6?ks#[T*">
-                        <field name="NOTE">C</field>
-                        <field name="OCTAVE">4</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="$,x:te:X?RAPl4}NM7,h">
+                        <field name="TEXT">C4</field>
                       </shadow>
                     </value>
                     <value name="DUR">
-                      <shadow type="math_number" id="XyhcNIl3bp2AYPyXF~wS">
-                        <field name="NUM">2000</field>
+                      <shadow type="text" id="l2@~}:U{[MqCt}1#_3|J">
+                        <field name="TEXT">1</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="Y*CnL:lR)wGL$tYi@v|$">
+                        <field name="NUM">100</field>
                       </shadow>
                     </value>
                     <next>
-                      <block type="wc_play_note_async" id="L`c1Dx:JUd%!)%w/L5eX">
+                      <block type="wc_play_note_async" id="i#(T*,?_xb1GGfuSQYfQ">
                         <field name="INSTRUMENT">piano</field>
-                        <value name="FREQ">
-                          <shadow type="wc_note" id="GlZ|.O8,CnOY6%j,)ycS">
-                            <field name="NOTE">E</field>
-                            <field name="OCTAVE">4</field>
+                        <value name="NOTE">
+                          <shadow type="text" id="K5])H+I9l@y/a+IrB)(g">
+                            <field name="TEXT">E4</field>
                           </shadow>
                         </value>
                         <value name="DUR">
-                          <shadow type="math_number" id="7`Py@.rV=TCOD3!%hkb4">
-                            <field name="NUM">2000</field>
+                          <shadow type="text" id="U:9LJM-Q{0LI^~pcIg=;">
+                            <field name="TEXT">1</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="zu%gBd1$I5XBzgtXCILA">
+                            <field name="NUM">100</field>
                           </shadow>
                         </value>
                         <next>
-                          <block type="wc_play_note_async" id="`:YB%53{:xf|@@J+%x3{">
-                            <field name="INSTRUMENT">piano</field>
-                            <value name="FREQ">
-                              <shadow type="wc_note" id=".v`E9!m:0)ssj3pT$=z$">
-                                <field name="NOTE">G</field>
-                                <field name="OCTAVE">4</field>
+                          <block type="wc_play_note_async" id="W.5=V!B!L0g9$zpNij2:">
+                            <field name="INSTRUMENT">violin</field>
+                            <value name="NOTE">
+                              <shadow type="text" id=",gllI}MC8PA%.kh/Z?Z}">
+                                <field name="TEXT">G4</field>
                               </shadow>
                             </value>
                             <value name="DUR">
-                              <shadow type="math_number" id="N[_`h[*jS##o;E)cGHox">
-                                <field name="NUM">2000</field>
+                              <shadow type="text" id="VutLps89=/^?TK0-V$|3">
+                                <field name="TEXT">1</field>
+                              </shadow>
+                            </value>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="{2C6ZJ:J%[?k+SM`lMU`">
+                                <field name="NUM">100</field>
                               </shadow>
                             </value>
                           </block>

@@ -60,7 +60,7 @@ export const WaveCodeCompiler = {
               q: parseFloat(current.getFieldValue('Q'))
             });
           } else if (current.type === 'wc_component_volume') {
-            chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) / 100 });
+            chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) });
           } else if (current.type.startsWith('wc_effect_')) {
             // 處理拆分後的效果器積木
             const effectType = current.type.replace('wc_effect_', '');
@@ -137,7 +137,7 @@ export const WaveCodeCompiler = {
     while (current) {
         if (current.isEnabled()) {
             if (current.type === 'wc_component_volume') {
-                chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) / 100 });
+                chain.push({ type: 'volume', val: parseFloat(current.getFieldValue('VOL')) });
             } else if (current.type.startsWith('wc_effect_')) {
                 const effectType = current.type.replace('wc_effect_', '');
                 const effectCfg = { type: 'effect', effect_type: effectType };
