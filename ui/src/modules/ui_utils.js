@@ -2,6 +2,7 @@
  * WaveCode UI Utilities - 面板管理與 UI 輔助函式 (對齊 #nyx)
  */
 import { WaveCodeAPI } from './api.js';
+import { WaveCodeToolbox } from './toolbox.js';
 
 export const UIUtils = {
     injectNaNShield: () => {
@@ -180,48 +181,89 @@ export const UIUtils = {
     },
 
     /**
-     * 初始化積木搜尋功能 (對齊 #nyx 邏輯，避免使用 getDiv())
+     * 初始化積木搜尋功能 (支援影子積木快取)
      */
     initSearch: (workspace) => {
         if (!window.BlockSearcher) {
             window.BlockSearcher = {
                 _cache: new Map(),
+                _rawDefs: new Map(), // 儲存來自 Toolbox 的原始 JSON 定義 (含影子積木)
                 _searchTimeout: null,
-                _isComposing: false, // 是否正在組字 (IME)
+                _isComposing: false,
                 /**
-                 * 字串清理輔助：正規化並移除特殊空白/控制字元
+                 * 字串清理輔助
                  */
                 clean: function(str) {
                     if (!str) return '';
                     return str.normalize('NFC')
-                              .replace(/[\u00A0\u1680​\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]/g, ' ') // 替換各種特殊空白
-                              .replace(/[\u0000-\u001f]/g, '') // 移除控制字元
+                              .replace(/[\u00A0\u1680​\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]/g, ' ')
+                              .replace(/[\u0000-\u001f]/g, '')
                               .toLowerCase().trim();
                 },
-                buildIndex: function() {
+                /**
+                 * 遞迴提取 Toolbox 中的積木定義
+                 */
+                _extractToolboxDefs: function(contents) {
+                    if (!contents) return;
+                    contents.forEach(item => {
+                        if (item.kind === 'block' && item.type) {
+                            this._rawDefs.set(item.type, item);
+                        } else if (item.contents) {
+                            this._extractToolboxDefs(item.contents);
+                        }
+                    });
+                },
+                buildIndex: function(workspace) {
                     this._cache.clear();
+                    this._rawDefs.clear();
+                    
+                    // 1. 從 WaveCodeToolbox 提取原始定義
+                    this._extractToolboxDefs(WaveCodeToolbox.contents);
+
                     const types = Object.keys(Blockly.Blocks);
-                    types.forEach(type => {
-                        let blob = type.toLowerCase();
-                        const def = Blockly.Blocks[type];
-                        if (def) {
-                            // 1. 抓取 message
-                            for (let i = 0; i < 10; i++) {
-                                let m = def['message' + i];
-                                if (typeof m === 'string') {
-                                    const parsed = Blockly.utils.parsing.replaceMessageReferences(m);
-                                    blob += ' ' + this.clean(parsed).replace(/%\d+/g, '');
+                    Blockly.Events.disable();
+                    
+                    try {
+                        types.forEach(type => {
+                            let blob = type.toLowerCase();
+                            const def = Blockly.Blocks[type];
+                            
+                            if (def) {
+                                for (let i = 0; i < 10; i++) {
+                                    let m = def['message' + i];
+                                    if (typeof m === 'string') {
+                                        const parsed = Blockly.utils.parsing.replaceMessageReferences(m);
+                                        blob += ' ' + this.clean(parsed).replace(/%\d+/g, '');
+                                    }
+                                }
+                                if (typeof def.tooltip === 'string') {
+                                    blob += ' ' + this.clean(Blockly.utils.parsing.replaceMessageReferences(def.tooltip));
                                 }
                             }
-                            // 2. 抓取 tooltip
-                            let tooltip = def.tooltip;
-                            if (typeof tooltip === 'string') {
-                                blob += ' ' + this.clean(Blockly.utils.parsing.replaceMessageReferences(tooltip));
-                            }
-                        }
-                        this._cache.set(type, blob);
-                    });
-                    console.log(`WaveCode Search: Index built. Example entry [wc_play_note]:`, this._cache.get('wc_play_note'));
+
+                            try {
+                                const tempBlock = workspace.newBlock(type);
+                                if (tempBlock) {
+                                    tempBlock.inputList.forEach(input => {
+                                        input.fieldRow.forEach(field => {
+                                            if (field.getText) {
+                                                const text = field.getText();
+                                                if (text && !text.includes('%')) {
+                                                    blob += ' ' + this.clean(text);
+                                                }
+                                            }
+                                        });
+                                    });
+                                    tempBlock.dispose();
+                                }
+                            } catch (e) {}
+
+                            this._cache.set(type, blob);
+                        });
+                    } finally {
+                        Blockly.Events.enable();
+                    }
+                    console.log(`WaveCode Search: Indexed ${this._cache.size} blocks, Cached ${this._rawDefs.size} toolbox definitions.`);
                 }
             };
         }
@@ -229,7 +271,7 @@ export const UIUtils = {
         const BlockSearcher = window.BlockSearcher;
 
         const doInject = () => {
-            if (BlockSearcher._cache.size === 0) BlockSearcher.buildIndex();
+            if (BlockSearcher._cache.size === 0) BlockSearcher.buildIndex(workspace);
             
             const wrapper = workspace.getInjectionDiv().parentNode;
             const toolboxDiv = wrapper.querySelector('.blocklyToolboxDiv');
@@ -240,7 +282,7 @@ export const UIUtils = {
             const placeholder = Blockly.Msg['CAT_SEARCH'] || '搜尋積木...';
             searchDiv.innerHTML = `
                 <input type="text" class="block-search" placeholder="${placeholder}" autocomplete="off">
-                <span class="search-clear-btn" style="display:none; position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; font-weight:bold; color:#888; font-size:18px;">✕</span>
+                <img src="/icons/cancel_24dp_FE2F89.png" class="search-clear-btn nyx-icon-neon" style="display:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; width:16px; height:16px; opacity:0.7;">
             `;
             wrapper.appendChild(searchDiv);
 
@@ -274,14 +316,15 @@ export const UIUtils = {
                     if (isMatch) matched.push(type);
                 });
 
-                const xmlList = matched.slice(0, 30).map(t => {
-                    const x = Blockly.utils.xml.createElement('block');
-                    x.setAttribute('type', t);
-                    return x;
+                // --- 關鍵修復：從快取中提取完整定義 (含影子積木) ---
+                const results = matched.slice(0, 30).map(type => {
+                    const raw = BlockSearcher._rawDefs.get(type);
+                    if (raw) return raw; // 返回完整的 JSON 配置
+                    return { 'kind': 'block', 'type': type }; // 後備方案
                 });
 
-                if (xmlList.length > 0) {
-                    flyout.show(xmlList);
+                if (results.length > 0) {
+                    flyout.show(results);
                 } else {
                     flyout.hide();
                 }

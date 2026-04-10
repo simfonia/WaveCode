@@ -1,51 +1,31 @@
 # WaveCode 技術細節紀錄 (Details)
 
-## 2026-03-08 ~ 2026-04-04 (略)
+## 2026-03-08 ~ 2026-04-08 (略)
 
-## 2026-04-05 (Web Audio 穩定性、同步守衛與產生器修復)
+## 2026-04-09 (多軌數據隔離、音量標準化與搜尋索引升級)
 
-### 1. 徹底根治「釋放突跳 (Sustain Jump)」
-- **問題**：在 Web Audio 中，若使用 `gain.exponentialRampToValueAtTime`，必須先使用 `setValueAtTime` 設定起始點。若在「預約未來釋放」時讀取 `gain.value` (當前值)，會因為讀到 0 (音符尚未開始) 或舊值而導致釋放瞬間音量跳變。
-- **解決方案：分層起始值策略**：
-    - **即時釋放 (Manual/Real-time)**：使用 `Math.max(0.0001, this.envNode.gain.value)`。這確保了手動彈奏時能從當前聽到的位置開始 Release。
-    - **預約釋放 (Scheduled/Sequencer)**：根據 `startTime` 與 `adsr` 參數進行階段估算。若 `startTime` 超過 `Attack + Decay` 區間，則起始值設為 `Sustain` 值；否則設為 `1.0`。這解決了快速序列演奏時的爆音問題。
+### 1. 多軌並行數據踩踏 (Data Race in Audio Params)
+- **問題**：當兩個音軌同時執行並使用同一個樂器 ID 時，它們會共享同一個 Patch 對象。若音軌 A 修改了 Filter 頻率，音軌 B 也會受到影響。
+- **解決方案**：
+    - **深拷貝 (Deep Copy)**：在 `Voice.play(patch, ...)` 內部執行 `this.patch = JSON.parse(JSON.stringify(patch))`。這確保了每個發聲聲部 (Voice) 擁有的都是一份獨立的參數快照。
+    - **獨立計時器**：透過 `Object.create` 隔離 `WaveCodeAPI` 的實例，確保各軌道的 `this._playbackTime` 互不干擾。
 
-### 2. 同步無窮迴圈鎖死守衛 (Loop Guard)
-- **原理**：JavaScript 是單執行緒，同步的 `while(true) {}` 會鎖死整個 UI。
-- **實作**：
-    - 在 `WaveCodeAPI` 加入 `checkLoop(id)` 方法，維護一個 `_loopCounters` Map。
-    - 在 `ToolbarManager` 產生程式碼時，注入 `Blockly.JavaScript.INFINITE_LOOP_TRAP = 'WaveCode.checkLoop(_id);\n';`。
-    - **歸零機制**：每當執行 `await sleep` 時，代表執行權已交還給 UI，此時將該腳本的計數器歸零。
-    - **觸發機制**：若計數器超過 10,000 次未歸零，代表發生了同步卡死，立即拋出 `Error` 中斷執行。
+### 2. 音量單位與增益補償清理
+- **Bug 根源**：`compiler.js` 為了「方便」預先將 100% 轉為 1.0，但 `factory.js` 的 `Volume` 組件設計為接受 0-500 的百分比並在內部 `/100`。結果導致音量被除算兩次 (10000 倍縮小)。
+- **修正**：
+    - Compiler 僅透傳數值。
+    - `factory.js` 統一處理：`node.gain.setTargetAtTime(val / 100, ...)`。
+    - 移除了調試期為了「聽得到聲音」而在 Oscillator/ADSR 額外加入的 4.0x 增益，回歸 1.0 nominal 基準。
 
-### 3. Blockly 產生器環境相容性 (V10+ Fix)
-- **問題**：在現代 Blockly 中，`this.valueToCode` 需要正確的 `this` 綁定。手動呼叫 `Blockly.JavaScript.forBlock['...'](block)` 會因為遺失 Context 而崩潰。
-- **解決**：
-    - 統一使用 `const generator = (window.javascript && window.javascript.javascriptGenerator) || Blockly.JavaScript;` 取得實例。
-    - 呼叫 `generator.blockToCode(block)`，讓 Blockly 內部自動處理 `this` 綁定與優先序陣列處理。
-    - 確保在產生前呼叫 `generator.init(workspace)` 以初始化變數資料庫。
+### 3. 高性能積木搜尋 (Enhanced Indexing)
+- **索引策略**：
+    - **Static Index**：從 `Blockly.Blocks[type].messageX` 抓取。
+    - **Dynamic Index (New)**：`workspace.newBlock(type)` 後呼叫 `field.getText()`。這能抓到：
+        1. 下拉選單的選項文字。
+        2. 動態生成的 Label。
+        3. 透過 `replaceMessageReferences` 翻譯後的內容。
+- **影子積木支援**：`BlockSearcher` 快取了 Toolbox 的原始 JSON。當使用者搜尋到 `wc_play_note` 時，Flyout 顯示的是帶有 `C4`、`1拍`、`100力度` 的完整積木，而非空殼。
 
-### 4. 精確排程與 Voice 物件綁定
-- **變更**：`WaveCodeAPI.playNote` 不再透過頻率搜尋來 release。
-- **優點**：`AudioManager.triggerNote` 現在會回傳該聲部的 `Voice` 物件，`playNote` 直接對該物件呼叫 `release(time)`。這保證了即使在同頻率、同 ID 的重疊演奏下，每個音符的 Release 都能精確對應到自己的起始排程，不會發生「誤殺」鄰近音符的情況。
-
-## 2026-04-06 (開發纪律與穩定性強化)
-
-### 1. 【核心規範】禁止盲目覆寫 (No Blind Overwrite)
-- **規範內容**：在使用 `write_file` 進行全檔寫入、或進行涉及多個邏輯點的大型重構前，**必須先執行 `read_file` 讀取最新內容**。
-- **目的**：解決長對話中 AI 可能產生的「記憶混亂」，防止舊版代碼覆蓋新實作的功能。
-- **執行方式**：即便是剛修改過的檔案，若要進行第二次重大寫入，也應重新讀取以確保上下文標籤與磁碟實體狀態 100% 同步。
-## 2026-04-08 (並行載入與 IPC 瓶頸克服)
-
-### 1. IPC 序列化瓶頸 (JSON vs Binary)
-- **問題**：原先在 Rust 側解碼為 f32 陣列傳回，導致 70 個檔案產生數百 MB 的 JSON 字串，傳輸極慢。
-- **解法**：改回傳輸原始 Vec<u8> (二進位)，由瀏覽器內建的 decodeAudioData (C++ 級並行) 處理，效能提升 5 倍。
-
-### 2. UI 狀態同步 (Oscilloscope Header)
-- **設計**：在示波器標題列動態注入 (instrument_id)。
-- **同步點**：
-    - MDIManager.addNewTab: 初始化或開檔時。
-    - MDIManager.switchTab: 切換分頁時。
-    - KeyboardController.switchInstrument: 左右鍵切換時。
-    - ToolbarManager.run/stop: 腳本啟動/停止時維持選取狀態。
-
+### 4. UI 時序 Bug：開檔即 Dirty
+- **原因**：`Blockly.Xml.domToWorkspace` 是同步執行的，但它觸發的事件（尤其是與 Mutator 或 Field 渲染相關的）有時會延遲。如果在 `domToWorkspace` 後立即 `setDirty(false)`，隨後的延遲事件會立刻將其設回 `true`。
+- **修正**：在 `MDIManager` 加入 `setTimeout(..., 100)` 確保所有後續事件消化完畢後，才進行最終的 `setDirty(false)` 與 `isClearing = false` 切換。

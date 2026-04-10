@@ -29,7 +29,9 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     left: 0;
     width: 160px; 
     height: 45px;
-    padding: 10px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
     background-color: var(--nyx-header-bg);
     border-bottom: 1px solid var(--nyx-border);
     z-index: 1000;
@@ -39,13 +41,20 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
 .block-search { 
     width: 100%; 
     background-color: var(--nyx-bg-deep); 
-    border: 1px solid var(--nyx-border); 
+    border: 1.5px solid var(--nyx-purple-glow); 
     color: var(--nyx-text); 
-    padding: 6px 25px 6px 10px; 
-    border-radius: 4px; 
+    padding: 8px 30px 8px 15px; 
+    border-radius: 20px; 
     font-size: 13px; 
     outline: none; 
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    box-shadow: 0 0 5px rgba(224, 86, 253, 0.2);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.block-search:focus {
+    border-color: #ff79ff;
+    box-shadow: 0 0 8px rgba(224, 86, 253, 0.4);
 }
 
 /* 工具箱與 Flyout 修正 */
