@@ -1,15 +1,16 @@
 # WaveCode 任務清單 (Todo List)
 
 ## [當前目標] 轉生計畫：Web Audio API 混合架構
+(目前專注於錄音功能與文檔補完)
+
+## [已完成]
 - [x] **[C] Rust 後端角色轉型 (Rust Backend Transition)**
     - [x] 強化「取樣資源伺服器」：優化大量 Sample 檔案的載入與並行解碼效率 (Worker 化)。
 - [x] **[E] 系統與 UI 強化**
     - [x] 針對高解析度螢幕優化 UI 配置 (對齊 #nyx 規範)。
     - [x] 徹底修復範例選單中的「幽靈項目/重複項目」問題。
-- [ ] **[F] 搜尋系統最終修復**
-    - [ ] 徹底解決中文搜尋失效問題。
-
-## [已完成]
+- [x] **[F] 搜尋系統最終修復**
+    - [x] 徹底解決中文搜尋失效問題 (Search 2.0)。
 - [x] **[F] 序列埠通訊與互動系統 (Serial Interaction)**
     - [x] 整合 Rust `serialport` 套件，實作 Open/Close/Scan 指令。
     - [x] 實作前端 `wc_serial_init` 積木與 COM 埠動態掃描。

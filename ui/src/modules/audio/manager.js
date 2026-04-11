@@ -38,8 +38,14 @@ export const AudioManager = {
         // 初始連接
         this.rebuildMasterChain();
 
-        this.visualizer = new Visualizer(this.analyser);
-        this.visualizer.start();
+        // --- 全域註冊以便 Visualizer 探測 ---
+        window.AudioManager = this;
+
+        if (window.Oscilloscope) {
+            window.Oscilloscope.init('oscilloscope', this.analyser);
+        } else {
+            console.warn("WaveCode Engine: window.Oscilloscope not found during init.");
+        }
 
         if (Object.keys(this.samples).length === 0) {
             await this.loadSamples();
@@ -170,6 +176,8 @@ export const AudioManager = {
 
     triggerNote(freq, instId, startTime = 0, velocity = 1.0) {
         if (!this.ctx) this.init();
+        
+        // 確保 Context 處於運行狀態
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
         const patch = this.patches[instId];
@@ -181,14 +189,20 @@ export const AudioManager = {
                 voice = new Voice(this.ctx, this.masterGain);
                 this.voices.push(voice);
             } else {
+                // 找最舊的 voice 強行回收
                 voice = this.voices.shift();
                 voice.kill();
                 this.voices.push(voice);
             }
         }
 
-        const time = startTime > 0 ? startTime : this.ctx.currentTime;
-        voice.instId = instId; // 記錄樂器 ID 以便後續更新
+        // --- 核心修正：排程時間補正 ---
+        const now = this.ctx.currentTime;
+        // 如果傳入的時間已經落後於現在 (now)，則強制設為 now + 0.01s (10ms) 緩衝。
+        // 這能解決「快速播完」的問題，因為它給了瀏覽器最起碼的緩衝空間來排程音訊。
+        const time = (startTime > now) ? startTime : now + 0.01;
+        
+        voice.instId = instId; 
         voice.play(freq, patch, time, velocity);
         return voice;
     },
@@ -230,6 +244,7 @@ export const AudioManager = {
 
     stopAll() {
         this.voices.forEach(v => v.kill());
+        if (window.Oscilloscope) window.Oscilloscope.clearInstruments();
         if (this.ctx) {
             this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
         }

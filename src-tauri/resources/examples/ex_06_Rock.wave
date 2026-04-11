@@ -1,0 +1,629 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_comment" id="ki,3,t{@tj5pN[x_8R$." x="10" y="-10">
+    <field name="TEXT">此範例展示如何使用打擊樂器取樣器建立爵士鼓組，&amp;#10;並循環Rock節奏。&amp;#10;&amp;#10;1. 樂器定義：使用專用的取樣器路徑&amp;#10;2. 節奏編排：使用步進音序器編寫節奏&amp;#10;3. 底下示範5種多聲部寫法，請把不用的方法以 右鍵/停用區塊 來禁止執行。</field>
+  </block>
+  <block type="wc_instrument" id="%(GE7Bcgto;c;!!`Nhe@" x="10" y="170">
+    <field name="ID">Kick</field>
+    <statement name="CHAIN">
+      <block type="wc_comment" id=":|%jzUh8oL,.a4;5#,U:">
+        <field name="TEXT">短取樣建議不加ADSR</field>
+        <next>
+          <block type="wc_component_sampler" id="sf*^3m:$X93KN!ph+yi:">
+            <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="2x9.H0bFh#DdUh8$#[}a" x="10" y="290">
+    <field name="ID">Snare</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="]v8uEhm?L/FGvf9VuE{a">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Snare_ST0T3S3</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="ZzJ{K_xOW;Qc/i@Z+.Ny" x="10" y="390">
+    <field name="ID">HiHat_C</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="dwW*fH^?]aY}4S8Gp9x;">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HiHatClosed_HHCD2</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="ukI1#G]Jz7NV?pM{DAlC" x="10" y="490">
+    <field name="ID">Crash</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="so=Xdu9e-x6+3]6nL+6B">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Crash_CSHD8</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="S($`0nB,~75:,,4wgotA" x="10" y="590">
+    <field name="ID">Synth</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="rm^~Y/1}Q;|q4@bs?`dg">
+        <field name="WAVE">1</field>
+        <next>
+          <block type="wc_component_adsr" id="ue_F^/p8W6Z9YxIfKkd=">
+            <field name="A">0.02</field>
+            <field name="D">0.1</field>
+            <field name="S">0.3</field>
+            <field name="R">0.4</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="#Vjeh:!n@V-}Ul,o.h_[" x="10" y="770">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="^A}#,,jB#k}B5rlkhR16">
+        <value name="BPM">
+          <shadow type="math_number" id="%i!LaBuat-w`ktIG}0#E">
+            <field name="NUM">120</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_count_in" id="K9n0sFJr(~pJfe4QVu`Z">
+            <value name="MEASURES">
+              <shadow type="math_number" id="NMwq@ojz6a`8BNm$Z`+f">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="BEATS">
+              <shadow type="math_number" id=":Q-@D__|?#-=P:sVT^m`">
+                <field name="NUM">4</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="gE8hbZ-sZt6)aL71;~SU">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_master" id="NJIeV)q5.tfzG)tzr0[{" x="10" y="890">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="xFyKdzI91cC7ybHb:US3">
+        <value name="THRESH">
+          <shadow type="math_number" id="S-n09Zw@zr;0a;y7ySyC">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="zp=+k-ahLV3joN?[Po9L">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="Fz,^@BvDJ]~b#?e2*fLT">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="L6pNl=0F~,}b{yau0HQ8">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="g~Ib^!(68ZE]Fy[;:4Hz">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="{X?MKmyDg?1J2!1_e)q]" x="10" y="1090">
+    <field name="TEXT">寫法1:&amp;#10;使用&lt;演奏&gt;積木搭配&lt;播放旋律&gt;積木進行多軌編曲，&amp;#10;手動輸入文字樂譜，裏面的積木會依序執行一次。</field>
+  </block>
+  <block type="wc_perform" id="*WyXTmG{QkY$rju/WonK" x="10" y="1190">
+    <statement name="DO">
+      <block type="wc_play_melody" id="PEpYHViLvgp,m3aLE25Q">
+        <field name="INSTRUMENT">Kick</field>
+        <field name="MELODY">XQ, RQ, XQ, RQ</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="O7c9cxdT/7*~xB;W@,sw" x="290" y="1190">
+    <statement name="DO">
+      <block type="wc_play_melody" id="NT.kxoTfTK5Q.SqB(9Ll">
+        <field name="INSTRUMENT">Snare</field>
+        <field name="MELODY">RQ, XQ, RQ, XQ</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="]91ucuDs+UC{G02AoQi~" x="570" y="1190">
+    <statement name="DO">
+      <block type="wc_play_melody" id="_zQ:mWJ|Nx+qv{[w1L$W">
+        <field name="INSTRUMENT">HiHat_C</field>
+        <field name="MELODY">XE XE XE XE XE XE XE XE </field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id=":efflOto1Y^+?46#3Z`c" x="10" y="1350">
+    <field name="TEXT">寫法2:&amp;#10;使用&lt;演奏&gt;積木搭配&lt;序列器&gt;積木，裏面的積木會依序執行一次。</field>
+  </block>
+  <block type="wc_perform" id="0GT.}!V*L4T-aF_|]G+v" disabled-reasons="MANUALLY_DISABLED" x="10" y="1430">
+    <statement name="DO">
+      <block type="controls_repeat_ext" id="/|cIYb/@OEGNW%KdetvM">
+        <value name="TIMES">
+          <shadow type="math_number" id="WExf=cg[2t[66E|U|ytg">
+            <field name="NUM">3</field>
+          </shadow>
+        </value>
+        <statement name="DO">
+          <block type="wc_rhythm_v2" id=";7/9v5a^645(7)xYKhRJ">
+            <mutation items="3"></mutation>
+            <field name="MEASURE">1</field>
+            <field name="BEATS">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">Kick</field>
+            <field name="VEL0">100</field>
+            <field name="MODE0">FALSE</field>
+            <field name="PATTERN0">x--- .... x--- ....</field>
+            <field name="INST1">Snare</field>
+            <field name="VEL1">100</field>
+            <field name="MODE1">FALSE</field>
+            <field name="PATTERN1">.... x--- .... x---</field>
+            <field name="INST2">HiHat_C</field>
+            <field name="VEL2">10</field>
+            <field name="MODE2">FALSE</field>
+            <field name="PATTERN2">x-x- x-x- x-x- x-x-</field>
+          </block>
+        </statement>
+        <next>
+          <block type="wc_rhythm_v2" id=".EvYC2RdyS6;LYnneD=6">
+            <mutation items="3"></mutation>
+            <field name="MEASURE">2</field>
+            <field name="BEATS">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">Kick</field>
+            <field name="VEL0">100</field>
+            <field name="MODE0">FALSE</field>
+            <field name="PATTERN0">x-x- x-x- x-x- x-x-</field>
+            <field name="INST1">Snare</field>
+            <field name="VEL1">100</field>
+            <field name="MODE1">FALSE</field>
+            <field name="PATTERN1">x-x- x-x- x-x- x-x-</field>
+            <field name="INST2">Crash</field>
+            <field name="VEL2">10</field>
+            <field name="MODE2">FALSE</field>
+            <field name="PATTERN2">---- ---- ---- --x-</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="Fm!K)}Nc1cC8oWR5y7hA" x="10" y="1770">
+    <field name="TEXT">寫法3:&amp;#10;使用&lt;背景循環&gt;積木，裏面的積木會依小節數無限循環。</field>
+  </block>
+  <block type="wc_loop" id="vC~5Aox0t+mxE.,#o$=6" disabled-reasons="MANUALLY_DISABLED" x="10" y="1850">
+    <field name="INTERVAL">4</field>
+    <statement name="DO">
+      <block type="controls_repeat_ext" id="9M0GxWHhY~9AoP]:6`w:">
+        <value name="TIMES">
+          <shadow type="math_number" id="uzh:n5E]1U$/?%x_b~nD">
+            <field name="NUM">3</field>
+          </shadow>
+        </value>
+        <statement name="DO">
+          <block type="wc_rhythm_v2" id="iPN;lqLM*s!)y*+8`-cz">
+            <mutation items="3"></mutation>
+            <field name="MEASURE">1</field>
+            <field name="BEATS">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">Kick</field>
+            <field name="VEL0">100</field>
+            <field name="MODE0">FALSE</field>
+            <field name="PATTERN0">x--- .... x--- ....</field>
+            <field name="INST1">Snare</field>
+            <field name="VEL1">100</field>
+            <field name="MODE1">FALSE</field>
+            <field name="PATTERN1">.... x--- .... x---</field>
+            <field name="INST2">HiHat_C</field>
+            <field name="VEL2">10</field>
+            <field name="MODE2">FALSE</field>
+            <field name="PATTERN2">x-x- x-x- x-x- x-x-</field>
+          </block>
+        </statement>
+        <next>
+          <block type="wc_rhythm_v2" id="rp*Y^odp~#ON9LHn_~$0">
+            <mutation items="3"></mutation>
+            <field name="MEASURE">4</field>
+            <field name="BEATS">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">Kick</field>
+            <field name="VEL0">100</field>
+            <field name="MODE0">FALSE</field>
+            <field name="PATTERN0">x-x- x-x- x-x- x-x-</field>
+            <field name="INST1">Snare</field>
+            <field name="VEL1">100</field>
+            <field name="MODE1">FALSE</field>
+            <field name="PATTERN1">x-x- x-x- x-x- x-x-</field>
+            <field name="INST2">Crash</field>
+            <field name="VEL2">10</field>
+            <field name="MODE2">FALSE</field>
+            <field name="PATTERN2">---- ---- ---- --x-</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="kdSz*-%hd~~NGN@Z8-Dq" x="10" y="2190">
+    <field name="TEXT">寫法4:&amp;#10;使用多個&lt;背景循環&gt;積木分軌，內容一個音一個音手動刻。</field>
+  </block>
+  <block type="wc_loop" id="S%QPOE%mP,.`LoX7Cn2|" disabled-reasons="MANUALLY_DISABLED" x="10" y="2270">
+    <field name="INTERVAL">1</field>
+    <statement name="DO">
+      <block type="wc_comment" id="vLw@o$Gz.Qv=8{E%F@ou">
+        <field name="TEXT">Closed Hi-Hat</field>
+        <next>
+          <block type="wc_play_note" id="o+#C^@gBj@6wNa;15cGk">
+            <field name="INSTRUMENT">HiHat_C</field>
+            <value name="NOTE">
+              <shadow type="text" id="}!B^uIir)~y%Fo1dO}9|">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="*6;bR.rKHxX%Pc]|AMEY">
+                <field name="TEXT">0.5</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="qIQi^bueb%N/bX8eIS^A">
+                <field name="NUM">10</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_play_note" id="#V0CZ?HL:Y5u/Y3Km~F`">
+                <field name="INSTRUMENT">HiHat_C</field>
+                <value name="NOTE">
+                  <shadow type="text" id="6RYyP=cc=mv:9Ntn{tXl">
+                    <field name="TEXT">C4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id="I!,5|;u/Ow}9K$a`8#lL">
+                    <field name="TEXT">0.5</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="w}7Fel-~^n%g/Ulh4]uR">
+                    <field name="NUM">10</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note" id="bm:`x^]^2p|n4tjc9ML`">
+                    <field name="INSTRUMENT">HiHat_C</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="d1xb*B#]/u_LX]~j@p1/">
+                        <field name="TEXT">C4</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="text" id="pQGnZ)WSew]Mh.(g*=TN">
+                        <field name="TEXT">0.5</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="BvGq#q;;4i[Rq)|?t=Hb">
+                        <field name="NUM">10</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_play_note" id="D4a6JYN#mv#x./YvQ`I?">
+                        <field name="INSTRUMENT">HiHat_C</field>
+                        <value name="NOTE">
+                          <shadow type="text" id="j+BF}:_H(I;+Qc}g|q%L">
+                            <field name="TEXT">C4</field>
+                          </shadow>
+                        </value>
+                        <value name="DUR">
+                          <shadow type="text" id="DN24@lE22~7ek}6m}~2w">
+                            <field name="TEXT">0.5</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="TR0jC$w_`OCBkgaJHeFk">
+                            <field name="NUM">10</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="wc_play_note" id="oa!A;_cYv.{?GzNlaq`w">
+                            <field name="INSTRUMENT">HiHat_C</field>
+                            <value name="NOTE">
+                              <shadow type="text" id="dmRAJ@dC#Y~Rm=v;0eQv">
+                                <field name="TEXT">C4</field>
+                              </shadow>
+                            </value>
+                            <value name="DUR">
+                              <shadow type="text" id="M!`)WK|nW^~4hbe:ts@,">
+                                <field name="TEXT">0.5</field>
+                              </shadow>
+                            </value>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="eMh_Cf(EDY|@99hBNBY7">
+                                <field name="NUM">10</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="wc_play_note" id="z|/`Es@CUE/ciCx,QIY|">
+                                <field name="INSTRUMENT">HiHat_C</field>
+                                <value name="NOTE">
+                                  <shadow type="text" id="AuWgTg%2p*~o;kQuNlsQ">
+                                    <field name="TEXT">C4</field>
+                                  </shadow>
+                                </value>
+                                <value name="DUR">
+                                  <shadow type="text" id="(^xYyO_Y[-G$j=f%;uDO">
+                                    <field name="TEXT">0.5</field>
+                                  </shadow>
+                                </value>
+                                <value name="VELOCITY">
+                                  <shadow type="math_number" id="rZ=$t4#`W$4!8985jXjq">
+                                    <field name="NUM">10</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="wc_play_note" id="+@ID9B%##sLFP~`;Nc]!">
+                                    <field name="INSTRUMENT">HiHat_C</field>
+                                    <value name="NOTE">
+                                      <shadow type="text" id="BFwkLjrWxStvzWojv^Qx">
+                                        <field name="TEXT">C4</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="DUR">
+                                      <shadow type="text" id="w9K1cy=gVQI]-kBBHuma">
+                                        <field name="TEXT">0.5</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="VELOCITY">
+                                      <shadow type="math_number" id="dhfSDq}Z?ZP-m:b}cWZt">
+                                        <field name="NUM">10</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="wc_play_note" id="RBj.e_^7PI$V{7A-^~K@">
+                                        <field name="INSTRUMENT">HiHat_C</field>
+                                        <value name="NOTE">
+                                          <shadow type="text" id="GL;HzF9J!}1uPw8$.U3J">
+                                            <field name="TEXT">C4</field>
+                                          </shadow>
+                                        </value>
+                                        <value name="DUR">
+                                          <shadow type="text" id="dbatWz[xIm]=pEr^Nu`D">
+                                            <field name="TEXT">0.5</field>
+                                          </shadow>
+                                        </value>
+                                        <value name="VELOCITY">
+                                          <shadow type="math_number" id="QMi?X[xN3i.W#%[kQ~/I">
+                                            <field name="NUM">10</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="wc_play_note" id="Cf@:B)$^PiCF^)L1Uo0M">
+                                            <field name="INSTRUMENT">HiHat_C</field>
+                                            <value name="NOTE">
+                                              <shadow type="text" id=")XlV8V;PpQ:JtmXySIOy">
+                                                <field name="TEXT">C4</field>
+                                              </shadow>
+                                            </value>
+                                            <value name="DUR">
+                                              <shadow type="text" id="EV$19j}O.0HZt:e)m9.r">
+                                                <field name="TEXT">0.5</field>
+                                              </shadow>
+                                            </value>
+                                            <value name="VELOCITY">
+                                              <shadow type="math_number" id="#!zwD5onoZl81Y/KOl{z">
+                                                <field name="NUM">10</field>
+                                              </shadow>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_loop" id=",ol$[^dOBWA:Md+16Shz" disabled-reasons="MANUALLY_DISABLED" x="10" y="2710">
+    <field name="INTERVAL">1</field>
+    <statement name="DO">
+      <block type="wc_comment" id="H=nW2!/@(A{BRDfwZsIu">
+        <field name="TEXT">Kick &amp; Snare</field>
+        <next>
+          <block type="wc_play_note" id=",)p9e-YSO%og/mAElHP(">
+            <field name="INSTRUMENT">Kick</field>
+            <value name="NOTE">
+              <shadow type="text" id=",b35/s14}q7#/ZVN^bic">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="%Nq^D^vJa?TU?%zq]Qk-">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="L{)kSKagOi.lY^6B?q)$">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_play_note" id="=GB1{,9knyJ}(vN1/F76">
+                <field name="INSTRUMENT">Snare</field>
+                <value name="NOTE">
+                  <shadow type="text" id="[-_1hCBDcM4v7]wrN[x0">
+                    <field name="TEXT">C4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id="eIc!K7];}}bohc|23[Eu">
+                    <field name="TEXT">1</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="^CxS+NnT+wdA:94R4sMn">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note" id="[JyCUHrfaPhp]8R73/GG">
+                    <field name="INSTRUMENT">Kick</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="IZzyV?}feZwQl+FVvr;5">
+                        <field name="TEXT">C4</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="text" id="FC9J,^Do)jNj5RW8J^YH">
+                        <field name="TEXT">1</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="+bpBB@[YTnffbT*=u}s=">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_play_note" id="Svq0_:rAR=-c)({yM(~h">
+                        <field name="INSTRUMENT">Snare</field>
+                        <value name="NOTE">
+                          <shadow type="text" id="_xAnmgwp!4{y?;-R5x31">
+                            <field name="TEXT">C4</field>
+                          </shadow>
+                        </value>
+                        <value name="DUR">
+                          <shadow type="text" id="MjhKA5q|VSaso,Q]~,O/">
+                            <field name="TEXT">1</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="i:_J(x$R0X,2/X~aGmUI">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_comment" id="DdjAS5Y6wnQ!!InnAtY?" x="10" y="2990">
+    <field name="TEXT">寫法5:&amp;#10;使用多個&lt;演奏&gt;積木來分軌，內容用 "迴圈" 刻，不會無限循環。</field>
+  </block>
+  <block type="wc_perform" id="e_gfFqL-+RCo7RZec7BC" disabled-reasons="MANUALLY_DISABLED" x="10" y="3070">
+    <statement name="DO">
+      <block type="wc_comment" id="kW?jjP;^{}%SW]r=n,b_">
+        <field name="TEXT">Closed Hi-Hat</field>
+        <next>
+          <block type="controls_repeat_ext" id="$~mX:PXdd],V72nD;Yh%">
+            <value name="TIMES">
+              <shadow type="math_number" id="EelLOyKK,lk^ES+-KBJy">
+                <field name="NUM">8</field>
+              </shadow>
+            </value>
+            <statement name="DO">
+              <block type="wc_play_note" id="8TCrw[R:D-+R~2d*]CN3">
+                <field name="INSTRUMENT">HiHat_C</field>
+                <value name="NOTE">
+                  <shadow type="text" id="A)EHU[]+6gaF!S3:J!%Y">
+                    <field name="TEXT">C4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id=".wLQ0`Y[)oW[e{Tc8:15">
+                    <field name="TEXT">0.5</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="0%$__kT^yZ4]{HoSZr~i">
+                    <field name="NUM">10</field>
+                  </shadow>
+                </value>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="L[$Ox:OM%5dGbHu,qO2[" disabled-reasons="MANUALLY_DISABLED" x="10" y="3250">
+    <statement name="DO">
+      <block type="wc_comment" id="w+WcwYfSSxD*7ubakjy)">
+        <field name="TEXT">Kick &amp; Snare</field>
+        <next>
+          <block type="controls_repeat_ext" id=":#3VMz*Uv{,bLjy1_l/k">
+            <value name="TIMES">
+              <shadow type="math_number" id="8}SWVBMBt(:skK_ziN6y">
+                <field name="NUM">2</field>
+              </shadow>
+            </value>
+            <statement name="DO">
+              <block type="wc_play_note" id="RND1ulGf)j;{,x(/!d?c">
+                <field name="INSTRUMENT">Kick</field>
+                <value name="NOTE">
+                  <shadow type="text" id="u6;,mwwV2E7;L9`);`|s">
+                    <field name="TEXT">C4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id="YlRgtpx;V$n_x{!^7WuQ">
+                    <field name="TEXT">1</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="W:DrF2O!N*nSOOydrWJS">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note" id="Wj:CT?9|^|:f{6E:99u5">
+                    <field name="INSTRUMENT">Snare</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="sD%gs2@Iy*qug*HA({X5">
+                        <field name="TEXT">C4</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="text" id="_JIG(SZy2r0v]c?JKX[S">
+                        <field name="TEXT">1</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="3-MrHLI/x-TAkfIP7rOs">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -1,138 +1,62 @@
 /**
- * WaveCode Visualizer Module - 穩定觸發與全頻譜版
+ * WaveCode Visualizer Module - 預覽與視覺停留穩定版
  */
 
 export class FieldADSR extends Blockly.Field {
     static SERIALIZABLE = false;
-
     constructor(a = 0.1, d = 0.2, s = 0.5, r = 0.4) {
         super();
         this.A = a; this.D = d; this.S = s; this.R = r;
-        this.width_ = 160;
-        this.height_ = 60;
-        this.svgGroup_ = null;
-        this.bgPath_ = null;
-        this.dot_ = null;
-        this._animationId = null;
-        this._startTime = 0;
-        this._isPlaying = false;
-        this._duration = 0;
-        this._isHolding = false;
+        this.width_ = 160; this.height_ = 60;
     }
-
     isSerializable() { return false; }
     getSize() { return new Blockly.utils.Size(this.width_, this.height_ + 10); }
-    updateSize_() {}
-
     initView() {
-        this.svgGroup_ = Blockly.utils.dom.createSvgElement('g', {
-            'class': 'field-adsr-group',
-            'transform': 'translate(0, 5)'
-        }, this.fieldGroup_);
-
-        const defs = Blockly.utils.dom.createSvgElement('defs', {}, this.svgGroup_);
-        const filter = Blockly.utils.dom.createSvgElement('filter', {
-            'id': 'glow-filter',
-            'x': '-50%', 'y': '-50%', 'width': '200%', 'height': '200%'
-        }, defs);
-        Blockly.utils.dom.createSvgElement('feGaussianBlur', { 'stdDeviation': '2.5', 'result': 'blur' }, filter);
-        const feMerge = Blockly.utils.dom.createSvgElement('feMerge', {}, filter);
-        Blockly.utils.dom.createSvgElement('feMergeNode', { 'in': 'blur' }, feMerge);
-        Blockly.utils.dom.createSvgElement('feMergeNode', { 'in': 'SourceGraphic' }, feMerge);
-
-        Blockly.utils.dom.createSvgElement('rect', {
-            'width': this.width_, 'height': this.height_,
-            'rx': 4, 'ry': 4, 'fill': '#1a252f'
-        }, this.svgGroup_);
-
-        for (let i = 1; i < 4; i++) {
-            Blockly.utils.dom.createSvgElement('line', {
-                'x1': 0, 'y1': (this.height_ * i / 4),
-                'x2': this.width_, 'y2': (this.height_ * i / 4),
-                'stroke': '#2c3e50', 'stroke-width': 1
-            }, this.svgGroup_);
-        }
-
-        this.bgPath_ = Blockly.utils.dom.createSvgElement('path', {
-            'fill': 'none', 'stroke': '#3498db', 'stroke-width': 3, 'stroke-linejoin': 'round'
-        }, this.svgGroup_);
-
-        this.dot_ = Blockly.utils.dom.createSvgElement('circle', {
-            'r': 4, 'fill': '#f1c40f', 'opacity': 0, 
-            'filter': 'url(#glow-filter)'
-        }, this.svgGroup_);
-
+        this.svgGroup_ = Blockly.utils.dom.createSvgElement('g', { 'transform': 'translate(0, 5)' }, this.fieldGroup_);
+        Blockly.utils.dom.createSvgElement('rect', { 'width': this.width_, 'height': this.height_, 'rx': 4, 'ry': 4, 'fill': '#1a252f' }, this.svgGroup_);
+        this.bgPath_ = Blockly.utils.dom.createSvgElement('path', { 'fill': 'none', 'stroke': '#3498db', 'stroke-width': 3, 'stroke-linejoin': 'round' }, this.svgGroup_);
+        this.dot_ = Blockly.utils.dom.createSvgElement('circle', { 'r': 4, 'fill': '#f1c40f', 'opacity': 0 }, this.svgGroup_);
         this.render_();
     }
-
     updateParams(a, d, s, r) {
-        this.A = parseFloat(a) || 0;
-        this.D = parseFloat(d) || 0;
-        this.S = parseFloat(s) || 0;
-        this.R = parseFloat(r) || 0;
+        this.A = parseFloat(a) || 0; this.D = parseFloat(d) || 0; this.S = parseFloat(s) || 0; this.R = parseFloat(r) || 0;
         this.render_();
     }
-
     playAnimation(noteDuration) {
-        this._duration = noteDuration / 1000;
-        this._startTime = performance.now();
-        this._isPlaying = true;
-        this._isHolding = false;
+        this._duration = noteDuration / 1000; this._startTime = performance.now(); this._isPlaying = true;
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
-
     startHold() {
-        this._startTime = performance.now();
-        this._isPlaying = true;
-        this._isHolding = true;
-        this._duration = 999; 
+        this._startTime = performance.now(); this._isPlaying = true; this._isHolding = true; this._duration = 999; 
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
-
     endHold() {
         if (this._isPlaying && this._isHolding) {
             this._isHolding = false;
-            const now = performance.now();
-            const elapsedSinceStart = (now - this._startTime) / 1000;
+            const elapsedSinceStart = (performance.now() - this._startTime) / 1000;
             this._duration = Math.max(elapsedSinceStart - (this.A + this.D), 0);
         }
     }
-
     stopAnimation() {
-        this._isPlaying = false;
-        this._isHolding = false;
+        this._isPlaying = false; this._isHolding = false;
         if (this.dot_) this.dot_.setAttribute('opacity', 0);
-        if (this._animationId) {
-            cancelAnimationFrame(this._animationId);
-            this._animationId = null;
-        }
     }
-
     animate_() {
-        if (!this._isPlaying) {
-            this._animationId = null;
-            if (this.dot_) this.dot_.setAttribute('opacity', 0);
-            return;
-        }
+        if (!this._isPlaying) { this._animationId = null; return; }
         this.render_();
-        const now = performance.now();
-        const elapsed = (now - this._startTime) / 1000;
+        const elapsed = (performance.now() - this._startTime) / 1000;
         const totalDuration = this.A + this.D + (this._isHolding ? 999 : this._duration) + this.R;
-        if (!this._isHolding && elapsed > totalDuration + 0.2) {
-            this._isPlaying = false;
-        }
+        if (!this._isHolding && elapsed > totalDuration + 0.2) { this._isPlaying = false; this._animationId = null; return; }
         this._animationId = requestAnimationFrame(() => this.animate_());
     }
-
     render_() {
         if (!this.bgPath_) return;
         const w = this.width_, h = this.height_, padding = 8;
         const innerW = w - padding * 2, innerH = h - padding * 2;
         const totalT = Math.max(0.5, this.A + this.D + 0.5 + this.R);
         const scaleX = innerW / totalT;
-
         let points = [], curX = padding;
         points.push(`M ${curX},${h - padding}`);
         curX += this.A * scaleX; points.push(`L ${curX},${padding}`);
@@ -140,10 +64,8 @@ export class FieldADSR extends Blockly.Field {
         curX += 0.5 * scaleX; points.push(`L ${curX},${h - padding - (this.S * innerH)}`);
         curX += this.R * scaleX; points.push(`L ${curX},${h - padding}`);
         this.bgPath_.setAttribute('d', points.join(' '));
-
         if (this._isPlaying && this.dot_) {
-            const now = performance.now();
-            const elapsed = (now - this._startTime) / 1000;
+            const elapsed = (performance.now() - this._startTime) / 1000;
             let dotX = padding, dotY = h - padding;
             if (elapsed < this.A) {
                 const p = this.A > 0 ? elapsed / this.A : 1;
@@ -152,9 +74,7 @@ export class FieldADSR extends Blockly.Field {
                 const p = this.D > 0 ? (elapsed - this.A) / this.D : 1;
                 dotX += elapsed * scaleX; dotY = padding + (p * (1 - this.S) * innerH);
             } else if (this._isHolding || elapsed < this.A + this.D + this._duration) {
-                const osc = Math.sin(elapsed * 12) * 0.15; 
-                dotX += (this.A + this.D + 0.25 + osc) * scaleX; 
-                dotY = h - padding - (this.S * innerH);
+                dotX += (this.A + this.D + 0.25) * scaleX; dotY = h - padding - (this.S * innerH);
             } else if (elapsed < this.A + this.D + this._duration + this.R) {
                 const p = (elapsed - (this.A + this.D + this._duration)) / this.R;
                 dotX += (this.A + this.D + 0.5 + (p * this.R)) * scaleX;
@@ -163,10 +83,8 @@ export class FieldADSR extends Blockly.Field {
             this.dot_.setAttribute('cx', dotX); this.dot_.setAttribute('cy', dotY);
         }
     }
-
     static fromJson(options) { return new FieldADSR(options.a, options.d, options.s, options.r); }
 }
-
 Blockly.fieldRegistry.register('field_adsr', FieldADSR);
 
 export const EnvelopeManager = {
@@ -174,41 +92,43 @@ export const EnvelopeManager = {
     clearRegistry() { this._registry.clear(); },
     register(id, field) {
         if (!this._registry.has(id)) this._registry.set(id, []);
-        const list = this._registry.get(id);
-        if (!list.includes(field)) list.push(field);
+        this._registry.get(id).push(field);
     },
     trigger(id, duration) {
-        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.playAnimation(duration));
-        else this._registry.forEach(list => list.forEach(f => f.playAnimation(duration)));
+        if (id && this._registry.has(id)) {
+            this._registry.get(id).forEach(f => f.playAnimation(duration));
+        }
+        // 修正：移除全域觸發 fallback，找不到 ID 就保持安靜
     },
     triggerStart(id) {
-        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.startHold());
-        else this._registry.forEach(list => list.forEach(f => f.startHold()));
+        if (id && this._registry.has(id)) {
+            this._registry.get(id).forEach(f => f.startHold());
+        }
     },
     triggerEnd(id) {
-        if (id && this._registry.has(id)) this._registry.get(id).forEach(f => f.endHold());
-        else this._registry.forEach(list => list.forEach(f => f.endHold()));
+        if (id && this._registry.has(id)) {
+            this._registry.get(id).forEach(f => f.endHold());
+        }
     },
     stopAll() { this._registry.forEach(list => list.forEach(f => f.stopAnimation())); }
 };
-
 window.EnvelopeManager = EnvelopeManager;
 
 /**
- * 即時分析儀 (Visualizer) - 強化觸發版
+ * 即時分析儀 (Oscilloscope) - 支援預選樂器預覽版
  */
 export const Oscilloscope = {
-    canvas: null,
-    fftCanvas: null,
-    ctx: null,
-    fftCtx: null,
-    _data: [],
-    _fftData: [],
-    _isClipped: false,
+    canvas: null, fftCanvas: null, ctx: null, fftCtx: null, analyser: null,
+    _data: null, _fftData: [], _isClipped: false, 
+    _activeInstruments: new Set(),
+    _instrumentTimers: new Map(), 
+    _selectedInstrument: null, // 當前鍵盤選定的樂器
+    LINGER_TIME: 1500, // 增加停留時間
 
-    init(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.fftCanvas = document.getElementById('fftCanvas');
+    init(canvasId, analyser) {
+        this.canvas = document.getElementById(canvasId) || document.querySelector('canvas:not([id*="fft"])');
+        this.fftCanvas = document.getElementById('fftCanvas') || document.getElementById('fft-canvas') || document.querySelector('canvas[id*="fft"]');
+        if (analyser) this.analyser = analyser;
         if (!this.canvas || !this.fftCanvas) return;
         this.ctx = this.canvas.getContext('2d');
         this.fftCtx = this.fftCanvas.getContext('2d');
@@ -217,119 +137,144 @@ export const Oscilloscope = {
         this.loop();
     },
 
+    // 鍵盤切換樂器時主動調用
+    setSelectedInstrument(instId) {
+        this._selectedInstrument = instId;
+        this._updateBadge();
+    },
+
+    updateInstrumentStatus(instId, active) {
+        if (!instId || instId === 'none') return;
+        if (active) {
+            this._activeInstruments.add(instId);
+            this._instrumentTimers.set(instId, Date.now()); 
+        } else {
+            this._activeInstruments.delete(instId);
+        }
+        this._updateBadge();
+    },
+
+    clearInstruments() { 
+        this._activeInstruments.clear(); 
+        this._instrumentTimers.clear();
+        this._updateBadge(); 
+    },
+
+    _updateBadge() {
+        const badge = document.getElementById('current-instrument-display');
+        if (!badge) return;
+
+        const now = Date.now();
+        const displayList = Array.from(this._instrumentTimers.keys()).filter(id => {
+            const isPlaying = this._activeInstruments.has(id);
+            const lastActive = this._instrumentTimers.get(id) || 0;
+            const isLingering = (now - lastActive < this.LINGER_TIME);
+            return isPlaying || isLingering;
+        });
+
+        // 清理超時的 Timer 條目
+        for (const id of this._instrumentTimers.keys()) {
+            if (!displayList.includes(id) && !this._activeInstruments.has(id)) {
+                this._instrumentTimers.delete(id);
+            }
+        }
+
+        if (displayList.length === 0) { 
+            // --- 如果目前沒人在演奏，顯示選定的預選樂器 ---
+            if (this._selectedInstrument) {
+                badge.textContent = `[ ${this._selectedInstrument} ]`; // 中括號表示 Ready
+                badge.classList.add('active');
+            } else {
+                badge.textContent = ''; badge.classList.remove('active'); 
+            }
+        } else if (displayList.length === 1) { 
+            // 如果剛好是選定的在彈，或者是別的在彈，就顯示 (樂器名)
+            badge.textContent = `(${displayList[0]})`; 
+            badge.classList.add('active'); 
+        } else { 
+            badge.textContent = `(混合輸出: ${displayList.length} 聲部)`; 
+            badge.classList.add('active'); 
+        }
+    },
+
     loop() {
         if (!this.ctx || !this.fftCtx) return;
-        const manager = window.WaveCode?.AudioManager || (window.WaveCodeAPI?.AudioManager); 
-        const analyser = manager?.analyser;
-
+        const analyser = this.analyser || 
+                        (window.AudioManager && window.AudioManager.analyser) || 
+                        (window.WaveCode && window.WaveCode.AudioManager && window.WaveCode.AudioManager.analyser);
         if (analyser) {
             const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Float32Array(bufferLength);
-            analyser.getFloatTimeDomainData(dataArray);
-            this._data = dataArray;
-
-            const fftArray = new Uint8Array(bufferLength);
-            analyser.getByteFrequencyData(fftArray);
-            this._fftData = Array.from(fftArray).map(v => v / 255);
-
+            if (!this._data || this._data.length !== bufferLength) this._data = new Float32Array(bufferLength);
+            analyser.getFloatTimeDomainData(this._data);
+            const fftArray = new Float32Array(bufferLength);
+            analyser.getFloatFrequencyData(fftArray);
+            const sensitivity = 20.0; 
+            this._fftData = Array.from(fftArray).map(db => {
+                if (db === -Infinity || db < -100) return 0;
+                return Math.pow(10, db / 20) * sensitivity;
+            });
             this._isClipped = false;
-            for (let i = 0; i < dataArray.length; i++) {
-                if (Math.abs(dataArray[i]) >= 0.99) { this._isClipped = true; break; }
-            }
+            for (let i = 0; i < this._data.length; i++) { if (Math.abs(this._data[i]) >= 0.99) { this._isClipped = true; break; } }
+            this._updateBadge();
             this.draw();
-        } else {
-            this.clear();
-        }
+        } else { this.clear(); }
         requestAnimationFrame(() => this.loop());
     },
 
     resize() {
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = rect.height * window.devicePixelRatio;
-        const fftRect = this.fftCanvas.getBoundingClientRect();
-        this.fftCanvas.width = fftRect.width * window.devicePixelRatio;
-        this.fftCanvas.height = fftRect.height * window.devicePixelRatio;
+        if (!this.canvas || !this.fftCanvas) return;
+        const r1 = this.canvas.getBoundingClientRect();
+        this.canvas.width = r1.width * window.devicePixelRatio;
+        this.canvas.height = r1.height * window.devicePixelRatio;
+        const r2 = this.fftCanvas.getBoundingClientRect();
+        this.fftCanvas.width = r2.width * window.devicePixelRatio;
+        this.fftCanvas.height = r2.height * window.devicePixelRatio;
     },
 
     clear() {
-        if (!this.ctx || !this.fftCtx) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.fftCtx.clearRect(0, 0, this.fftCanvas.width, this.fftCanvas.height);
+        if (this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (this.fftCtx) this.fftCtx.clearRect(0, 0, this.fftCanvas.width, this.fftCanvas.height);
     },
 
-    draw() {
-        if (!this.ctx || !this.fftCtx) return;
-        this.drawWaveform();
-        this.drawFFT();
-    },
+    draw() { if (this.ctx && this.fftCtx) { this.drawWaveform(); this.drawFFT(); } },
 
     drawWaveform() {
-        const ctx = this.ctx;
-        const w = this.canvas.width, h = this.canvas.height;
-        ctx.clearRect(0, 0, w, h);
-        if (!this._data || !this._data.length) return;
-
-        // --- 強力鎖定：最大正向斜率零交越點搜尋 ---
-        let offset = 0;
-        let maxSlope = -1;
-        const searchRange = Math.floor(this._data.length * 0.7);
-        for (let i = 1; i < searchRange; i++) {
+        const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
+        ctx.clearRect(0, 0, w, h); if (!this._data || !this._data.length) return;
+        let offset = 0, maxSlope = -1;
+        for (let i = 1; i < this._data.length * 0.7; i++) {
             if (this._data[i-1] < 0 && this._data[i] >= 0) {
-                const slope = this._data[i] - this._data[i-1];
-                if (slope > maxSlope) { maxSlope = slope; offset = i; }
+                const s = this._data[i] - this._data[i-1]; if (s > maxSlope) { maxSlope = s; offset = i; }
             }
         }
-        if (maxSlope < 0.001) offset = 0;
-
-        ctx.beginPath();
-        ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#75FB4C';
-        ctx.lineWidth = 2.5 * window.devicePixelRatio;
-        ctx.lineJoin = 'round';
-
-        // 僅繪製 1/4 的數據點以確保視覺焦點集中
-        const drawLength = Math.floor(this._data.length / 4);
-        const sliceWidth = w / drawLength;
-        let x = 0;
-        for (let i = 0; i < drawLength; i++) {
-            const v = this._data[offset + i] || 0;
-            const y = (h / 2) - (v * h / 2.2);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-            x += sliceWidth;
+        ctx.beginPath(); ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#75FB4C'; ctx.lineWidth = 2.5 * window.devicePixelRatio;
+        const len = Math.floor(this._data.length / 4), step = w / len;
+        for (let i = 0; i < len; i++) {
+            const v = this._data[offset + i] || 0; const y = (h / 2) - (v * h / 2.2);
+            if (i === 0) ctx.moveTo(0, y); else ctx.lineTo(i * step, y);
         }
         ctx.stroke();
-
-        if (this._isClipped) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.font = `bold ${14 * window.devicePixelRatio}px Inter`;
-            ctx.textAlign = 'right';
-            ctx.fillText('CLIP', w - 10, 20 * window.devicePixelRatio);
-        }
     },
 
     drawFFT() {
-        const ctx = this.fftCtx;
-        const w = this.fftCanvas.width, h = this.fftCanvas.height;
-        ctx.clearRect(0, 0, w, h);
-        if (!this._fftData || !this._fftData.length) return;
-
-        // --- 頻率範圍延伸至全音域 (約 20kHz) ---
-        const displayBins = 240; 
-        const dataToDraw = this._fftData.slice(0, displayBins);
-
-        const barWidth = w / dataToDraw.length;
-        const bottomPadding = 2 * window.devicePixelRatio;
-        const drawH = h - bottomPadding;
-        for (let i = 0; i < dataToDraw.length; i++) {
-            const val = Math.min(dataToDraw[i] * drawH * 1.15, drawH); 
-            const x = i * barWidth;
-            const y = drawH - val;
-            const hue = 200 + (i / dataToDraw.length) * 180;
-            ctx.fillStyle = `hsl(${hue}, 85%, 55%)`;
-            ctx.fillRect(x, y, barWidth - 0.5, val);
-            ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
-            ctx.fillRect(x, y, barWidth - 0.5, 1.2 * window.devicePixelRatio);
+        const ctx = this.fftCtx, w = this.fftCanvas.width, h = this.fftCanvas.height;
+        ctx.clearRect(0, 0, w, h); if (!this._fftData.length) return;
+        const bins = 240, data = this._fftData.slice(0, bins);
+        const barW = w / bins, drawH = h - 2 * window.devicePixelRatio;
+        for (let i = 0; i < bins; i++) {
+            const val = Math.min(drawH, data[i] * drawH); 
+            const x = i * barW, y = drawH - val;
+            const hue = 200 + (i / bins) * 180;
+            ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
+            ctx.fillRect(x, y, barW - 0.5, val);
+            ctx.fillStyle = `hsl(${hue}, 100%, 85%)`;
+            ctx.fillRect(x, y, barW - 0.5, 1.5 * window.devicePixelRatio);
         }
     }
 };
+
+window.Oscilloscope = Oscilloscope;
+export class Visualizer {
+    constructor(analyser) { Oscilloscope.init('oscilloscope', analyser); }
+    start() {} 
+}

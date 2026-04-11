@@ -1,8 +1,8 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_comment" id="IVayh8Na+d`if|D?fl^]" x="10" y="10">
-    <field name="COMMENT">此範例展示如何「演奏旋律與和弦」&amp;#10;&amp;#10;1. 【定義樂器】：Piano&amp;#10;2. 【定義和弦】&amp;#10;3. 使用【演奏旋律】進行旋律線</field>
+    <field name="TEXT">此範例展示如何「演奏旋律與和弦」&amp;#10;&amp;#10;1. 【定義樂器】：Piano&amp;#10;2. 【定義和弦】&amp;#10;3. 使用【演奏】與【播放旋律】進行旋律線&amp;#10;</field>
   </block>
-  <block type="wc_instrument" id="QBxK[Gwk24naGtcV{eNZ" x="10" y="150">
+  <block type="wc_instrument" id="QBxK[Gwk24naGtcV{eNZ" x="10" y="170">
     <field name="ID">Piano</field>
     <statement name="CHAIN">
       <block type="wc_component_osc" id="p/~Q24^c^)|~:9P(bx(L">
@@ -23,7 +23,43 @@
       </block>
     </statement>
   </block>
-  <block type="wc_init" id=".SJ$~_1ChTcr*psD`Z3$" x="10" y="350">
+  <block type="wc_master" id="+Oy95e`p7e]N~Mwh!EpO" x="10" y="370">
+    <statement name="CHAIN">
+      <block type="wc_comment" id="eT*VhwRV~/6V9i.j#i+V">
+        <field name="TEXT">由於和弦會疊加多個音，&amp;#10;可在【主輸出控制】中用【壓縮器】來壓縮音量避免破音。</field>
+        <next>
+          <block type="wc_effect_compressor" id="nD?T}ozc*I5o6*PcO1if">
+            <value name="THRESH">
+              <shadow type="math_number" id="[Nv:@($t0Y#[]sR*-/IQ">
+                <field name="NUM">-24</field>
+              </shadow>
+            </value>
+            <value name="RATIO">
+              <shadow type="math_number" id="P46bZbPq*M.xqaM1-ozD">
+                <field name="NUM">12</field>
+              </shadow>
+            </value>
+            <value name="ATTACK">
+              <shadow type="math_number" id="p~R9ZP?D3|Fw?Xt%O9)]">
+                <field name="NUM">0.003</field>
+              </shadow>
+            </value>
+            <value name="RELEASE">
+              <shadow type="math_number" id="bc!fYe/w,SrXa_=0=NHU">
+                <field name="NUM">0.25</field>
+              </shadow>
+            </value>
+            <value name="MAKEUP">
+              <shadow type="math_number" id="dmkV64,-^:;D~K76Uh@5">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id=".SJ$~_1ChTcr*psD`Z3$" x="10" y="630">
     <statement name="DO">
       <block type="wc_transport_set_bpm" id="yNr!22a3M^]=3r9+I6q7">
         <value name="BPM">
@@ -75,7 +111,7 @@
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="fx|D3Qjma/h*m%SI;2VW" x="10" y="630">
+  <block type="wc_perform" id="fx|D3Qjma/h*m%SI;2VW" x="10" y="910">
     <statement name="DO">
       <block type="wc_play_melody" id="4}vnVM|:[!lDIq7/9fNF">
         <field name="INSTRUMENT">Piano</field>

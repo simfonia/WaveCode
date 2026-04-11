@@ -198,7 +198,7 @@ function debouncedOrphanUpdate() {
 // --- 5. 系統啟動 ---
 setTimeout(async () => {
     mdiManager.addNewTab("未命名專案", true);
-    Updater.check('0.1.0');
+    Updater.check();
 }, 300);
 
 // 監聽 Rust 端的 Log

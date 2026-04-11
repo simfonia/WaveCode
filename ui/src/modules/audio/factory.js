@@ -5,13 +5,6 @@
 export const NodeFactory = {
     /**
      * 建立節點
-     * @param {AudioContext} ctx 上下文
-     * @param {Object} comp 組件定義
-     * @param {number|string} freqOrNote 基礎頻率或音名
-     * @param {AudioNode} lastNode 上一個節點
-     * @param {number} startTime 啟動時間
-     * @param {Object} AudioManager 全域管理員 (提供取樣資料)
-     * @param {Object} voice 聲部實體 (提供 velocity)
      */
     create(ctx, comp, freqOrNote, lastNode, startTime, AudioManager, voice) {
         let baseFreq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
@@ -23,26 +16,20 @@ export const NodeFactory = {
                 const waves = ['sine', 'sawtooth', 'square', 'triangle'];
                 const waveIdx = parseInt(comp.wave);
                 osc.type = isNaN(waveIdx) ? (comp.wave || 'sine') : (waves[waveIdx] || 'sine');
-                
                 osc.frequency.setValueAtTime(baseFreq, time);
                 osc.start(time);
-                
-                // --- 回歸標準增益 ---
                 const oscGain = ctx.createGain();
                 oscGain.gain.setValueAtTime(1.0, time); 
                 osc.connect(oscGain);
-
                 return { nodes: [osc, oscGain], output: oscGain };
             }
 
             case 'additive': {
                 const groupGain = ctx.createGain();
                 const nodes = [groupGain];
-                const waves = ['sine', 'sawtooth', 'square', 'triangle'];
                 comp.partials.forEach(p => {
                     const osc = ctx.createOscillator();
-                    const waveIdx = parseInt(p.wave);
-                    osc.type = isNaN(waveIdx) ? (p.wave || 'sine') : (waves[waveIdx] || 'sine');
+                    osc.type = p.wave || 'sine';
                     osc.frequency.setValueAtTime(baseFreq * (parseFloat(p.ratio) || 1), time);
                     const pGain = ctx.createGain();
                     pGain.gain.setValueAtTime(parseFloat(p.amp) || 0, time);
@@ -51,10 +38,8 @@ export const NodeFactory = {
                     osc.start(time);
                     nodes.push(osc, pGain);
                 });
-                
-                // --- 回歸標準增益 ---
                 const boost = ctx.createGain();
-                boost.gain.value = 1.0;
+                boost.gain.setValueAtTime(1.0, time);
                 groupGain.connect(boost);
                 nodes.push(boost);
                 return { nodes, output: boost };
@@ -62,25 +47,24 @@ export const NodeFactory = {
 
             case 'adsr': {
                 const env = ctx.createGain();
-                const a = Math.max(0.001, parseFloat(comp.a) || 0.01);
-                const d = Math.max(0.001, parseFloat(comp.d) || 0.1);
+                const a = Math.max(0.005, parseFloat(comp.a) || 0.01);
+                const d = Math.max(0.005, parseFloat(comp.d) || 0.1);
                 const s = (typeof comp.s !== 'undefined') ? parseFloat(comp.s) : 0.5;
-                const r = parseFloat(comp.r) || 0.1;
-                const velocity = (voice && typeof voice.velocity === 'number') ? voice.velocity : 1.0;
-
-                env.gain.cancelScheduledValues(time);
-                env.gain.setValueAtTime(0, time);
-                // 峰值回歸到 velocity (1.0)
-                env.gain.linearRampToValueAtTime(velocity, time + a);
-                env.gain.linearRampToValueAtTime(s * velocity, time + a + d);
-                
+                const r = Math.max(0.005, parseFloat(comp.r) || 0.1);
+                let velocity = (voice && typeof voice.velocity === 'number') ? voice.velocity : 1.0;
+                if (velocity < 0.001) velocity = 1.0; 
+                const rampStart = time;
+                env.gain.cancelScheduledValues(rampStart);
+                env.gain.setValueAtTime(0, rampStart);
+                env.gain.linearRampToValueAtTime(velocity, rampStart + a);
+                env.gain.linearRampToValueAtTime(s * velocity, rampStart + a + d);
                 if (lastNode) lastNode.connect(env);
                 return { nodes: [env], output: env, isEnv: true };
             }
 
             case 'filter': {
                 const filter = ctx.createBiquadFilter();
-                filter.type = (comp.kind === 'HP') ? 'highpass' : 'lowpass';
+                filter.type = comp.kind === 'HP' ? 'highpass' : 'lowpass';
                 filter.frequency.setValueAtTime(parseFloat(comp.freq) || 1000, time);
                 filter.Q.setValueAtTime(parseFloat(comp.q) || 1, time);
                 if (lastNode) lastNode.connect(filter);
@@ -90,40 +74,29 @@ export const NodeFactory = {
             case 'volume': {
                 const gain = ctx.createGain();
                 const rawVal = comp.VOLUME ?? comp.VOL ?? comp.val ?? comp.gain ?? 100;
-                let numVal = parseFloat(rawVal);
-                if (isNaN(numVal)) numVal = 100;
-                
-                // --- 100% 映射回 1.0 ---
-                const baseVol = numVal / 100;
+                const targetVol = parseFloat(rawVal) / 100;
                 gain.gain.cancelScheduledValues(time);
-                gain.gain.setValueAtTime(baseVol, time);
-                
+                gain.gain.setTargetAtTime(targetVol, time, 0.02);
                 if (lastNode) lastNode.connect(gain);
                 return { nodes: [gain], output: gain };
             }
 
             case 'effect': {
                 const effectType = comp.effect_type;
-                let nodes = [];
-                let output = null;
-                let namedNodes = {};
-
+                let nodes = [], output = null, namedNodes = {};
                 if (effectType === 'filter') {
                     const filter = ctx.createBiquadFilter();
                     filter.type = comp.filter_type || 'lowpass';
                     filter.frequency.setValueAtTime(parseFloat(comp.freq) || 1000, time);
                     filter.Q.setValueAtTime(parseFloat(comp.q) || 1, time);
-                    nodes.push(filter);
-                    output = filter;
+                    nodes.push(filter); output = filter;
                 } else if (effectType === 'delay') {
                     const delay = ctx.createDelay(5.0);
                     delay.delayTime.setValueAtTime(parseFloat(comp.delay_time) || 0.5, time);
                     const feedback = ctx.createGain();
                     feedback.gain.setValueAtTime(parseFloat(comp.feedback) || 0.5, time);
-                    delay.connect(feedback);
-                    feedback.connect(delay);
-                    nodes.push(delay, feedback);
-                    output = delay;
+                    delay.connect(feedback); feedback.connect(delay);
+                    nodes.push(delay, feedback); output = delay;
                     namedNodes = { delay, feedback };
                 } else if (effectType === 'compressor') {
                     const compNode = ctx.createDynamicsCompressor();
@@ -135,53 +108,47 @@ export const NodeFactory = {
                     const makeup = ctx.createGain();
                     makeup.gain.value = Math.pow(10, (parseFloat(comp.makeup) || 0) / 20);
                     compNode.connect(makeup);
-                    nodes.push(compNode, makeup);
-                    output = makeup;
+                    nodes.push(compNode, makeup); output = makeup;
                 } else if (effectType === 'distortion') {
                     const shaper = ctx.createWaveShaper();
                     shaper.curve = this.makeDistortionCurve(parseFloat(comp.distortion) || 10);
                     shaper.oversample = '4x';
-                    nodes.push(shaper);
-                    output = shaper;
+                    nodes.push(shaper); output = shaper;
                 }
-
-                if (output && lastNode) {
-                    lastNode.connect(nodes[0]);
-                }
+                if (output && lastNode) lastNode.connect(nodes[0]);
                 return { nodes, output };
             }
 
             case 'sampler': {
                 if (!AudioManager || !AudioManager.samples) return null;
-                let buffer = null;
-                let playbackRate = 1.0;
-                if (comp.sample_id === 'piano' || comp.sample_id === 'violin_pizz' || comp.sample_id === 'violin_sust') {
-                    const prefix = comp.sample_id === 'piano' ? 'piano' : (comp.sample_id === 'violin_pizz' ? 'pizzicato' : 'vibrato-sustain');
+                let buffer = null, playbackRate = 1.0;
+                const isPiano = comp.sample_id === 'piano';
+                if (isPiano || comp.sample_id === 'violin_pizz' || comp.sample_id === 'violin_sust') {
+                    const prefix = isPiano ? 'piano' : (comp.sample_id === 'violin_pizz' ? 'pizzicato' : 'vibrato-sustain');
                     const bestMatch = this.findBestSample(AudioManager.samples, prefix, baseFreq);
-                    if (bestMatch) {
-                        buffer = bestMatch.buffer;
-                        playbackRate = bestMatch.ratio;
-                    }
+                    if (bestMatch) { buffer = bestMatch.buffer; playbackRate = bestMatch.ratio; }
                 } else {
                     buffer = AudioManager.samples[comp.sample_id];
                 }
                 if (!buffer) return null;
 
+                const nodes = [];
                 const source = ctx.createBufferSource();
                 source.buffer = buffer;
                 source.playbackRate.value = playbackRate;
-                const velocity = voice ? (voice.velocity || 1) : 1;
+                nodes.push(source);
+
                 const gain = ctx.createGain();
-                // 取樣器通常比較小聲，保持 1.5 倍補償
-                gain.gain.value = 1.5 * velocity; 
+                gain.gain.setValueAtTime(1.5, time); 
                 source.connect(gain);
+                nodes.push(gain);
+
                 source.start(time);
-                if (lastNode) lastNode.connect(source);
-                return { nodes: [source, gain], output: gain };
+                if (lastNode) lastNode.connect(nodes[0]);
+                return { nodes, output: gain };
             }
 
-            default:
-                return null;
+            default: return null;
         }
     },
 
@@ -198,7 +165,9 @@ export const NodeFactory = {
             if (id.includes(prefix)) {
                 const parts = id.split('_');
                 const mid = this.noteToMidi(parts[parts.length - 1]);
-                const dist = Math.abs(targetMidi - mid);
+                let diff = targetMidi - mid;
+                // --- 激進懲罰：下移權重放大到 3.0 倍 ---
+                let dist = diff < 0 ? Math.abs(diff) * 3.0 : Math.abs(diff);
                 if (dist < bestDist) { bestDist = dist; bestId = id; rootMidi = mid; }
             }
         }

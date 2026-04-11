@@ -14,10 +14,11 @@ export class Voice {
         this.instId = null;
         this.freq = 0;
         this.nodes = [];
-        this.nodesMap = new Map(); // 新增：組件類型 -> Web Audio 節點 (用於實時更新)
+        this.nodesMap = new Map(); 
         this.envNode = null;
         this.adsr = null;
         this.releaseTimer = null;
+        this.gateNode = null; // 紀錄預設 gate
     }
 
     /**
@@ -30,9 +31,11 @@ export class Voice {
         this.freq = freq;
         this.velocity = (typeof velocity === 'number' && isFinite(velocity)) ? velocity : 1.0;
 
-        // --- 關鍵修正：深拷貝 Patch，防止多聲部競爭修改 ---
-        const patch = JSON.parse(JSON.stringify(originalPatch));
+        // --- 通知全域示波器 ---
+        const targetInstId = this.instId || 'unknown';
+        if (window.Oscilloscope) window.Oscilloscope.updateInstrumentStatus(targetInstId, true);
 
+        const patch = JSON.parse(JSON.stringify(originalPatch));
         let lastNode = null;
         
         patch.forEach(comp => {
@@ -40,85 +43,56 @@ export class Voice {
             if (result) {
                 if (result.nodes) {
                     this.nodes.push(...result.nodes);
-                    
-                    // --- 儲存節點以便後續更新 ---
                     const key = comp.type === 'effect' ? `effect_${comp.effect_type}` : comp.type;
-                    
                     if (result.namedNodes) {
-                        // 如果有具名子節點 (例如 delay/feedback)，分別儲存
-                        for (const name in result.namedNodes) {
-                            this.nodesMap.set(`${key}_${name}`, result.namedNodes[name]);
-                        }
-                        // 同時將主輸出存入基本 key
+                        for (const name in result.namedNodes) { this.nodesMap.set(`${key}_${name}`, result.namedNodes[name]); }
                         this.nodesMap.set(key, result.output);
-                    } else {
-                        this.nodesMap.set(key, result.output);
-                    }
+                    } else { this.nodesMap.set(key, result.output); }
                 }
                 if (result.output) lastNode = result.output;
-                if (result.isEnv) {
-                    this.envNode = result.output;
-                    this.adsr = comp;
-                }
+                if (result.isEnv) { this.envNode = result.output; this.adsr = comp; }
             }
         });
 
         if (lastNode) {
             if (!this.envNode) {
                 const gate = this.ctx.createGain();
-                gate.gain.setValueAtTime(1, startTime);
+                // 修正：當沒有 ADSR 時，由 Gate 負責套用力度 (Velocity)
+                gate.gain.setValueAtTime(this.velocity, startTime);
                 lastNode.connect(gate);
                 this.nodes.push(gate);
+                this.gateNode = gate;
                 lastNode = gate;
+            } else {
+                this.gateNode = null;
             }
             lastNode.connect(this.destination);
         }
     }
 
-    /**
-     * 即時更新聲部內的組件參數 (如變動濾波頻率)
-     */
     updateParam(compType, paramName, val) {
-        // --- 智慧 Key 匹配 ---
-        // 優先嘗試效果器前綴 (如 effect_filter)，若找不到則嘗試原始類型 (如 volume)
         const effectKey = `effect_${compType}`;
         const node = this.nodesMap.get(effectKey) || this.nodesMap.get(compType);
-        
         if (!node) return;
         const now = this.ctx.currentTime;
-
-        // 映射積木參數名到 Web Audio AudioParam 名稱
         if (compType === 'filter') {
-            if (paramName === 'freq' || paramName === 'frequency') {
-                node.frequency.setTargetAtTime(val, now, 0.05); 
-            } else if (paramName === 'q' || paramName === 'Q') {
-                node.Q.setTargetAtTime(val, now, 0.05);
-            }
+            if (paramName === 'freq' || paramName === 'frequency') { node.frequency.setTargetAtTime(val, now, 0.05); }
+            else if (paramName === 'q' || paramName === 'Q') { node.Q.setTargetAtTime(val, now, 0.05); }
         } else if (compType === 'volume') {
-            if (paramName === 'val' || paramName === 'VOL') {
-                const gain = val / 100;
-                node.gain.setTargetAtTime(gain, now, 0.05);
-            }
+            if (paramName === 'val' || paramName === 'VOL') { node.gain.setTargetAtTime(val / 100, now, 0.05); }
         } else if (compType === 'delay') {
-            // Delay 比較特殊，它在 nodesMap 中可能有子節點
             const delayNode = this.nodesMap.get(`${effectKey}_delay`) || node;
-            if (paramName === 'time' || paramName === 'delay_time') {
-                delayNode.delayTime.setTargetAtTime(val, now, 0.05);
-            } else if (paramName === 'feedback') {
+            if (paramName === 'time' || paramName === 'delay_time') { delayNode.delayTime.setTargetAtTime(val, now, 0.05); }
+            else if (paramName === 'feedback') {
                 const feedbackNode = this.nodesMap.get(`${effectKey}_feedback`);
                 if (feedbackNode) feedbackNode.gain.setTargetAtTime(val, now, 0.05);
             }
         }
     }
 
-    /**
-     * 釋放音符
-     * @param {number} startTime 釋放時間
-     */
     release(startTime) {
         if (!this.active || this.releasing) return;
         this.releasing = true; 
-
         const now = this.ctx.currentTime;
         const isImmediate = (!startTime || startTime <= now);
         const time = isImmediate ? now : startTime;
@@ -126,54 +100,40 @@ export class Voice {
         if (this.envNode && this.adsr) {
             try {
                 this.envNode.gain.cancelScheduledValues(time);
-
-                let startVal;
-                if (isImmediate) {
-                    startVal = Math.max(0.0001, this.envNode.gain.value);
-                } else {
-                    const a = this.adsr.a || 0.01;
-                    const d = this.adsr.d || 0.1;
-                    const s = (typeof this.adsr.s === 'number') ? this.adsr.s : 0.5;
-                    const isPastAD = time >= (now + a + d);
-                    startVal = Math.max(0.0001, isPastAD ? s : 1.0);
-                }
-
-                if (!isFinite(startVal)) startVal = 0.5;
-                if (!isFinite(time)) return;
-
+                // 取得目前音量作為 Release 起點
+                let startVal = isImmediate ? Math.max(0.0001, this.envNode.gain.value) : (this.adsr.s || 0.5) * this.velocity;
                 this.envNode.gain.setValueAtTime(startVal, time);
-
-                const r = this.adsr.r || 0.1;
+                const r = Math.max(0.005, this.adsr.r || 0.1);
                 this.envNode.gain.exponentialRampToValueAtTime(0.0001, time + r);
-
-                const durationToKill = (time - now) + r;
-                this.releaseTimer = setTimeout(() => {
-                    if (this.active) this.kill();
-                }, Math.max(0, durationToKill * 1000 + 200));
-            } catch (e) {
-                console.warn("Voice: Release 執行失敗", e);
-                this.kill();
-            }
-        } else {
-            this.kill();
-        }
+                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + r) * 1000 + 100));
+            } catch (e) { this.kill(); }
+        } else if (this.gateNode) {
+            // --- 關鍵修正：實施隱形安全淡出 (De-clicking) ---
+            try {
+                this.gateNode.gain.cancelScheduledValues(time);
+                let startVal = isImmediate ? Math.max(0.0001, this.gateNode.gain.value) : this.velocity;
+                this.gateNode.gain.setValueAtTime(startVal, time);
+                // 5毫秒的淡出足以消除爆音且耳朵幾乎聽不出延遲
+                const safetyRelease = 0.005; 
+                this.gateNode.gain.exponentialRampToValueAtTime(0.0001, time + safetyRelease);
+                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + safetyRelease) * 1000 + 50));
+            } catch (e) { this.kill(); }
+        } else { this.kill(); }
     }
 
     kill() {
-        if (this.releaseTimer) {
-            clearTimeout(this.releaseTimer);
-            this.releaseTimer = null;
-        }
+        if (this.releaseTimer) { clearTimeout(this.releaseTimer); this.releaseTimer = null; }
+        
+        // --- 通知示波器樂器已關閉 ---
+        if (window.Oscilloscope) window.Oscilloscope.updateInstrumentStatus(this.instId, false);
+
         this.active = false;
         this.releasing = false;
-        this.nodes.forEach(node => {
-            try {
-                node.disconnect();
-                if (node.stop) node.stop();
-            } catch (e) {}
-        });
+        this.nodes.forEach(node => { try { node.disconnect(); if (node.stop) node.stop(); } catch (e) {} });
         this.nodes = [];
+        this.nodesMap.clear();
         this.envNode = null;
         this.adsr = null;
+        this.gateNode = null;
     }
 }

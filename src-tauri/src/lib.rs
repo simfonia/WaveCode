@@ -383,6 +383,11 @@ fn scan_samples_to_list(dir: &std::path::Path, results: &mut Vec<SampleInfo>, pr
     }
 }
 
+#[tauri::command]
+fn get_version(app_handle: tauri::AppHandle) -> String {
+    app_handle.package_info().version.to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -405,7 +410,7 @@ pub fn run() {
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
         save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
         set_master_volume, log, list_samples_recursive, read_sample_file, decode_audio_to_pcm,
-        list_serial_ports, open_serial, close_serial
+        list_serial_ports, open_serial, close_serial, get_version
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

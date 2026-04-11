@@ -1,0 +1,55 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_instrument" id="nj+[:~Z8o3JKsuaz3GLo" x="50" y="50">
+    <field name="ID">my_piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="LhM@d(L8?J=XaeetdPwy">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HANDCLP1</field>
+        <next>
+          <block type="wc_component_osc" id="-9icG;syJMs^X]$V^(+e" disabled-reasons="MANUALLY_DISABLED">
+            <field name="WAVE">0</field>
+            <next>
+              <block type="wc_component_adsr" id="K%@MO$7On,T4SyMfqHhS">
+                <field name="A">0.05</field>
+                <field name="D">0.2</field>
+                <field name="S">0.5</field>
+                <field name="R">0.5</field>
+                <next>
+                  <block type="wc_component_volume" id="Oap/{CActP~hRyj$Tx]O">
+                    <field name="VOL">80</field>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_loop" id="/kw;K)Tic4ATtb)TUP53" x="50" y="310">
+    <field name="INTERVAL">3</field>
+    <statement name="DO">
+      <block type="wc_rhythm_v2" id="L,2@lGv(eGla%uo0hDjr">
+        <mutation items="1"></mutation>
+        <field name="MEASURE">1</field>
+        <field name="BEATS">4</field>
+        <field name="RESOLUTION">4</field>
+        <field name="INST0">my_piano</field>
+        <field name="VEL0">100</field>
+        <field name="MODE0">FALSE</field>
+        <field name="PATTERN0">x--- x--- x--- x---</field>
+        <next>
+          <block type="wc_rhythm_v2" id="g5*bL+RsBRd5GjM9WX#p">
+            <mutation items="1"></mutation>
+            <field name="MEASURE">3</field>
+            <field name="BEATS">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">my_piano</field>
+            <field name="VEL0">100</field>
+            <field name="MODE0">FALSE</field>
+            <field name="PATTERN0">x--- x--- x--- x---</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

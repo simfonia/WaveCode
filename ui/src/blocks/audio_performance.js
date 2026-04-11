@@ -314,7 +314,7 @@ Blockly.Blocks['wc_rhythm_v2'] = {
   init: function() {
     this.jsonInit({
       "type": "wc_rhythm_v2",
-      "message0": "進階序列器：第 %1 小節開始, 每小節 %2 拍, 解析度 %3",
+      "message0": "進階序列器：第 %1 小節開始, 每小節 %2 拍, 每拍 %3 等分",
       "args0": [
         { "type": "field_input", "name": "MEASURE", "text": "1" },
         { "type": "field_input", "name": "BEATS", "text": "4" },
@@ -323,6 +323,7 @@ Blockly.Blocks['wc_rhythm_v2'] = {
       "previousStatement": null,
       "nextStatement": null,
       "colour": "%{BKY_PERFORMANCE_HUE}",
+      "tooltip": "音序器配置。設定每一拍要分割成幾份（例如：4 代表 16 分音符，1 小節 4 拍共計 16 個節奏點）。節奏格式：x 代表發聲，. 代表靜音，- 代表連音。",
       "mutator": "wc_rhythm_v2_mutator"
     });
     this.itemCount_ = 0;

@@ -186,12 +186,19 @@ Blockly.JavaScript.forBlock['wc_rhythm_v2'] = function(block) {
   const beats = block.getFieldValue('BEATS') || '4';
   const res = block.getFieldValue('RESOLUTION') || '4';
   let code = "";
+  
+  // 1. 同步啟動所有音軌的排程
   for (let i = 0; i < block.itemCount_; i++) {
     const inst = block.getFieldValue('INST' + i) || "none";
     const vel = block.getFieldValue('VEL' + i) || "100";
     const isChord = block.getFieldValue('MODE' + i) === 'TRUE';
     const pattern = block.getFieldValue('PATTERN' + i) || "";
-    code += `await WaveCode.playRhythmV2("${inst}", "${pattern}", ${beats}, ${res}, ${vel}, ${isChord}, ${measure});\n`;
+    // 修正：補上 ${measure} 參數
+    code += `WaveCode.playRhythmV2("${inst}", "${pattern}", ${beats}, ${res}, ${vel}, ${isChord}, ${measure});\n`;
   }
+  
+  // 2. 統一等待
+  code += `await WaveCode.waitMusical(${beats}, "BEATS");\n`;
+  
   return code;
 };

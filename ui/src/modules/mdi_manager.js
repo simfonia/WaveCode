@@ -147,6 +147,9 @@ export class MDIManager {
                     this.updateTabDirty(tabId, false); // 載入後強制重置為非 Dirty
                     Blockly.svgResize(workspace);
                     if (this.toolbarManager.onWorkspaceChanged) this.toolbarManager.onWorkspaceChanged();
+                    
+                    // --- 關鍵修正：載入完成後派發事件通知 KeyboardController ---
+                    window.dispatchEvent(new CustomEvent('mdi-tab-changed'));
                 }, 100);
             }, 50);
         }
@@ -230,6 +233,10 @@ export class MDIManager {
                 const keys = Object.keys(configs);
                 if (keys.length > 0) {
                     WaveCodeAPI.setCurrentInstrument(keys[0]);
+                    if (window.Oscilloscope) window.Oscilloscope.setSelectedInstrument(keys[0]);
+                } else {
+                    WaveCodeAPI.setCurrentInstrument('none');
+                    if (window.Oscilloscope) window.Oscilloscope.setSelectedInstrument('none');
                 }
             }
 
@@ -247,6 +254,9 @@ export class MDIManager {
                 }
 
                 if (this.toolbarManager.onWorkspaceChanged) this.toolbarManager.onWorkspaceChanged();
+                
+                // --- 關鍵修正：切換完成後通知全域 ---
+                window.dispatchEvent(new CustomEvent('mdi-tab-changed'));
             }, 50);
         }
     }

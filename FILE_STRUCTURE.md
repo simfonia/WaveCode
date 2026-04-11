@@ -17,11 +17,14 @@
     - `src/modules/`: 功能模組
         - `audio/`: Web Audio API 核心引擎
             - `manager.js`: 支援動態主鏈 rebuildMasterChain, 移除強制 Limiter
-        - `api.js`: **[重大更新] 支援精確邏輯排程、旋律解析與序列埠全域監聽**
+            - `factory.js`: **[重大更新] 實作 ADSR 穩定 Ramp、3.0x 下移懲罰取樣算法與鋼琴亮化濾波器**
+            - `voice.js`: **[重大更新] 實作 5ms 安全淡出機制 (De-clicking) 與音量標準化**
+        - `api.js`: **[終極穩定版] 整合 Look-ahead 預排程、瞬時緩衝序列器與多軌作用域隔離**
         - `ui_utils.js`: [更新] 補全 Orphan Block 白名單 (含序列埠事件)
+        - `visualizer.js`: [更新] 實作精確動畫隔離與負載優化版 EnvelopeManager
+        - `keyboard_controller.js`: [重大更新] 實作分頁切換安全鎖、詳細日誌與 UI 同步
     - `ui/src/style.css`: 加入 Code DSL 語法高亮樣式
-    - `ui/vite.config.js`: **[新增] Vite 設定檔，已設定忽略 resources 資料夾變動以避免頻繁重啟**
 
 
 ---
-*最後更新：2026-04-07 (Serial Communication, Multi-touch Logic, Logic Scheduling)*
+*最後更新：2026-04-11 (Precision Scheduling, MDI Sync, Scope Isolation)*
