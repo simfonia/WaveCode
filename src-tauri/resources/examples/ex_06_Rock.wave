@@ -64,19 +64,24 @@
           </shadow>
         </value>
         <next>
-          <block type="wc_count_in" id="K9n0sFJr(~pJfe4QVu`Z">
+          <block type="wc_count_in" id="n}=9rM/A5F/zBu;s#gmj">
             <value name="MEASURES">
-              <shadow type="math_number" id="NMwq@ojz6a`8BNm$Z`+f">
+              <shadow type="math_number" id="=3z{}f=|uqmAj2x,Ttn?">
                 <field name="NUM">1</field>
               </shadow>
             </value>
             <value name="BEATS">
-              <shadow type="math_number" id=":Q-@D__|?#-=P:sVT^m`">
+              <shadow type="math_number" id="0//0eP`i@aFRmoK@SY}Y">
+                <field name="NUM">4</field>
+              </shadow>
+            </value>
+            <value name="BEAT_UNIT">
+              <shadow type="math_number" id="cF`Xyt}9Iu0/pdUw5Rot">
                 <field name="NUM">4</field>
               </shadow>
             </value>
             <value name="VELOCITY">
-              <shadow type="math_number" id="gE8hbZ-sZt6)aL71;~SU">
+              <shadow type="math_number" id="phQ)CE37,.7TdpIX_7_0">
                 <field name="NUM">100</field>
               </shadow>
             </value>
@@ -159,18 +164,19 @@
             <mutation items="3"></mutation>
             <field name="MEASURE">1</field>
             <field name="BEATS">4</field>
+            <field name="BEAT_UNIT">4</field>
             <field name="RESOLUTION">4</field>
             <field name="INST0">Kick</field>
             <field name="VEL0">100</field>
-            <field name="MODE0">FALSE</field>
+            <field name="MODE0">NOTE</field>
             <field name="PATTERN0">x--- .... x--- ....</field>
             <field name="INST1">Snare</field>
             <field name="VEL1">100</field>
-            <field name="MODE1">FALSE</field>
+            <field name="MODE1">NOTE</field>
             <field name="PATTERN1">.... x--- .... x---</field>
             <field name="INST2">HiHat_C</field>
             <field name="VEL2">10</field>
-            <field name="MODE2">FALSE</field>
+            <field name="MODE2">NOTE</field>
             <field name="PATTERN2">x-x- x-x- x-x- x-x-</field>
           </block>
         </statement>
@@ -179,18 +185,19 @@
             <mutation items="3"></mutation>
             <field name="MEASURE">2</field>
             <field name="BEATS">4</field>
+            <field name="BEAT_UNIT">4</field>
             <field name="RESOLUTION">4</field>
             <field name="INST0">Kick</field>
             <field name="VEL0">100</field>
-            <field name="MODE0">FALSE</field>
+            <field name="MODE0">NOTE</field>
             <field name="PATTERN0">x-x- x-x- x-x- x-x-</field>
             <field name="INST1">Snare</field>
             <field name="VEL1">100</field>
-            <field name="MODE1">FALSE</field>
+            <field name="MODE1">NOTE</field>
             <field name="PATTERN1">x-x- x-x- x-x- x-x-</field>
             <field name="INST2">Crash</field>
             <field name="VEL2">10</field>
-            <field name="MODE2">FALSE</field>
+            <field name="MODE2">NOTE</field>
             <field name="PATTERN2">---- ---- ---- --x-</field>
           </block>
         </next>
@@ -214,18 +221,19 @@
             <mutation items="3"></mutation>
             <field name="MEASURE">1</field>
             <field name="BEATS">4</field>
+            <field name="BEAT_UNIT">4</field>
             <field name="RESOLUTION">4</field>
             <field name="INST0">Kick</field>
             <field name="VEL0">100</field>
-            <field name="MODE0">FALSE</field>
+            <field name="MODE0">NOTE</field>
             <field name="PATTERN0">x--- .... x--- ....</field>
             <field name="INST1">Snare</field>
             <field name="VEL1">100</field>
-            <field name="MODE1">FALSE</field>
+            <field name="MODE1">NOTE</field>
             <field name="PATTERN1">.... x--- .... x---</field>
             <field name="INST2">HiHat_C</field>
             <field name="VEL2">10</field>
-            <field name="MODE2">FALSE</field>
+            <field name="MODE2">NOTE</field>
             <field name="PATTERN2">x-x- x-x- x-x- x-x-</field>
           </block>
         </statement>
@@ -234,18 +242,19 @@
             <mutation items="3"></mutation>
             <field name="MEASURE">4</field>
             <field name="BEATS">4</field>
+            <field name="BEAT_UNIT">4</field>
             <field name="RESOLUTION">4</field>
             <field name="INST0">Kick</field>
             <field name="VEL0">100</field>
-            <field name="MODE0">FALSE</field>
+            <field name="MODE0">NOTE</field>
             <field name="PATTERN0">x-x- x-x- x-x- x-x-</field>
             <field name="INST1">Snare</field>
             <field name="VEL1">100</field>
-            <field name="MODE1">FALSE</field>
+            <field name="MODE1">NOTE</field>
             <field name="PATTERN1">x-x- x-x- x-x- x-x-</field>
             <field name="INST2">Crash</field>
             <field name="VEL2">10</field>
-            <field name="MODE2">FALSE</field>
+            <field name="MODE2">NOTE</field>
             <field name="PATTERN2">---- ---- ---- --x-</field>
           </block>
         </next>

@@ -138,8 +138,9 @@ Blockly.JavaScript.forBlock['wc_wait_musical'] = function(block) {
 Blockly.JavaScript.forBlock['wc_count_in'] = function(block) {
   const measures = Blockly.JavaScript.valueToCode(block, 'MEASURES', Blockly.JavaScript.ORDER_ATOMIC) || '1';
   const beats = Blockly.JavaScript.valueToCode(block, 'BEATS', Blockly.JavaScript.ORDER_ATOMIC) || '4';
+  const beatUnit = Blockly.JavaScript.valueToCode(block, 'BEAT_UNIT', Blockly.JavaScript.ORDER_ATOMIC) || '4';
   const vel = Blockly.JavaScript.valueToCode(block, 'VELOCITY', Blockly.JavaScript.ORDER_ATOMIC) || '100';
-  return `await WaveCode.playCountIn(${measures}, ${beats}, ${vel});\n`;
+  return `await WaveCode.playCountIn(${measures}, ${beats}, ${beatUnit}, ${vel});\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_loop'] = function(block) {
@@ -184,6 +185,7 @@ Blockly.JavaScript.forBlock['wc_release_note'] = function(block) {
 Blockly.JavaScript.forBlock['wc_rhythm_v2'] = function(block) {
   const measure = block.getFieldValue('MEASURE') || '1';
   const beats = block.getFieldValue('BEATS') || '4';
+  const beatUnit = block.getFieldValue('BEAT_UNIT') || '4';
   const res = block.getFieldValue('RESOLUTION') || '4';
   let code = "";
   
@@ -191,14 +193,16 @@ Blockly.JavaScript.forBlock['wc_rhythm_v2'] = function(block) {
   for (let i = 0; i < block.itemCount_; i++) {
     const inst = block.getFieldValue('INST' + i) || "none";
     const vel = block.getFieldValue('VEL' + i) || "100";
-    const isChord = block.getFieldValue('MODE' + i) === 'TRUE';
+    const mode = block.getFieldValue('MODE' + i);
+    const isChord = (mode === 'CHORD' || mode === 'TRUE');
     const pattern = block.getFieldValue('PATTERN' + i) || "";
-    // 修正：補上 ${measure} 參數
-    code += `WaveCode.playRhythmV2("${inst}", "${pattern}", ${beats}, ${res}, ${vel}, ${isChord}, ${measure});\n`;
+    // 修正：補上 ${measure} 與 ${beatUnit} 參數
+    code += `WaveCode.playRhythmV2("${inst}", "${pattern}", ${beats}, ${res}, ${vel}, ${isChord}, ${measure}, ${beatUnit});\n`;
   }
   
-  // 2. 統一等待
-  code += `await WaveCode.waitMusical(${beats}, "BEATS");\n`;
+  // 2. 統一等待 (計算該小節的總拍數)
+  const totalBeats = parseFloat(beats) * (4 / parseFloat(beatUnit));
+  code += `await WaveCode.waitMusical(${totalBeats}, "BEATS");\n`;
   
   return code;
 };

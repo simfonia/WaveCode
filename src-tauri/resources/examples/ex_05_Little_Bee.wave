@@ -69,13 +69,13 @@
         <next>
           <block type="wc_play_melody" id="w*nICbX;bMzs2qg378ZS">
             <field name="INSTRUMENT">my_piano</field>
-            <field name="MELODY">C4E G4E E4E G4E C4E G4E E4E G4E&amp;#10;D4E G4E F4E G4E D4E G4E F4E G4E&amp;#10;C4E G4E E4E G4E D4E G4E F4E G4E&amp;#10;B3E G4E F4E G4E B3E G4E F4E G4E&amp;#10;</field>
+            <field name="MELODY">C4E:200 G4E E4E G4E C4E:200 G4E E4E G4E&amp;#10;D4E:200 G4E F4E G4E D4E:200 G4E F4E G4E&amp;#10;C4E:200 G4E E4E G4E D4E:200 G4E F4E G4E&amp;#10;B3E:200 G4E F4E G4E B3E:200 G4E F4E G4E&amp;#10;</field>
           </block>
         </next>
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="dJt^fSg}BZ8L,FOO6+#g" x="450" y="530">
+  <block type="wc_perform" id="dJt^fSg}BZ8L,FOO6+#g" x="490" y="530">
     <statement name="DO">
       <block type="wc_comment" id="5Sbf0RO%HgwhKJl4xrPU">
         <field name="TEXT">右手旋律</field>

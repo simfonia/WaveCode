@@ -54,28 +54,32 @@
     </div>
 
     <div class="type-box">
-        <h2>3. 演奏力度 (Velocity)</h2>
-        <p>力度範圍為 <span class="highlight">0 到 100</span>，這會直接影響：</p>
+        <h2>3. 演奏力度 (Velocity / Articulation)</h2>
+        <p>力度範圍為 <span class="highlight">0 到 100+</span>。在「演奏旋律清單」積木中，您可以使用後綴來精確控制個別音符的力度：</p>
         <ul>
-            <li><strong>ADSR 峰值</strong>：力度越高，音色的 Attack 頂點越響亮。</li>
-            <li><strong>取樣器音量</strong>：力度 100 會以取樣原始音量播放。</li>
-            <li><strong>音量組件</strong>：與樂器定義中的音量積木進行乘算。</li>
+            <li><strong>語法</strong>：<code>音名+時值:力度</code> 或 <code>音名+時值v力度</code></li>
+            <li><strong>範例</strong>：<code>C4Q:120</code> (重音)、<code>E4Qv60</code> (弱音)</li>
+        </ul>
+        <p><strong>力度會影響：</strong></p>
+        <ul>
+            <li><strong>ADSR 峰值</strong>：力度越高，Attack 頂點越響亮。</li>
+            <li><strong>取樣器音量</strong>：與樂器定義中的音量積木進行乘算。</li>
         </ul>
     </div>
 
     <div class="tip">
         <strong>💡 專業小技巧：</strong><br>
-        「演奏旋律清單」積木支援 <code>音名+時值代碼</code> 的混合寫法，中間用空格或逗號隔開。
+        「演奏旋律清單」積木中，每一個音符事件內部<b>不可包含空白</b>。請將音名、時值與力度緊連在一起（如 <code>C4Q:120</code>），並使用空格或逗號來區隔不同的音符。
     </div>
 
     <div class="type-box">
         <h2>4. 語法範例</h2>
         <div class="example">
-// 基本四分音符 (1拍)
-C4 Q
+// 基本四分音符 (音名與時值連寫)
+C4Q
 
-// 帶有力度的八分音符 (0.5拍)
-G3 E 80
+// 帶有力度的八分音符
+G3E:80
 
 // 複雜的旋律清單語法 (playMelody)
 C4Q E4Q G4H R Q C5W // C大三和弦分解音 -> 休止 -> 高音C全音符</div>

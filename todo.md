@@ -1,32 +1,30 @@
-# WaveCode 專案任務清單 (TODO)
+# WaveCode 任務清單 (Todo List)
 
-## 核心引擎 (Engine)
-- [x] 整合 Web Audio API 複音架構 (Polyphony)。
-- [x] 實作 Master Bus 主輸出總線。
-- [x] 實作精確的 `playbackTime` 排程系統。
-- [x] 實作樂器參數即時調變 (Real-time Modulation)。
-- [x] 實作取樣器 (Sampler) 資源載入流程。
-- [x] 修復範例選單與開檔/切換分頁時的樂器名稱顯示。
-- [x] 移植#nyx演奏積木群 (拍數/力度/和弦整合)。
-- [x] 實作多軌並行 (Multi-track) 數據隔離與獨立排程。
-- [ ] 撰寫側邊面板各分類的 HTML 說明文件 (進行中：已完成 melody)。
-- [ ] 實作錄音與 WAV 匯出功能。
-- [ ] 實作取樣庫管理器與預覽按鈕。
+## [當前目標] 轉生計畫：Web Audio API 混合架構
+(目前專注於錄音功能與文檔補完)
 
-## 硬體整合 (Hardware)
-- [x] 實作 Rust 序列埠 (Serial) 讀取與推送。
-- [x] 實作 `math_map` 映射積木與邊緣偵測邏輯。
-- [x] 驗證 LDR 光控哇哇音 (Wah-wah) 實體範例。
+## [已完成]
+- [x] **[C] Rust 後端角色轉型 (Rust Backend Transition)**
+    - [x] 強化「取樣資源伺服器」：優化大量 Sample 檔案的載入與並行解碼效率。
+- [x] **[E] 系統與 UI 強化**
+    - [x] 實作 MDI 多文件分頁管理系統。
+    - [x] 實作全域搜尋引擎 2.0 (支援影子積木與中文)。
+    - [x] 實作跨分頁積木複製貼上功能 (Ctrl+C/V)。
+- [x] **[A] 音訊引擎標準化 (2026-04-11)**
+    - [x] 修復 Sampler 與 ADSR 音量基準不對等問題。
+    - [x] 實作 5ms 安全淡出 (De-clicking) 消除爆音。
+    - [x] 實作 Look-ahead (150ms) 預排程引擎，解決多軌漂移。
+    - [x] 修復取樣器音量控制 Bypass 問題。
+- [x] **[S] 演奏系統升級**
+    - [x] 萬用音序器 (支援音名、和弦、不分大小寫、連音)。
+    - [x] 支援自定義拍號分母 (Time Signature)。
+    - [x] 實作精密小節對位系統 (_contextStartTime)。
+    - [x] 旋律譜支援力度標註 (:120)。
+- [x] **[D] 文件與效能**
+    - [x] 補完 `sequencer`, `melody`, `effects`, `master` 說明文件。
+    - [x] 示波器 30fps 渲染節流優化。
 
-## UI/UX 強化
-- [x] 實作 MDI 多分頁管理系統。
-- [x] 增強積木搜尋引擎 (支援中文、影子積木、圓角發光樣式)。
-- [x] 修正開檔即 Dirty 的時序問題。
-
-## 部署與文件 (DevOps)
-- [x] 修正 Tauri 打包配置 (Config/Cargo)。
-- [x] 整合 Release 版開發者工具開啟機制。
-- [x] 確認獨立執行檔打包流程。
-
----
-*最後更新：2026-04-09 18:00*
+## [未來規畫]
+- [ ] 實作錄音功能 (將 Web Audio 流匯出為 WAV)。
+- [ ] 支援多採樣點對應 (Multi-sampling Mapping)。
+- [ ] 實作空間效果器 (Reverb)。

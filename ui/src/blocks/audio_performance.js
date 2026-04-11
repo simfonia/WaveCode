@@ -250,17 +250,17 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "wc_count_in",
-    "message0": "預備拍：播放 %1 小節，每小節 %2 拍 (音量 %3)",
+    "message0": "預備拍：播放 %1 小節，拍號 %2 / %3 (音量 %4)",
     "args0": [
       { "type": "input_value", "name": "MEASURES", "check": "Number" },
       { "type": "input_value", "name": "BEATS", "check": "Number" },
+      { "type": "input_value", "name": "BEAT_UNIT", "check": "Number" },
       { "type": "input_value", "name": "VELOCITY", "check": "Number" }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "inputsInline": true,
     "colour": "%{BKY_PERFORMANCE_HUE}",
-    "tooltip": "播放 Click 預備拍，並將後續所有背景音軌同步推遲。適合現場演奏對齊拍點。"
+    "tooltip": "播放 Click 預備拍。系統會根據拍號自動調整速度。適合現場演奏對齊拍點。"
   },
   {
     "type": "wc_loop",
@@ -314,16 +314,18 @@ Blockly.Blocks['wc_rhythm_v2'] = {
   init: function() {
     this.jsonInit({
       "type": "wc_rhythm_v2",
-      "message0": "進階序列器：第 %1 小節開始, 每小節 %2 拍, 每拍 %3 等分",
+      "message0": "進階序列器：第 %1 小節開始, 拍號 %2 / %3, 每拍 %4 等分",
       "args0": [
         { "type": "field_input", "name": "MEASURE", "text": "1" },
         { "type": "field_input", "name": "BEATS", "text": "4" },
+        { "type": "field_input", "name": "BEAT_UNIT", "text": "4" },
         { "type": "field_input", "name": "RESOLUTION", "text": "4" }
       ],
       "previousStatement": null,
       "nextStatement": null,
       "colour": "%{BKY_PERFORMANCE_HUE}",
-      "tooltip": "音序器配置。設定每一拍要分割成幾份（例如：4 代表 16 分音符，1 小節 4 拍共計 16 個節奏點）。節奏格式：x 代表發聲，. 代表靜音，- 代表連音。",
+      "tooltip": "音序器配置。拍號設定（如 3/4 拍）。每拍等分設定每一拍要分割成幾份。節奏格式：x 代表發聲，. 代表靜音，- 代表連音。",
+      "helpUrl": "sequencer",
       "mutator": "wc_rhythm_v2_mutator"
     });
     this.itemCount_ = 0;
@@ -375,8 +377,11 @@ Blockly.Extensions.registerMutator('wc_rhythm_v2_mutator', {
           .appendField(new Blockly.FieldDropdown([["(讀取中...)", "none"]]), "INST" + j)
           .appendField("音量")
           .appendField(new Blockly.FieldTextInput("100"), "VEL" + j)
-          .appendField("和弦")
-          .appendField(new Blockly.FieldCheckbox("FALSE"), "MODE" + j)
+          .appendField("模式")
+          .appendField(new Blockly.FieldDropdown([
+              ["單音/節奏", "NOTE"],
+              ["已定義和弦", "CHORD"]
+          ]), "MODE" + j)
           .appendField("節奏")
           .appendField(new Blockly.FieldTextInput("x . x ."), "PATTERN" + j);
       

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>進階序列器說明 - WaveCode</title>
+    <style>
+        :root { --primary-color: #E67E22; --bg-color: #1a1a20; --text-color: #ecf0f1; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; }
+        h1 { color: var(--primary-color); border-left: 5px solid var(--primary-color); padding-left: 15px; }
+        h2 { color: #f39c12; margin-top: 30px; border-bottom: 1px solid #34495e; padding-bottom: 5px; }
+        .code { background: #2c3e50; padding: 2px 5px; border-radius: 3px; font-family: monospace; color: #f1c40f; }
+        .example-box { background: #2c3e50; border: 1px solid #34495e; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #34495e; padding: 10px; text-align: left; }
+        th { background-color: #2c3e50; color: var(--primary-color); }
+        .highlight { color: var(--primary-color); font-weight: bold; }
+        .mode-diff { display: flex; gap: 20px; }
+        .mode-card { flex: 1; background: #24242b; padding: 15px; border-radius: 10px; border-top: 4px solid var(--primary-color); }
+    </style>
+</head>
+<body>
+    <h1>進階序列器 (Rhythm Sequencer V2)</h1>
+    <p>這是一個強大的多軌並行音序器，支援打擊樂、旋律音符與和弦排程。它能自動處理精確的時鐘對位與 Look-ahead 預排程。</p>
+
+    <h2>1. 模式區分 (Mode Selection)</h2>
+    <p>透過下拉選單，您可以決定音序器如何解析您的 Pattern 字串：</p>
+    <div class="mode-diff">
+        <div class="mode-card">
+            <h3>🎹 單音 / 節奏</h3>
+            <p>適用於單旋律或打擊樂。系統會將字串解析為單一頻率。</p>
+            <ul>
+                <li><span class="code">x</span> : 演奏預設音 (MIDI 60)。</li>
+                <li><span class="code">C4</span> : 演奏特定音高。</li>
+                <li><span class="code">eb5</span> : 支援不分大小寫音名。</li>
+            </ul>
+        </div>
+        <div class="mode-card">
+            <h3>🎸 已定義和弦</h3>
+            <p>適用於和弦進程。系統會尋找「定義和弦」積木中的名稱。</p>
+            <ul>
+                <li><span class="code">CM7</span> : 演奏已定義的和弦。</li>
+                <li><span class="code">Gadd9</span> : 支援複雜命名。</li>
+                <li><span class="code">x</span> : 此模式下視為 <span class="highlight">C和弦</span>。</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>2. 控制符號 (Control Tokens)</h2>
+    <div class="example-box">
+        <ul>
+            <li><span class="code">.</span> : 靜音 (Rest)。佔據一個等分步進但不發聲。</li>
+            <li><span class="code">-</span> : 延連音 (Sustain)。延長前一個音符的持續時間。</li>
+            <li><span class="code">|</span> : 分隔線。僅供視覺排版，解析時會被忽略。</li>
+            <li><span class="code">空格</span> : 分隔標記。建議使用空格區分多字元音名。</li>
+        </ul>
+    </div>
+
+    <h2>3. 範例示範 (Resolution: 4)</h2>
+    <p>以下假設拍號為 4/4，每拍 4 等分（全小節 16 點）：</p>
+    
+    <div class="example-box">
+        <span class="highlight">打擊樂：</span> <span class="code">x . . . | x . . . | x . . . | x . . .</span><br>
+        (大鼓在每一拍的第一點響起)
+    </div>
+
+    <div class="example-box">
+        <span class="highlight">旋律連音：</span> <span class="code">C4 - E4 - | G4 - . .</span><br>
+        (C4、E4、G4 各響 1 拍，最後一拍靜音)
+    </div>
+
+    <div class="example-box">
+        <span class="highlight">和弦進程：</span> <span class="code">Am7 - . . | Dm7 - . . | G7 - . . | C - . .</span><br>
+        (每小節更換一個和弦，持續 2 拍)
+    </div>
+
+    <h2>4. 提示事項</h2>
+    <ul>
+        <li>本積木為<span class="highlight">「非同步並行」</span>。同一個積木內的不同音軌會同時啟動。</li>
+        <li>利用「第 N 小節開始」可讓不同積木在時間軸上完美排隊。</li>
+        <li>若輸入格式混亂，系統會依序掃描符號並強制對位至物理步進。</li>
+    </ul>
+</body>
+</html>

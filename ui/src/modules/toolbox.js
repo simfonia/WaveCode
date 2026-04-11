@@ -229,6 +229,7 @@ export const WaveCodeToolbox = {
                     'inputs': {
                         'MEASURES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
                         'BEATS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
+                        'BEAT_UNIT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
                         'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
                     }
                 },
@@ -239,6 +240,7 @@ export const WaveCodeToolbox = {
                         'BPM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 120 } } }
                     }
                 },
+                { 'kind': 'block', 'type': 'wc_define_chord' }, // 新增：定義和弦
                 { 'kind': 'block', 'type': 'wc_select_current_instrument' },  // 選擇樂器
                 {
                     'kind': 'block',

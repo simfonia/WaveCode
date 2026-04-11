@@ -106,8 +106,61 @@ export const KeyboardController = {
         if (window.LogManager) window.LogManager.appendLog(`Keyboard: [${instId}]`, 'info');
     },
 
+    _globalClipboard: null,
+
     handleKeyDown: async (e) => {
         const isTyping = KeyboardController.isTyping();
+        
+        // --- 1. 跨分頁複製貼上處理 ---
+        if ((e.ctrlKey || e.metaKey) && !isTyping) {
+            const mdi = window.WaveCode.mdiManager;
+            const workspace = mdi ? mdi.getActiveWorkspace() : null;
+            if (!workspace) return;
+
+            // Ctrl + C (複製)
+            if (e.key === 'c' || e.key === 'C') {
+                // 【關鍵修正】如果目前有選取文字，優先允許複製文字而非積木
+                const textSelection = window.getSelection().toString();
+                if (textSelection && textSelection.length > 0) {
+                    return; // 讓事件冒泡給瀏覽器進行文字複製
+                }
+
+                const selected = Blockly.common.getSelected();
+                if (selected) {
+                    const xml = Blockly.Xml.blockToDom(selected);
+                    KeyboardController._globalClipboard = Blockly.Xml.domToText(xml);
+                    if (window.LogManager) window.LogManager.appendLog("Block copied to global clipboard.", "info");
+                    
+                    // 攔截事件防止內建複製
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                }
+                return;
+            }
+            // Ctrl + V (貼上)
+            if (e.key === 'v' || e.key === 'V') {
+                if (KeyboardController._globalClipboard) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    try {
+                        const xml = (Blockly.utils && Blockly.utils.xml) ? 
+                                    Blockly.utils.xml.textToDom(KeyboardController._globalClipboard) : 
+                                    Blockly.Xml.textToDom(KeyboardController._globalClipboard);
+                        const block = Blockly.Xml.domToBlock(xml, workspace);
+                        block.moveBy(20, 20);
+                        block.select();
+                        if (window.LogManager) window.LogManager.appendLog("Block pasted from global clipboard.", "info");
+                    } catch (err) {
+                        console.warn("Global paste failed:", err);
+                    }
+                }
+                return;
+            }
+        }
+
         if (e.ctrlKey && e.key === 'Enter') {
             if (document.activeElement) document.activeElement.blur();
             if (KeyboardController.runCallback) { e.preventDefault(); e.stopImmediatePropagation(); KeyboardController.runCallback(); }

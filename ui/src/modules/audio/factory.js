@@ -1,5 +1,6 @@
 /**
  * WaveCode Node Factory (Web Audio 排程版)
+ * 實施訊號路徑強化，解決 Volume 失控問題。
  */
 
 export const NodeFactory = {
@@ -13,14 +14,16 @@ export const NodeFactory = {
         switch (comp.type) {
             case 'osc': {
                 const osc = ctx.createOscillator();
-                const waves = ['sine', 'sawtooth', 'square', 'triangle'];
-                const waveIdx = parseInt(comp.wave);
-                osc.type = isNaN(waveIdx) ? (comp.wave || 'sine') : (waves[waveIdx] || 'sine');
+                osc.type = comp.wave || 'sine';
                 osc.frequency.setValueAtTime(baseFreq, time);
                 osc.start(time);
+                
                 const oscGain = ctx.createGain();
                 oscGain.gain.setValueAtTime(1.0, time); 
                 osc.connect(oscGain);
+
+                // 振盪器是源頭，如果前方有 lastNode，則進行混音
+                if (lastNode) lastNode.connect(oscGain);
                 return { nodes: [osc, oscGain], output: oscGain };
             }
 
@@ -41,6 +44,7 @@ export const NodeFactory = {
                 const boost = ctx.createGain();
                 boost.gain.setValueAtTime(1.0, time);
                 groupGain.connect(boost);
+                if (lastNode) lastNode.connect(boost);
                 nodes.push(boost);
                 return { nodes, output: boost };
             }
@@ -53,11 +57,13 @@ export const NodeFactory = {
                 const r = Math.max(0.005, parseFloat(comp.r) || 0.1);
                 let velocity = (voice && typeof voice.velocity === 'number') ? voice.velocity : 1.0;
                 if (velocity < 0.001) velocity = 1.0; 
-                const rampStart = time;
-                env.gain.cancelScheduledValues(rampStart);
-                env.gain.setValueAtTime(0, rampStart);
-                env.gain.linearRampToValueAtTime(velocity, rampStart + a);
-                env.gain.linearRampToValueAtTime(s * velocity, rampStart + a + d);
+                
+                env.gain.cancelScheduledValues(time);
+                env.gain.setValueAtTime(0, time);
+                env.gain.linearRampToValueAtTime(velocity, time + a);
+                env.gain.linearRampToValueAtTime(s * velocity, time + a + d);
+                
+                // ADSR 是處理器，必須接收上一級訊號
                 if (lastNode) lastNode.connect(env);
                 return { nodes: [env], output: env, isEnv: true };
             }
@@ -67,6 +73,7 @@ export const NodeFactory = {
                 filter.type = comp.kind === 'HP' ? 'highpass' : 'lowpass';
                 filter.frequency.setValueAtTime(parseFloat(comp.freq) || 1000, time);
                 filter.Q.setValueAtTime(parseFloat(comp.q) || 1, time);
+                
                 if (lastNode) lastNode.connect(filter);
                 return { nodes: [filter], output: filter };
             }
@@ -75,9 +82,14 @@ export const NodeFactory = {
                 const gain = ctx.createGain();
                 const rawVal = comp.VOLUME ?? comp.VOL ?? comp.val ?? comp.gain ?? 100;
                 const targetVol = parseFloat(rawVal) / 100;
+                
                 gain.gain.cancelScheduledValues(time);
-                gain.gain.setTargetAtTime(targetVol, time, 0.02);
-                if (lastNode) lastNode.connect(gain);
+                gain.gain.setValueAtTime(targetVol, time);
+                
+                // 關鍵：Volume 必須連接 lastNode
+                if (lastNode) {
+                    lastNode.connect(gain);
+                }
                 return { nodes: [gain], output: gain };
             }
 
@@ -138,14 +150,17 @@ export const NodeFactory = {
                 source.playbackRate.value = playbackRate;
                 nodes.push(source);
 
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(1.5, time); 
-                source.connect(gain);
-                nodes.push(gain);
+                const samplerGain = ctx.createGain();
+                samplerGain.gain.setValueAtTime(1.5, time); 
+                source.connect(samplerGain);
+                nodes.push(samplerGain);
+
+                // 如果取樣器前方有節點 (混音)，連接它
+                if (lastNode) lastNode.connect(samplerGain);
 
                 source.start(time);
-                if (lastNode) lastNode.connect(nodes[0]);
-                return { nodes, output: gain };
+                // 回傳 samplerGain 作為輸出，確保後續 Volume 能控制它
+                return { nodes, output: samplerGain };
             }
 
             default: return null;
@@ -166,7 +181,6 @@ export const NodeFactory = {
                 const parts = id.split('_');
                 const mid = this.noteToMidi(parts[parts.length - 1]);
                 let diff = targetMidi - mid;
-                // --- 激進懲罰：下移權重放大到 3.0 倍 ---
                 let dist = diff < 0 ? Math.abs(diff) * 3.0 : Math.abs(diff);
                 if (dist < bestDist) { bestDist = dist; bestId = id; rootMidi = mid; }
             }

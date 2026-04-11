@@ -480,6 +480,15 @@ export class ToolbarManager {
                     if (visual.render_) visual.render_();
                 }
             });
+
+            // --- 關鍵修正：加入視覺邊距補正 ---
+            if (this.workspace.getTopBlocks().length > 0) {
+                // 自動捲動到積木群，並加入間距補償
+                this.workspace.scrollX += 30;
+                this.workspace.scrollY += 30;
+                this.workspace.render();
+            }
+
             this.workspace.isClearing = false;
             this.setDirty(false); // 載入後強制標記為非 Dirty
         }, 150);

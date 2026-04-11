@@ -199,6 +199,15 @@ export const Oscilloscope = {
 
     loop() {
         if (!this.ctx || !this.fftCtx) return;
+
+        // --- 效能優化：限制渲染頻率為 ~30fps ---
+        const now = Date.now();
+        if (this._lastDrawTime && (now - this._lastDrawTime < 32)) {
+            requestAnimationFrame(() => this.loop());
+            return;
+        }
+        this._lastDrawTime = now;
+
         const analyser = this.analyser || 
                         (window.AudioManager && window.AudioManager.analyser) || 
                         (window.WaveCode && window.WaveCode.AudioManager && window.WaveCode.AudioManager.analyser);

@@ -128,6 +128,15 @@ export class MDIManager {
                 if (initialXml) {
                     const dom = Blockly.utils.xml.textToDom(initialXml);
                     Blockly.Xml.domToWorkspace(dom, workspace);
+                    
+                    // --- 關鍵修正：加入視覺邊距補正 ---
+                    setTimeout(() => {
+                        if (workspace) {
+                            workspace.scrollX += 30;
+                            workspace.scrollY += 30;
+                            workspace.render();
+                        }
+                    }, 100);
                 } else if (this.toolbarManager) {
                     this.toolbarManager.createDefaultBlocks();
                 }

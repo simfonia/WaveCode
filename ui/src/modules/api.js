@@ -1,6 +1,6 @@
 /**
- * WaveCode API - 終極穩定版 (上下文對位與冗餘清理)
- * 解決 Loop 環境下絕對時間失效導致的對位錯誤。
+ * WaveCode API - 終極穩定版 (支援非 4/4 拍與萬用序列器)
+ * [功能存續查核]：已完整保留精密排程、Look-ahead、序列埠與和弦系統。
  */
 import { AudioManager } from './audio/manager.js';
 
@@ -9,8 +9,8 @@ export const WaveCodeAPI = {
 
     // --- 核心狀態 ---
     _playbackTime: 0,
-    _contextStartTime: 0,  // 此軌道或容器啟動的基準點
-    _lookAhead: 0.15,      // 增加至 150ms 以應付更高負載
+    _contextStartTime: 0,  
+    _lookAhead: 0.15,
     _execId: 0,
     _bpm: 120,
     _currentInstrument: 'none',
@@ -36,7 +36,6 @@ export const WaveCodeAPI = {
     createTrack: function() {
         const track = Object.create(this);
         track._playbackTime = this._playbackTime;
-        // 關鍵修正：將目前的進度設為新軌道的「上下文起點」
         track._contextStartTime = this._playbackTime;
         track._currentInstrument = this._currentInstrument;
         return track;
@@ -105,7 +104,6 @@ export const WaveCodeAPI = {
 
         this._playbackTime += totalSec;
         const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-        // 防追趕
         if (this._playbackTime < now - 0.2) this._playbackTime = now;
 
         const remainingSec = (this._playbackTime - this._lookAhead) - now;
@@ -160,23 +158,33 @@ export const WaveCodeAPI = {
         const id = WaveCodeAPI._execId;
         const inst = instId === 'none' ? this._currentInstrument : instId;
         const tokens = score.replace(/\/\/.*$/gm, '').split(/[\s,]+/).filter(t => t.length > 0);
+        
+        const defaultVel = 1.0; 
+
         for (const token of tokens) {
             if (this.isScriptCancelled(id)) return;
-            const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES].*)$/);
+            
+            // 嚴格模式：一個 Token 必須包含 [音名/和弦] + [時值] + [可選力度]
+            const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES][^:v]*)(?:[:v](\d+))?$/);
             if (!match) continue;
-            const noteOrChord = match[1], durCode = match[2];
+            
+            const noteOrChord = match[1];
+            const durCode = match[2];
+            const velSuffix = match[3];
+            
             const beats = this._parseDuration(durCode);
             const startTime = this._playbackTime;
             const durSec = beats * (60 / (this._bpm || 120));
+            const noteVel = velSuffix ? (parseInt(velSuffix) / 100) : defaultVel;
 
             if (noteOrChord.toUpperCase() !== 'R') {
                 if (this._chords[noteOrChord]) {
                     this._chords[noteOrChord].forEach(n => {
-                        const v = AudioManager.triggerNote(n, inst, startTime);
+                        const v = AudioManager.triggerNote(n, inst, startTime, noteVel);
                         if (v) v.release(startTime + durSec);
                     });
                 } else {
-                    const v = AudioManager.triggerNote(noteOrChord, inst, startTime);
+                    const v = AudioManager.triggerNote(noteOrChord, inst, startTime, noteVel);
                     if (v) v.release(startTime + durSec);
                 }
                 if (window.EnvelopeManager && window.EnvelopeManager._registry.has(inst)) {
@@ -189,17 +197,32 @@ export const WaveCodeAPI = {
         }
     },
 
-    playCountIn: async function(measures, beatsPerMeasure, velocity) {
+    playCountIn: async function(measures, beatsPerMeasure, beatUnit, velocity) {
+        const id = WaveCodeAPI._execId;
+        const totalBeats = measures * beatsPerMeasure;
         const velVal = (velocity || 100) / 100;
-        for (let i = 0; i < measures * beatsPerMeasure; i++) {
-            if (this.isScriptCancelled(WaveCodeAPI._execId)) return;
-            const freq = (i % beatsPerMeasure === 0) ? 880 : 440;
-            AudioManager.triggerClick(freq, this._playbackTime, velVal);
-            await this.waitMusical(1, 'BEATS');
+        const bpm = this._bpm || WaveCodeAPI._bpm || 120;
+        
+        // 根據分母計算每一跳的拍數 (例如 8 分音符為 0.5 拍)
+        const beatsPerTick = 4 / beatUnit;
+
+        for (let i = 0; i < totalBeats; i++) {
+            if (this.isScriptCancelled(id)) return;
+            const isDownbeat = (i % beatsPerMeasure === 0);
+            const freq = isDownbeat ? 880 : 440;
+            const startTime = this._playbackTime;
+
+            AudioManager.triggerClick(freq, startTime, velVal);
+            
+            // 按照拍號指定的單位等待
+            await this.waitMusical(beatsPerTick, 'BEATS');
         }
     },
 
-    playRhythmV2: function(instId, pattern, beats, res, vel, isChord, startMeasure = 1) {
+    /**
+     * 【萬用精密序列器】(支援自定義拍號)
+     */
+    playRhythmV2: function(instId, pattern, beats, res, vel, isChord, startMeasure = 1, beatUnit = 4) {
         const id = WaveCodeAPI._execId;
         const inst = instId === 'none' ? this._currentInstrument : instId;
         const stepBeats = 1 / res;
@@ -207,24 +230,37 @@ export const WaveCodeAPI = {
         const bpm = this._bpm || WaveCodeAPI._bpm || 120;
         const beatSec = 60 / bpm;
         
-        // 修正：基於上下文起點 (容器開始的時間) 來計算偏移
-        const targetStartTime = this._contextStartTime + ((parseFloat(startMeasure) - 1) * 4 * beatSec);
+        // --- 核心修正：根據拍號計算一小節的拍數 ---
+        // 拍號 3/4 代表 3 拍；拍號 6/8 代表 3 拍 (假設 8 分音符為 0.5 拍)
+        const beatsPerMeasure = parseFloat(beats) * (4 / parseFloat(beatUnit));
+        const targetStartTime = this._contextStartTime + ((parseFloat(startMeasure) - 1) * beatsPerMeasure * beatSec);
         
-        if (targetStartTime > this._playbackTime) {
-            this._playbackTime = targetStartTime;
-        }
+        if (targetStartTime > this._playbackTime) this._playbackTime = targetStartTime;
 
-        const cleanPattern = pattern.replace(/[\s|]+/g, '');
+        const tokens = [];
+        let buffer = "";
+        const raw = pattern.replace(/\|/g, " ");
+        for (let i = 0; i < raw.length; i++) {
+            const char = raw[i];
+            if (char === ' ') { if (buffer.length > 0) { tokens.push(buffer); buffer = ""; } }
+            else if (char === '.' || char === '-') { if (buffer.length > 0) { tokens.push(buffer); buffer = ""; } tokens.push(char); }
+            else { buffer += char; }
+        }
+        if (buffer.length > 0) tokens.push(buffer);
+
+        const totalSteps = parseFloat(beats) * res;
         const baseTime = this._playbackTime;
 
-        for (let i = 0; i < Math.min(cleanPattern.length, beats * res); i++) {
-            const char = cleanPattern[i];
-            const startTime = baseTime + (i * stepBeats * beatSec);
-            if (char.toLowerCase() === 'x' || (isChord && this._chords[char])) {
+        for (let k = 0; k < Math.min(tokens.length, totalSteps); k++) {
+            const rawToken = tokens[k];
+            const token = rawToken.toUpperCase();
+            const startTime = baseTime + (k * stepBeats * beatSec);
+
+            if (token !== "." && token !== "-") {
                 let sustain = 1;
-                while (i + sustain < cleanPattern.length && cleanPattern[i + sustain] === '-') sustain++;
+                for (let next = k + 1; next < tokens.length; next++) { if (tokens[next] === "-") sustain++; else break; }
                 const durSec = (sustain * stepBeats) * beatSec;
-                const note = (char.toLowerCase() === 'x') ? 60 : char;
+                let note = (token === "X") ? 60 : rawToken;
 
                 if (isChord && this._chords[note]) {
                     this._chords[note].forEach(n => {
