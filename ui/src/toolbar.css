@@ -71,6 +71,28 @@ h1 { font-size: 16px; margin: 0; color: var(--nyx-purple); font-weight: 600; let
     filter: brightness(1.5) drop-shadow(0 0 10px var(--nyx-green-glow)) !important;
 }
 
+/* 錄音按鈕與閃爍動畫 */
+@keyframes record-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.icon-btn.is-recording img {
+    animation: record-pulse 1s infinite ease-in-out;
+    filter: brightness(1.5) drop-shadow(0 0 10px var(--nyx-red)) !important;
+}
+
+.record-timer {
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    color: #EA3323;
+    font-weight: bold;
+    margin-left: 2px;
+    min-width: 45px;
+    text-shadow: 0 0 5px rgba(234, 51, 35, 0.5);
+}
+
 /* Icon Filters */
 .nyx-icon-purple { filter: invert(47%) sepia(34%) saturate(1516%) hue-rotate(243deg) brightness(88%) contrast(85%); }
 .nyx-icon-green { filter: invert(61%) sepia(96%) saturate(394%) hue-rotate(95deg) brightness(97%) contrast(88%); }

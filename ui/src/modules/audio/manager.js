@@ -3,6 +3,7 @@
  */
 import { Voice } from './voice.js';
 import { Visualizer } from './visualizer.js';
+import { Recorder } from './recorder.js';
 
 export const AudioManager = {
     ctx: null,
@@ -51,6 +52,8 @@ export const AudioManager = {
             await this.loadSamples();
         }
 
+        Recorder.init(this.ctx);
+
         console.log("WaveCode Engine: Web Audio Manager Initialized");
     },
 
@@ -84,6 +87,11 @@ export const AudioManager = {
         // 3. 最後連接到 Analyser
         lastNode.connect(this.analyser);
         this.analyser.connect(this.ctx.destination);
+        
+        // --- 錄音機接入點 ---
+        if (Recorder.getInputNode()) {
+            this.analyser.connect(Recorder.getInputNode());
+        }
     },
 
     async loadSamples() {
@@ -248,5 +256,12 @@ export const AudioManager = {
         if (this.ctx) {
             this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
         }
+    },
+
+    /**
+     * 獲取當前正在發聲的通道數量
+     */
+    getActiveVoiceCount() {
+        return this.voices.filter(v => v.active).length;
     }
 };

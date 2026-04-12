@@ -23,10 +23,32 @@
             <div class="toolbar">
                 <div id="examples-btn" class="icon-btn" data-i18n-title="WAVECODE_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div id="open-btn" class="icon-btn" data-i18n-title="WAVECODE_OPEN"><img src="/icons/load_project_24dp_FE2F89.png" class="nyx-icon-purple"></div>
-                <div id="save-btn" class="icon-btn" data-i18n-title="WAVECODE_SAVE"><img src="/icons/save_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="save-btn" class="icon-btn" data-i18n-title="WAVECODE_SAVE"><img src="/icons/download_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div class="sep"></div>
                 <div id="run-btn" class="icon-btn" data-i18n-title="WAVECODE_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png" class="nyx-icon-green"></div>
                 <div id="stop-btn" class="icon-btn" data-i18n-title="WAVECODE_STOP"><img src="/icons/stop_24dp_EA3323.png" class="nyx-icon-red"></div>
+                <div class="sep"></div>
+                
+                <!-- 錄音控制群組 -->
+                <div id="record-control-group" style="display: flex; align-items: center;">
+                    <!-- 閒置狀態：顯示即時與連動按鈕 -->
+                    <div id="record-idle-wrapper" style="display: flex;">
+                        <div id="record-instant-btn" class="icon-btn" title="即時錄音 (隨按隨錄)">
+                            <img src="/icons/mic_24dp_FE2F89.png" class="nyx-icon-neon">
+                        </div>
+                        <div id="record-sync-btn" class="icon-btn" title="連動錄音 (自動執行程式，程式結束自動存檔)">
+                            <img src="/icons/mic_alert_24dp_FE2F89.png" class="nyx-icon-neon">
+                        </div>
+                    </div>
+                    <!-- 錄音中狀態：顯示統一的停止按鈕與計時器 -->
+                    <div id="record-active-wrapper" style="display: none; align-items: center;">
+                        <div id="stop-record-btn" class="icon-btn is-recording" title="停止錄音並存檔">
+                            <img src="/icons/mic_off_24dp_FE2F89.png" class="nyx-icon-red record-icon">
+                        </div>
+                        <div id="record-timer" class="record-timer">00:00</div>
+                    </div>
+                </div>
+                
                 <div class="sep"></div>
                 <div class="gain-control">
                     <img src="/icons/start_audio_24dp_FE2F89.png" class="nyx-icon-dim" style="width:24px; opacity:0.7;" title="總輸出增益">

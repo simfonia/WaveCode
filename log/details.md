@@ -1,31 +1,29 @@
 # WaveCode 技術細節紀錄 (Details)
 
-## 2026-03-08 ~ 2026-04-09 (略)
+## 2026-03-08 ~ 2026-04-11 (略)
 
-## 2026-04-11 (排程資源競爭、解析度歧義與音量鏈條攔截)
+## 2026-04-12 (錄音輸出穩定性、靜音偵測守衛與 UI 容器切換)
 
-### 1. 多軌並發下的時間指標踩踏 (Race Condition)
-- **問題**：原先 `playRhythmV2` 是一個帶有 `await` 的非同步循環。當兩個序列器同時運行，它們會同時修改同一個軌道物件的 `this._playbackTime`。
+### 1. 引擎重置下的錄音中斷 (Recording Break on Reset)
+- **問題**：在連動錄音模式下，`runBtn.onclick` 會先執行 `restartAudio()`。如果錄音機在 `restartAudio` 之前啟動，重置過程會銷毀舊的 `AudioContext` 導致錄音失敗。
 - **解決方案**：
-    - **瞬時緩衝 (Instant Buffering)**：取消函數內部的 `await`。在呼叫瞬間，預先根據 `baseTime` 計算出所有 16/32 個步進的 `startTime` 並一次性丟給 `AudioManager`。
-    - **主線等待**：改由積木產生器在末尾插入一個整體的 `await WaveCode.waitMusical(beats, "BEATS")`。這確保了軌道邏輯的序列性，同時保留了音訊的並行性。
+    - **延遲啟動**：在 `ToolbarManager` 中實作 `_syncRecordPending` 旗標。
+    - **時序控制**：點擊按鈕後先進入 UI 錄音狀態 -> 執行 `restartAudio` -> 在重置後的 `then` 回調中才正式呼叫 `Recorder.start()`。這保證了錄音機抓取的是全新的、穩定的串流。
 
-### 2. 音序器解析度 (Resolution) 認知落差
-- **問題**：使用者認為 Resolution 是「每小節」分割數，但開發者實作為「每拍」分割數。導致使用者輸入 16 時，節奏以 4 倍速狂飆。
-- **優化**：
-    - 更改積木標籤為「每拍 [ ] 等分」。
-    - 更新 Tooltip 詳細解釋：設定 4 代表 16 分音符（每拍 4 點）。
+### 2. 智慧靜音偵測的「啟動誤判」 (False Stop in Silence Polling)
+- **問題**：有些程式在啟動瞬間（例如載入 Sample 或初始化）發聲數為 0，會導致錄音剛開始就被判定為「結束」而自動結算。
+- **解決方案**：
+    - **播放偵測守衛 (hasPlayed Guard)**：引入一個 boolean 變數 `hasPlayed`。
+    - **邏輯門檻**：輪詢開始後，只有在偵測到 `activeVoiceCount > 0` (代表音樂真正開始響了) 之後，後續的 `activeVoiceCount === 0` 才被視為有效的結算信號。
 
-### 3. 跨分頁複製的事件干擾 (Event Bubbling)
-- **問題**：實作全域 `Ctrl+V` 時，積木會被貼上兩次。
-- **原因**：window 監聽器與 Blockly 內部監聽器同時響應。
-- **修正**：在 `KeyboardController` 處理完複製貼上後，強制執行 `e.preventDefault()`, `e.stopPropagation()` 與 `e.stopImmediatePropagation()`，徹底截斷事件鏈。
+### 3. OGG 格式在 Windows 上的播放異常 (Error 0xC00D3E8C)
+- **問題**：錄製完成的 OGG 檔案在 Windows 媒體播放器中顯示「時長為 0」或無法播放。
+- **原因**：MediaRecorder 產出的 Blob 有時缺少 Metadata 標記，且時長過短（< 1s）的檔案會被系統判定為毀損。
+- **修正**：
+    - **500ms 閾值**：在 `Recorder.stop()` 中加入檢查，若時長過短則取消匯出並提示。
+    - **MIME 強制標記**：在下載時使用 `new Blob([chunks], { type: 'audio/ogg' })` 強制重新封裝，幫助作業系統正確解讀。
 
-### 4. 樣本源節點旁路 (Node Bypass in Sampler)
-- **問題**：樂器定義中調整 `Volume` 積木對取樣器無效。
-- **診斷**：`NodeFactory.create('sampler', ...)` 之前的實作沒有正確連接到 `lastNode` 且回傳的 output 不具備排他性。
-- **修正**：封裝 `Sampler` 內部的 `GainNode` 作為唯一輸出，並強制 `if (lastNode) lastNode.connect(samplerGain)`。這保證了音頻訊號必須流過後續的 Volume 節點。
-
-### 5. 緩衝掃描解析演算法 (Buffer-scanning Parser)
-- **挑戰**：要同時支援音名 `C#4`、控制符 `.`、`-` 且不依賴空格。
-- **實作**：移植 HarmoNyx 算法。使用 `buffer` 字串累加字元，直到遇到控制符或空格才切分。這保證了每個標記都能精確對位到 $1/Resolution$ 的物理時間槽位。
+### 4. 工具列事件遺失與 MDI 相容性 (Event Loss in Replace)
+- **問題**：在頻繁使用 `replace` 修改 `toolbar_manager.js` 時，容易導致 `updateBtn` 或 `saveBtn` 等舊事件被意外刪除。
+- **診斷**：`replace` 的 `old_string` 範圍過大且不包含所有事件綁定。
+- **修正規範**：建立「外科手術式」修改規範。禁止替換整個 `bindEvents` 方法。改為針對單一區塊（如錄音控制區）進行定位替換，並在修改後主動查核 MDI 分頁管理功能（`mdiManager`）的存續性。

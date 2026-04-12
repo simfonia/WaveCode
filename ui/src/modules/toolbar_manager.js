@@ -4,6 +4,7 @@
 import { WaveCodeAPI } from './api.js';
 import { WaveCodeCompiler } from './compiler.js';
 import { KeyboardController } from './keyboard_controller.js';
+import { Recorder } from './audio/recorder.js';
 import '../toolbar.css';
 
 export class ToolbarManager {
@@ -16,6 +17,13 @@ export class ToolbarManager {
         this.isProcessing = false;
         this.currentLang = 'zh-hant'; // 預設
         this.animationTimeout = null; 
+        this.recordTimerInterval = null;
+        this.silencePollingInterval = null;
+        
+        // --- 錄音狀態旗標 ---
+        this._isSyncRecording = false; // 當前錄音是否為連動模式
+        this._syncRecordPending = false; // 是否正在等待 Run 以啟動連動錄音
+        this._recordStartTime = 0; // 錄音開始的時間點
 
         // DOM Elements
         this.elements = {
@@ -23,6 +31,12 @@ export class ToolbarManager {
             saveBtn: document.getElementById('save-btn'),
             runBtn: document.getElementById('run-btn'),
             stopBtn: document.getElementById('stop-btn'),
+            recordInstantBtn: document.getElementById('record-instant-btn'),
+            recordSyncBtn: document.getElementById('record-sync-btn'),
+            recordIdleWrapper: document.getElementById('record-idle-wrapper'),
+            recordActiveWrapper: document.getElementById('record-active-wrapper'),
+            stopRecordBtn: document.getElementById('stop-record-btn'),
+            recordTimer: document.getElementById('record-timer'),
             settingsBtn: document.getElementById('settings-btn'),
             examplesBtn: document.getElementById('examples-btn'),
             updateBtn: document.getElementById('update-btn'),
@@ -145,8 +159,22 @@ export class ToolbarManager {
                 clearTimeout(this.animationTimeout);
                 this.animationTimeout = null;
             }
+
+            // --- 【錄音連動核心】若有連動錄音請求，先處理 UI 狀態並標記 ---
+            if (this._syncRecordPending) {
+                this.startRecordingUI(); // 立即顯示計時器
+                this._isSyncRecording = true;
+                this._syncRecordPending = false;
+            }
+
             await WaveCodeAPI.restartAudio(); // 確保引擎重置並初始化 Context
             
+            // --- 【錄音連動核心】引擎重置完畢，正式開始錄音串流 ---
+            if (this._isSyncRecording && !Recorder.isRecording) {
+                Recorder.start();
+                this._recordStartTime = Date.now();
+            }
+
             // --- 關鍵修正：重置後立刻重新同步鍵盤選取的樂器 ---
             const currentInst = KeyboardController.getActiveInstrumentId();
             WaveCodeAPI.setCurrentInstrument(currentInst);
@@ -219,6 +247,20 @@ export class ToolbarManager {
                         this.elements.runBtn.classList.remove('pulse-animation');
                         this.animationTimeout = null;
                     }, 2000);
+                    
+                    // --- 【自動錄音連動守衛】 ---
+                    // 若程式執行時長 > 500ms，判定為線性腳本結束，自動停止錄音。
+                    // 若 < 500ms，判定為「啟動類腳本」(例如帽子積木註冊)，啟動智慧靜音偵測。
+                    const elapsed = Date.now() - this._recordStartTime;
+                    if (Recorder.isRecording && this._isSyncRecording) {
+                        if (elapsed > 500) {
+                            console.log("WaveCode: 偵測到線性程式執行結束，自動停止錄音");
+                            this.stopRecording();
+                        } else {
+                            // 呼叫我們剛才定義好的智慧偵測方法
+                            this.startSilencePolling();
+                        }
+                    }
                 }
             }
         };
@@ -229,6 +271,12 @@ export class ToolbarManager {
                 this.animationTimeout = null;
             }
             this.isProcessing = false;
+            
+            // 如果正在錄音，按下停止也一併結束錄音
+            if (Recorder.isRecording || this._syncRecordPending) {
+                this.stopRecording();
+            }
+
             await WaveCodeAPI.reset();
 
             // --- 關鍵修正：停止後重新同步鍵盤選取的樂器 ---
@@ -239,6 +287,70 @@ export class ToolbarManager {
             this.elements.runBtn.classList.remove('is-running');
             this.elements.runBtn.classList.remove('pulse-animation'); // 手動停止時立即移除
         };
+
+        // --- 1. 即時錄音邏輯 (隨按隨錄) ---
+        if (this.elements.recordInstantBtn) {
+            this.elements.recordInstantBtn.onclick = () => {
+                if (Recorder.isRecording) {
+                    this.stopRecording();
+                } else {
+                    this._isSyncRecording = false; // 強制標記為非連動
+                    this.startRecording();
+                    this._recordStartTime = Date.now();
+                }
+            };
+        }
+
+        // --- 2. 連動錄音邏輯 (自動 Run) ---
+        if (this.elements.recordSyncBtn) {
+            this.elements.recordSyncBtn.onclick = () => {
+                if (Recorder.isRecording) {
+                    this.stopRecording();
+                } else if (this._syncRecordPending) {
+                    // 若已在 Pending 狀態又點一次，則取消
+                    this._syncRecordPending = false;
+                    this.stopRecording(); 
+                } else {
+                    // 標記並觸發 Run，由 Run 負責接手啟動
+                    this._syncRecordPending = true;
+                    if (!this.isProcessing) {
+                        this.elements.runBtn.click();
+                    } else {
+                        // 若程式已經在跑，點擊連動錄音就直接轉為即時錄音啟動
+                        this._syncRecordPending = false;
+                        this._isSyncRecording = false;
+                        this.startRecording();
+                        this._recordStartTime = Date.now();
+                    }
+                }
+            };
+        }
+
+        // --- 3. 統一停止錄音按鈕邏輯 (補回被遺漏的功能) ---
+        if (this.elements.stopRecordBtn) {
+            this.elements.stopRecordBtn.onclick = () => {
+                this.stopRecording();
+            };
+        }
+
+        // --- 4. 更新硬體按鈕邏輯 (補回被遺漏的功能) ---
+        if (this.elements.updateBtn) {
+            this.elements.updateBtn.onclick = async () => {
+                this.elements.updateBtn.classList.add('pulse-animation');
+                try {
+                    await WaveCodeCompiler.run(this.workspace);
+                    if (this.stageUI && this.stageUI.appendLog) {
+                        this.stageUI.appendLog('硬體配置已更新', 'success');
+                    }
+                } catch (err) {
+                    console.error('更新硬體失敗:', err);
+                } finally {
+                    setTimeout(() => {
+                        this.elements.updateBtn.classList.remove('pulse-animation');
+                    }, 1000);
+                }
+            };
+        }
 
         this.elements.settingsBtn.onclick = (e) => {
             e.stopPropagation();
@@ -492,5 +604,115 @@ export class ToolbarManager {
             this.workspace.isClearing = false;
             this.setDirty(false); // 載入後強制標記為非 Dirty
         }, 150);
+    }
+
+    startRecording() {
+        Recorder.start();
+        this.startRecordingUI();
+    }
+
+    startRecordingUI() {
+        // 先清除舊的輪詢
+        if (this.silencePollingInterval) {
+            clearInterval(this.silencePollingInterval);
+            this.silencePollingInterval = null;
+        }
+
+        // --- 關鍵切換：隱藏閒置按鈕，顯示錄音中 UI ---
+        if (this.elements.recordIdleWrapper) this.elements.recordIdleWrapper.style.display = 'none';
+        if (this.elements.recordActiveWrapper) this.elements.recordActiveWrapper.style.display = 'flex';
+
+        // 更新 UI 狀態：兩個按鈕都進入「正在錄音」模式 (雖然已隱藏)
+        if (this.elements.recordInstantBtn) {
+            this.elements.recordInstantBtn.classList.add('is-recording');
+            this.elements.recordInstantBtn.querySelector('img').src = '/icons/mic_off_24dp_FE2F89.png';
+        }
+        if (this.elements.recordSyncBtn) {
+            this.elements.recordSyncBtn.classList.add('is-recording');
+            this.elements.recordSyncBtn.querySelector('img').src = '/icons/mic_off_24dp_FE2F89.png';
+        }
+
+        if (this.elements.recordTimer) {
+            this.elements.recordTimer.style.display = 'block';
+            this.elements.recordTimer.textContent = '00:00';
+            const startTime = Date.now();
+            if (this.recordTimerInterval) clearInterval(this.recordTimerInterval);
+            this.recordTimerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const s = String(elapsed % 60).padStart(2, '0');
+                this.elements.recordTimer.textContent = `${m}:${s}`;
+            }, 1000);
+        }
+    }
+
+    stopRecording() {
+        Recorder.stop();
+        this._isSyncRecording = false;
+        this._syncRecordPending = false;
+        
+        if (this.silencePollingInterval) {
+            clearInterval(this.silencePollingInterval);
+            this.silencePollingInterval = null;
+        }
+
+        // --- 關鍵切換：恢復閒置按鈕，隱藏錄音中 UI ---
+        if (this.elements.recordIdleWrapper) this.elements.recordIdleWrapper.style.display = 'flex';
+        if (this.elements.recordActiveWrapper) this.elements.recordActiveWrapper.style.display = 'none';
+
+        // 還原 UI 狀態：各歸各位
+        if (this.elements.recordInstantBtn) {
+            this.elements.recordInstantBtn.classList.remove('is-recording');
+            this.elements.recordInstantBtn.querySelector('img').src = '/icons/mic_24dp_FE2F89.png';
+        }
+        if (this.elements.recordSyncBtn) {
+            this.elements.recordSyncBtn.classList.remove('is-recording');
+            this.elements.recordSyncBtn.querySelector('img').src = '/icons/mic_alert_24dp_FE2F89.png';
+        }
+
+        if (this.recordTimerInterval) {
+            clearInterval(this.recordTimerInterval);
+            this.recordTimerInterval = null;
+        }
+    }
+
+    /**
+     * 啟動靜音偵測輪詢：當所有發聲通道都關閉時自動停止錄音
+     */
+    startSilencePolling() {
+        if (this.silencePollingInterval) clearInterval(this.silencePollingInterval);
+        
+        let silentCheckCount = 0;
+        let hasPlayed = false; // 關鍵：標記是否「曾經有過」聲音
+        
+        console.log("WaveCode: 啟動靜音自動偵測系統...");
+
+        this.silencePollingInterval = setInterval(() => {
+            if (!Recorder.isRecording) {
+                clearInterval(this.silencePollingInterval);
+                this.silencePollingInterval = null;
+                return;
+            }
+
+            const activeVoices = WaveCodeAPI.AudioManager.getActiveVoiceCount();
+            
+            // 如果偵測到聲音，標記為「已開始播放」
+            if (activeVoices > 0) {
+                hasPlayed = true;
+                silentCheckCount = 0;
+            } else if (hasPlayed) {
+                // 只有在「曾經播過」的前提下，沒聲音才算數
+                silentCheckCount++;
+                console.log(`WaveCode: 音樂似乎已結束，確認中 (${silentCheckCount}/2)...`);
+                
+                // 連續兩秒沒聲音，判定播放完畢
+                if (silentCheckCount >= 2) {
+                    console.log("WaveCode: 偵測到音樂已播放結束，自動結算錄音。");
+                    this.stopRecording();
+                    clearInterval(this.silencePollingInterval);
+                    this.silencePollingInterval = null;
+                }
+            }
+        }, 1000);
     }
 }

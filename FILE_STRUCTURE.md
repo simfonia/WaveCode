@@ -16,10 +16,12 @@
     - `src/generators/`: 轉型為「音訊 DSL」產生器模式
     - `src/modules/`: 功能模組
         - `audio/`: Web Audio API 核心引擎
-            - `manager.js`: 支援動態主鏈 rebuildMasterChain, 移除強制 Limiter
+            - `manager.js`: 支援動態主鏈 rebuildMasterChain, 整合 Recorder 接入點
             - `factory.js`: **[重大更新] 實作 ADSR 穩定 Ramp、3.0x 下移懲罰取樣算法與鋼琴亮化濾波器**
             - `voice.js`: **[重大更新] 實作 5ms 安全淡出機制 (De-clicking) 與音量標準化**
+            - `recorder.js`: **[新增] 高品質 OGG 錄音模組，支援智慧靜音偵測結算**
         - `api.js`: **[終極穩定版] 整合 Look-ahead 預排程、瞬時緩衝序列器與多軌作用域隔離**
+        - `toolbar_manager.js`: **[重大更新] 實作動態錄音控制 UI 與連動自動執行邏輯**
         - `ui_utils.js`: [更新] 補全 Orphan Block 白名單 (含序列埠事件)
         - `visualizer.js`: [更新] 實作精確動畫隔離與負載優化版 EnvelopeManager
         - `keyboard_controller.js`: [重大更新] 實作分頁切換安全鎖、詳細日誌與 UI 同步
@@ -27,4 +29,4 @@
 
 
 ---
-*最後更新：2026-04-11 (Precision Scheduling, MDI Sync, Scope Isolation)*
+*最後更新：2026-04-12 (Recording System, Smart Silence Polling, Dynamic UI)*
