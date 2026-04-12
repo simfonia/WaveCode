@@ -1,0 +1,261 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_comment" id="}bERe7xuU!Px5z=_%+-R" x="50" y="10">
+    <field name="TEXT">【使用步進音序器編寫 Bossa Nova 節奏】&amp;#10;1. 經典和弦：Dm7 -&gt; G7 -&gt; CM7 -&gt; A7。&amp;#10;2. 節奏與風格：鋼琴利用切分音營造慵懶感，低音使用根音-五音交替。&amp;#10;3. 享受音樂的魅力：點擊執行後可隨節奏即興演奏！</field>
+  </block>
+  <block type="wc_instrument" id="{?OuNyv)HzP+8U`+.7l@" x="50" y="130">
+    <field name="ID">Sax</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="(?WgQDe77QFVQ#pw/l}a">
+        <field name="WAVE">1</field>
+        <next>
+          <block type="wc_component_adsr" id="5RIC735}@@MM[giDb]7v">
+            <field name="A">0.2</field>
+            <field name="D">0.1</field>
+            <field name="S">0.8</field>
+            <field name="R">0.1</field>
+            <next>
+              <block type="wc_component_volume" id="3uRol#]6Bw/Lx[(WTD]`">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="YqS[WCNs:7]2TApQkwo!" x="570" y="130">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="^^1o|9~=dlmuz07aL~^m">
+        <field name="SAMPLE_ID">piano</field>
+        <next>
+          <block type="wc_component_adsr" id="t=fXz-y@dI/o:Xb=Nv;k">
+            <field name="A">0.01</field>
+            <field name="D">0.1</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="AX$j5v*o2_f%}5|9l)~V" x="570" y="290">
+    <field name="ID">Clap</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="Ev}[Ib@2c3h[k?Rn?cDC">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HANDCLP1</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="|M!8F@.(D||#}xMLqu]1" x="50" y="330">
+    <field name="ID">Bass</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="|8t*6+N#Rde3j!_pUW@]">
+        <field name="WAVE">1</field>
+        <next>
+          <block type="wc_component_adsr" id="zO)%3vOztWYgBS9h%hmz">
+            <field name="A">0.01</field>
+            <field name="D">0.5</field>
+            <field name="S">0</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="gpx]}lY#F`l*G|)$F+WW">
+                <field name="VOL">70</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="z@K4vhpzSpfr;|M47~on" x="570" y="370">
+    <field name="ID">Kick</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="#fp3WD]xjpmv:s{bR_l)">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="Ny{xXU13cJr|A7JB,gnE" x="570" y="450">
+    <field name="ID">CHiHat</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="JrM8zKxI)~FU=m1^U+EQ">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HiHatClosed_HHCD2</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_master" id="Z]9k.t]|/}X1}(0wbAPR" x="50" y="530">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="uFu-TXt!5+!XP.!TTg?}">
+        <value name="THRESH">
+          <shadow type="math_number" id="uv1SEqCH}W:A1}HbroLa">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="@W`k8YA?td!A]RD[fJ{Z">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id=";VJU)8@K`{TH#yn[n3-Y">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="rC_v{7N:L[Qz7AH:0(UY">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="CEBf[ip3u:`:T{+@;@+R">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="v(M3p=l%POHoP]sUJ+$!" x="50" y="730">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="zpDVmkA$|XzLz}8y%K8X">
+        <value name="BPM">
+          <shadow type="math_number" id="15p3Qpq2(:N7Nj-!^-9T">
+            <field name="NUM">105</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_select_current_instrument" id="8Wh2R8el,diI6p`EoKH8">
+            <field name="INSTRUMENT">Sax</field>
+            <next>
+              <block type="wc_define_chord" id=";v`APJx[so1}P3xYOCO:">
+                <field name="NAME">Dm7</field>
+                <field name="NOTES">D4,F4,A4,C5</field>
+                <next>
+                  <block type="wc_define_chord" id="-C#$Vd-Dv;qbG@!YX2hi">
+                    <field name="NAME">G7</field>
+                    <field name="NOTES">G3,B3,D4,F4</field>
+                    <next>
+                      <block type="wc_define_chord" id="hbz/|^!8V%_sa@ri8(vJ">
+                        <field name="NAME">CM7</field>
+                        <field name="NOTES">C4,E4,G4,B4</field>
+                        <next>
+                          <block type="wc_define_chord" id="]mnnc[5SNswyiUT`u=77">
+                            <field name="NAME">A7</field>
+                            <field name="NOTES">A3,C#4,E4,G4</field>
+                            <next>
+                              <block type="wc_count_in" id=",uAv~afXiO55J*^3(lVg">
+                                <value name="MEASURES">
+                                  <shadow type="math_number" id="v..r|8jl_m]oAVnvE^-4">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <value name="BEATS">
+                                  <shadow type="math_number" id="EUL[cD?`e?bv)Jy*5)xb">
+                                    <field name="NUM">4</field>
+                                  </shadow>
+                                </value>
+                                <value name="BEAT_UNIT">
+                                  <shadow type="math_number" id=".sivRZ{?%U-Inz,:t:$+">
+                                    <field name="NUM">4</field>
+                                  </shadow>
+                                </value>
+                                <value name="VELOCITY">
+                                  <shadow type="math_number" id="Km5A$}z:Uu]!0/#0pQSu">
+                                    <field name="NUM">100</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_loop" id="T_yfVC4T^5w9gd1O11oG" x="50" y="1010">
+    <field name="INTERVAL">4</field>
+    <statement name="DO">
+      <block type="wc_rhythm_v2" id="f;?:-*/8g+`s;@hp0-%$">
+        <mutation items="3"></mutation>
+        <field name="MEASURE">1</field>
+        <field name="BEATS">4</field>
+        <field name="BEAT_UNIT">4</field>
+        <field name="RESOLUTION">4</field>
+        <field name="INST0">Clap</field>
+        <field name="VEL0">100</field>
+        <field name="MODE0">NOTE</field>
+        <field name="PATTERN0">x--- --x- --x- x---</field>
+        <field name="INST1">Piano</field>
+        <field name="VEL1">100</field>
+        <field name="MODE1">CHORD</field>
+        <field name="PATTERN1">Dm7... Dm7--- ..Dm7. ..Dm7.</field>
+        <field name="INST2">Bass</field>
+        <field name="VEL2">100</field>
+        <field name="MODE2">NOTE</field>
+        <field name="PATTERN2">D2--- ---- A2--- ----</field>
+        <next>
+          <block type="wc_rhythm_v2" id="MmN-JTuYD#F/PK:QGw-|">
+            <mutation items="3"></mutation>
+            <field name="MEASURE">2</field>
+            <field name="BEATS">4</field>
+            <field name="BEAT_UNIT">4</field>
+            <field name="RESOLUTION">4</field>
+            <field name="INST0">Kick</field>
+            <field name="VEL0">150</field>
+            <field name="MODE0">NOTE</field>
+            <field name="PATTERN0">x--- --x- --x- x---</field>
+            <field name="INST1">Piano</field>
+            <field name="VEL1">100</field>
+            <field name="MODE1">CHORD</field>
+            <field name="PATTERN1">..G7. ..G7. ---- G7...</field>
+            <field name="INST2">Bass</field>
+            <field name="VEL2">100</field>
+            <field name="MODE2">NOTE</field>
+            <field name="PATTERN2">G1--- ---- D2--- ----</field>
+            <next>
+              <block type="wc_rhythm_v2" id="Bp#u*|I|LzWcj;o[[Xv(">
+                <mutation items="2"></mutation>
+                <field name="MEASURE">3</field>
+                <field name="BEATS">4</field>
+                <field name="BEAT_UNIT">4</field>
+                <field name="RESOLUTION">4</field>
+                <field name="INST0">Piano</field>
+                <field name="VEL0">100</field>
+                <field name="MODE0">CHORD</field>
+                <field name="PATTERN0">CM7... CM7--- ..CM7. ..CM7.</field>
+                <field name="INST1">Bass</field>
+                <field name="VEL1">100</field>
+                <field name="MODE1">NOTE</field>
+                <field name="PATTERN1">C2--- ---- G2--- ----</field>
+                <next>
+                  <block type="wc_rhythm_v2" id="m{=qy%kdg|la2V./`vUz">
+                    <mutation items="2"></mutation>
+                    <field name="MEASURE">4</field>
+                    <field name="BEATS">4</field>
+                    <field name="BEAT_UNIT">4</field>
+                    <field name="RESOLUTION">4</field>
+                    <field name="INST0">Piano</field>
+                    <field name="VEL0">100</field>
+                    <field name="MODE0">CHORD</field>
+                    <field name="PATTERN0">..A7. ..A7. ---- A7...</field>
+                    <field name="INST1">Bass</field>
+                    <field name="VEL1">100</field>
+                    <field name="MODE1">NOTE</field>
+                    <field name="PATTERN1">A1--- ---- E2--- ----</field>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

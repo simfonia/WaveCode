@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_instrument" id="|$%tndJeL-%W6.#1T4zD" x="10" y="10">
-    <field name="ID">my_piano</field>
+    <field name="ID">Piano</field>
     <statement name="CHAIN">
       <block type="wc_component_sampler" id="1TtKgN^i~7`nZyQzR=#I">
         <field name="SAMPLE_ID">piano</field>
@@ -10,17 +10,25 @@
             <field name="D">0.2</field>
             <field name="S">0.5</field>
             <field name="R">0.5</field>
-            <next>
-              <block type="wc_component_volume" id="45LAeVRdmHC+dVz?ixl4">
-                <field name="VOL">80</field>
-              </block>
-            </next>
           </block>
         </next>
       </block>
     </statement>
   </block>
-  <block type="wc_init" id="6m3@OA}Bm!yp+3.qyJ-2" x="10" y="230">
+  <block type="wc_instrument" id="t]!|ZL+5@CvW*+a@M:3%" x="10" y="190">
+    <field name="ID">Clap</field>
+    <statement name="CHAIN">
+      <block type="wc_component_sampler" id="JjI`%t)pt7j4sYB]]7vm">
+        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HANDCLP1</field>
+        <next>
+          <block type="wc_component_volume" id="zAU?},G,|RvB)V2$Z(aV">
+            <field name="VOL">80</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="6m3@OA}Bm!yp+3.qyJ-2" x="10" y="310">
     <statement name="DO">
       <block type="wc_transport_set_bpm" id="5K}2r##C|5i}kn_{CQEx">
         <value name="BPM">
@@ -31,7 +39,7 @@
       </block>
     </statement>
   </block>
-  <block type="wc_master" id="=@Z;-]Ez}stmyLip.a9-" x="10" y="330">
+  <block type="wc_master" id="=@Z;-]Ez}stmyLip.a9-" x="10" y="410">
     <statement name="CHAIN">
       <block type="wc_effect_compressor" id="BPp!!2)Eiy3OL9Y7Q7%3">
         <value name="THRESH">
@@ -62,27 +70,40 @@
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="m)dv2m7`EjiZ%WC5ZUX%" x="10" y="530">
+  <block type="wc_perform" id="m)dv2m7`EjiZ%WC5ZUX%" x="10" y="610">
     <statement name="DO">
       <block type="wc_comment" id="B{nZmT[R:FHh}T;erS3D">
         <field name="TEXT">左手伴奏</field>
         <next>
           <block type="wc_play_melody" id="w*nICbX;bMzs2qg378ZS">
-            <field name="INSTRUMENT">my_piano</field>
+            <field name="INSTRUMENT">Piano</field>
             <field name="MELODY">C4E:200 G4E E4E G4E C4E:200 G4E E4E G4E&amp;#10;D4E:200 G4E F4E G4E D4E:200 G4E F4E G4E&amp;#10;C4E:200 G4E E4E G4E D4E:200 G4E F4E G4E&amp;#10;B3E:200 G4E F4E G4E B3E:200 G4E F4E G4E&amp;#10;</field>
           </block>
         </next>
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="dJt^fSg}BZ8L,FOO6+#g" x="490" y="530">
+  <block type="wc_perform" id="dJt^fSg}BZ8L,FOO6+#g" x="510" y="610">
     <statement name="DO">
       <block type="wc_comment" id="5Sbf0RO%HgwhKJl4xrPU">
         <field name="TEXT">右手旋律</field>
         <next>
           <block type="wc_play_melody" id="nExstj5(c|AqmmPx_D[L">
-            <field name="INSTRUMENT">my_piano</field>
+            <field name="INSTRUMENT">Piano</field>
             <field name="MELODY">G5Q E5Q E5H&amp;#10;F5Q D5Q D5H&amp;#10;C5Q D5Q E5Q F5Q&amp;#10;G5Q G5Q G5H</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_perform" id="+]7YxGLD{4CT(C~}HS@4" x="810" y="610">
+    <statement name="DO">
+      <block type="wc_comment" id="0Ndm$Oo~VbjRB^73gTK;">
+        <field name="TEXT">拍手</field>
+        <next>
+          <block type="wc_play_melody" id="SioLn5q{bQ+KqQ2g@dMr">
+            <field name="INSTRUMENT">Clap</field>
+            <field name="MELODY">RH. XQ &amp;#10;RH. XQ &amp;#10;RW&amp;#10;RH RE XE XE XE</field>
           </block>
         </next>
       </block>

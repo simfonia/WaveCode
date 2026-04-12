@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_comment" id="ki,3,t{@tj5pN[x_8R$." x="10" y="-10">
-    <field name="TEXT">此範例展示如何使用打擊樂器取樣器建立爵士鼓組，&amp;#10;並循環Rock節奏。&amp;#10;&amp;#10;1. 樂器定義：使用專用的取樣器路徑&amp;#10;2. 節奏編排：使用步進音序器編寫節奏&amp;#10;3. 底下示範5種多聲部寫法，請把不用的方法以 右鍵/停用區塊 來禁止執行。</field>
+    <field name="TEXT">此範例展示如何使用打擊樂器取樣器建立爵士鼓組，&amp;#10;並循環Rock節奏。&amp;#10;&amp;#10;1. 樂器定義：使用專用的取樣器路徑&amp;#10;2. 節奏編排：使用步進音序器編寫節奏&amp;#10;3. 底下示範5種多聲部寫法，請把不用的方法以 右鍵/停用區塊 來禁止執行。&amp;#10;4. 本檔案積木比較多，若有聲音中斷情形，可以在積木上按右鍵/收合區塊。</field>
   </block>
   <block type="wc_instrument" id="%(GE7Bcgto;c;!!`Nhe@" x="10" y="170">
     <field name="ID">Kick</field>
@@ -9,7 +9,7 @@
         <field name="TEXT">短取樣建議不加ADSR</field>
         <next>
           <block type="wc_component_sampler" id="sf*^3m:$X93KN!ph+yi:">
-            <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+            <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BTAAADA</field>
           </block>
         </next>
       </block>
@@ -128,23 +128,23 @@
     <statement name="DO">
       <block type="wc_play_melody" id="PEpYHViLvgp,m3aLE25Q">
         <field name="INSTRUMENT">Kick</field>
-        <field name="MELODY">XQ, RQ, XQ, RQ</field>
+        <field name="MELODY">XQ:200, RQ, XQ:200, RQ</field>
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="O7c9cxdT/7*~xB;W@,sw" x="290" y="1190">
+  <block type="wc_perform" id="O7c9cxdT/7*~xB;W@,sw" x="350" y="1190">
     <statement name="DO">
       <block type="wc_play_melody" id="NT.kxoTfTK5Q.SqB(9Ll">
         <field name="INSTRUMENT">Snare</field>
-        <field name="MELODY">RQ, XQ, RQ, XQ</field>
+        <field name="MELODY">RQ, XQ:200, RQ, XQ</field>
       </block>
     </statement>
   </block>
-  <block type="wc_perform" id="]91ucuDs+UC{G02AoQi~" x="570" y="1190">
+  <block type="wc_perform" id="]91ucuDs+UC{G02AoQi~" x="650" y="1190">
     <statement name="DO">
       <block type="wc_play_melody" id="_zQ:mWJ|Nx+qv{[w1L$W">
         <field name="INSTRUMENT">HiHat_C</field>
-        <field name="MELODY">XE XE XE XE XE XE XE XE </field>
+        <field name="MELODY">XE XE:10 XE:10 XE:10 XE XE:10 XE:10 XE:10 </field>
       </block>
     </statement>
   </block>
@@ -540,8 +540,8 @@
       </block>
     </statement>
   </block>
-  <block type="wc_comment" id="DdjAS5Y6wnQ!!InnAtY?" x="10" y="2990">
-    <field name="TEXT">寫法5:&amp;#10;使用多個&lt;演奏&gt;積木來分軌，內容用 "迴圈" 刻，不會無限循環。</field>
+  <block type="wc_comment" id="DdjAS5Y6wnQ!!InnAtY?" x="12" y="2981">
+    <field name="TEXT">寫法5:&amp;#10;使用多個&lt;演奏&gt;積木來分軌，不會無限循環，內容用 "迴圈" 刻。</field>
   </block>
   <block type="wc_perform" id="e_gfFqL-+RCo7RZec7BC" disabled-reasons="MANUALLY_DISABLED" x="10" y="3070">
     <statement name="DO">

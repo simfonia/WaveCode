@@ -88,6 +88,10 @@ export const WaveCodeCompiler = {
                 effectCfg.attack = getVal('ATTACK') ?? 0.003;
                 effectCfg.release = getVal('RELEASE') ?? 0.25;
                 effectCfg.makeup = getVal('MAKEUP') ?? 0;
+            } else if (effectType === 'reverb') {
+                effectCfg.seconds = getVal('SECONDS') ?? 3;
+                effectCfg.decay = getVal('DECAY') ?? 2;
+                effectCfg.mix = getVal('MIX') ?? 0.5;
             }
             chain.push(effectCfg);
           }
@@ -163,6 +167,10 @@ export const WaveCodeCompiler = {
                     effectCfg.attack = getVal('ATTACK') ?? 0.003;
                     effectCfg.release = getVal('RELEASE') ?? 0.25;
                     effectCfg.makeup = getVal('MAKEUP') ?? 0;
+                } else if (effectType === 'reverb') {
+                    effectCfg.seconds = getVal('SECONDS') ?? 3;
+                    effectCfg.decay = getVal('DECAY') ?? 2;
+                    effectCfg.mix = getVal('MIX') ?? 0.5;
                 }
                 chain.push(effectCfg);
             }

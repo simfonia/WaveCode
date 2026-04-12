@@ -77,12 +77,14 @@
     "AUDIO_EFFECT_BITCRUSH": "位元粉碎 (BitCrush) %1 Bits",
     "AUDIO_EFFECT_DISTORTION": "失真 (Distortion) %1",
     "AUDIO_EFFECT_COMPRESSOR": "壓縮器 (Compressor) 閾值 %1 比率 %2 啟動 %3 釋放 %4 增益 %5",
+    "AUDIO_EFFECT_REVERB": "殘響 (Reverb) 時間 %1 秒 衰減 %2 混合 %3",
 
     "AUDIO_FILTER_TOOLTIP": "使用濾波器過濾特定頻率（低通/高通/帶通）。",
     "AUDIO_DELAY_TOOLTIP": "產生回聲延遲效果。",
     "AUDIO_BITCRUSH_TOOLTIP": "降低位元深度，產生復古的數位失真感。",
     "AUDIO_DISTORTION_TOOLTIP": "產生類比風格的飽和失真效果。",
     "AUDIO_COMPRESSOR_TOOLTIP": "動態壓縮音訊，使大聲變小、小聲變大，平衡動態。",
+    "AUDIO_REVERB_TOOLTIP": "產生空間殘響效果，模擬室內空間感。",
 
     "AUDIO_SET_EFFECT_PARAM": "樂器 %1 效果器 %2 參數 %3 數值 %4",
     "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "動態更新正在發聲的樂器參數。這對於使用外部感測器（如光敏電阻、滑桿）進行實時控制非常有用。",

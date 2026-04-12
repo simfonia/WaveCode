@@ -2,38 +2,38 @@
 
 ## 2026-03-08 ~ 2026-04-11 (略)
 
-## 2026-04-12 (錄音與匯出系統、智慧靜音偵測與 UI 深度優化)
+## 2026-04-12 (錄音、靜音偵測、Reverb 與尾跡守衛機制)
 
 ### 1. 本次對話達成
-- **高品質錄音系統 (Recording & Export)**：
-    - **錄音模組 `recorder.js`**：實作 `MediaRecorder` 捕捉全域 Master 訊號，優先採用 `audio/ogg;codecs=opus` 編碼，兼顧音質與跨平台播放相容性。
-    - **穩定輸出孔設計**：錄音串流接入 `analyser` 節點後，確保在引擎重置 (Run) 時錄音不會斷開或產生數位雜訊。
-- **智慧自動化偵測 (Smart Automation)**：
-    - **智慧靜音偵測 (Silence Polling)**：利用 `AudioManager.getActiveVoiceCount()` 輪詢發聲狀態。具備 `hasPlayed` 守衛，確保音樂真正播完（所有音軌釋放）後 2 秒自動結算存檔。
-    - **連動錄音機制**：支援「連動模式」，點擊後自動觸發 `run` 流程，並在程式結束或靜音時自動存檔，適合製作取樣包或 Loop 導出。
-- **UI/UX 專業化升級**：
-    - **動態錄音控制 UI**：錄音時自動折疊工具列的閒置按鈕（`record-idle-wrapper`），改為顯示「統一停止鍵 + 紅色閃爍計時器」。
-    - **圖示語意優化**：存檔按鈕更換為 `download_24dp_FE2F89` (下載風格)，對齊主流 IDE 行為。
-- **系統權限補完**：
-    - 修正 Tauri v2 權限配置，補全 `fs:allow-write-file` 與 `fs:allow-exists`，解決 OGG 二進位資料寫入被拒問題。
+- **空間效果器 (Reverb)**：
+    - **Reverb 積木**：實作 `wc_effect_reverb`，支援 Seconds, Decay, Mix 參數。
+    - **Web Audio 核心**：在 `NodeFactory` 中實作卷積殘響 (Convolution Reverb) 脈衝響應算法。
+    - **即時控制**：`wc_set_effect_param` 已支援 Reverb Mix 的動態更新。
+- **穩定性修復 (Audio Guard)**：
+    - **尾跡守衛 (Tail Guard)**：修正 ADSR 釋放時因 `Voice` 被強行回收導致的爆音。系統現在會根據 Reverb/Delay 剩餘時長延遲回收節點。
+    - **編譯器補全**：修復 `WaveCodeCompiler` 遺漏 Reverb 解析的問題。
+    - **BitCrush 補完**：實作 `NodeFactory` 中缺失的位元粉碎效果。
+- **錄音與匯出系統 (Recording)**：
+    - 實作 OGG/Opus 高品質錄音與智慧靜音偵測自動存檔功能。
+- **文檔與結構**：
+    - 補全 `FILE_STRUCTURE.md`。
+    - 更新 `effects_zh-hant.html` 文件，加入訊號鏈建議。
 
 ### 2. 技術細節
-- **錄音時長守衛**：實作 500ms 最小錄製時長限制。若程式執行過快，將自動捨棄無意義的空檔案，防止 Windows 媒體播放器報錯。
-- **MIME 強制標記**：確保 Blob 下載時明確標註 `type: 'audio/ogg'`，解決 Windows 11 無法識別時長的問題。
+- **ADSR 與效果器時序**：解決了空間效果器放在 ADSR 之後會被強行截斷的物理衝突。
+- **脈衝響應生成**：採用隨機噪聲配合指數衰減 (Exponential Decay) 模擬真實房間聲學。
 
 ### 3. 下一步行動
-- **空間效果器積木**：實作 Reverb (殘響) 與 Delay (延遲) 積木，並提供視覺化參數調節。
-- **多採樣點對應 (Multi-sampling)**：支援依據 MIDI Note 自動切換不同的 Sample 檔案，提升樂器真實度。
+- **多採樣點對應 (Multi-sampling Mapping)**：實作根據 MIDI Note 自動切換不同 Sample 檔案的邏輯。
+- **UI 強化**：為 Reverb/Delay 增加視覺化調節組件 (對齊 ADSR 圖形化邏輯)。
 
 ==================================================
 2026-04-12 (結尾摘要)
 
 1. 專案現狀：
-   * 錄音與匯出系統已達「發布等級」，支持 OGG 高品質導出與智慧自動結算。
-   * 工具列 UI 具備動態狀態機，能根據錄音狀態自動切換布局。
-   * Tauri 後端權限與前端存檔下載流程已完全打通。
+   * 錄音、效果器 (Filter/Delay/Reverb/BitCrush/Distortion/Comp) 與演奏系統已全數完備。
+   * 具備「尾跡守衛」機制，聲音品質達到專業水平。
 
 2. 待辦重點：
-   * **Reverb 與 Delay 空間效果器 (下一階段核心)**。
-   * 樂器多採樣點自動映射系統。
+   * **多採樣點自動映射系統 (下一階段核心)**。
 ==================================================

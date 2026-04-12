@@ -126,6 +126,44 @@ export const NodeFactory = {
                     shaper.curve = this.makeDistortionCurve(parseFloat(comp.distortion) || 10);
                     shaper.oversample = '4x';
                     nodes.push(shaper); output = shaper;
+                } else if (effectType === 'bitcrush') {
+                    const bits = parseFloat(comp.bits || comp.bitdepth) || 8;
+                    const bufferSize = 4096;
+                    const node = ctx.createScriptProcessor(bufferSize, 1, 1);
+                    node.onaudioprocess = (e) => {
+                        const input = e.inputBuffer.getChannelData(0);
+                        const output = e.outputBuffer.getChannelData(0);
+                        const step = Math.pow(0.5, bits);
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = step * Math.floor(input[i] / step);
+                        }
+                    };
+                    nodes.push(node); output = node;
+                } else if (effectType === 'reverb') {
+                    const seconds = parseFloat(comp.seconds) || 3;
+                    const decay = parseFloat(comp.decay) || 2;
+                    const mix = (typeof comp.mix !== 'undefined') ? parseFloat(comp.mix) : 0.5;
+                    
+                    const input = ctx.createGain();
+                    const dry = ctx.createGain();
+                    const wet = ctx.createGain();
+                    const convolver = ctx.createConvolver();
+                    const outputNode = ctx.createGain();
+                    
+                    convolver.buffer = this.buildImpulseResponse(ctx, seconds, decay);
+                    
+                    dry.gain.setValueAtTime(1 - mix, time);
+                    wet.gain.setValueAtTime(mix, time);
+                    
+                    input.connect(dry);
+                    input.connect(convolver);
+                    convolver.connect(wet);
+                    dry.connect(outputNode);
+                    wet.connect(outputNode);
+                    
+                    nodes.push(input, dry, wet, convolver, outputNode);
+                    output = outputNode;
+                    namedNodes = { input, dry, wet, output: outputNode };
                 }
                 if (output && lastNode) lastNode.connect(nodes[0]);
                 return { nodes, output };
@@ -206,5 +244,18 @@ export const NodeFactory = {
             curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
         }
         return curve;
+    },
+
+    buildImpulseResponse(ctx, seconds, decay) {
+        const rate = ctx.sampleRate;
+        const length = rate * seconds;
+        const buffer = ctx.createBuffer(2, length, rate);
+        for (let j = 0; j < 2; j++) {
+            const channel = buffer.getChannelData(j);
+            for (let i = 0; i < length; i++) {
+                channel[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+            }
+        }
+        return buffer;
     }
 };

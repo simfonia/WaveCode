@@ -110,6 +110,21 @@
     "WC_TEXT_PRINT": "print %1",
     "WC_TEXT_PRINT_TOOLTIP": "Output message to the browser console (F12).",
 
+    // Effects (Split version)
+    "AUDIO_EFFECT_FILTER": "Filter %1 Freq %2 Q %3",
+    "AUDIO_EFFECT_DELAY": "Delay Time %1 s (Feedback %2)",
+    "AUDIO_EFFECT_BITCRUSH": "BitCrush %1 Bits",
+    "AUDIO_EFFECT_DISTORTION": "Distortion %1",
+    "AUDIO_EFFECT_COMPRESSOR": "Compressor thresh %1 ratio %2 attack %3 release %4 makeup %5",
+    "AUDIO_EFFECT_REVERB": "Reverb %1 s decay %2 mix %3",
+
+    "AUDIO_FILTER_TOOLTIP": "Filter out specific frequencies (Low-pass/High-pass/Band-pass).",
+    "AUDIO_DELAY_TOOLTIP": "Create an echo delay effect.",
+    "AUDIO_BITCRUSH_TOOLTIP": "Reduce bit depth to create vintage digital distortion.",
+    "AUDIO_DISTORTION_TOOLTIP": "Create analog-style saturation distortion.",
+    "AUDIO_COMPRESSOR_TOOLTIP": "Dynamic compression to balance volume levels.",
+    "AUDIO_REVERB_TOOLTIP": "Add spatial reverb effect to simulate room ambience.",
+
     "AUDIO_SET_EFFECT_PARAM": "instrument %1 effect %2 param %3 value %4",
     "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "Dynamically update effect parameters for active voices. Useful for real-time control with external sensors."
   });

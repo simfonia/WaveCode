@@ -30,6 +30,7 @@ export class Voice {
         this.releasing = false; 
         this.freq = freq;
         this.velocity = (typeof velocity === 'number' && isFinite(velocity)) ? velocity : 1.0;
+        this.extraTail = 0; // 紀錄效果器尾跡
 
         // --- 通知全域示波器 ---
         const targetInstId = this.instId || 'unknown';
@@ -44,6 +45,14 @@ export class Voice {
                 if (result.nodes) {
                     this.nodes.push(...result.nodes);
                     const key = comp.type === 'effect' ? `effect_${comp.effect_type}` : comp.type;
+                    
+                    // --- 計算尾跡 ---
+                    if (key === 'effect_reverb') {
+                        this.extraTail = Math.max(this.extraTail, parseFloat(comp.seconds) || 3);
+                    } else if (key === 'effect_delay') {
+                        this.extraTail = Math.max(this.extraTail, 2.0); // 預留給 Delay 的尾跡
+                    }
+
                     if (result.namedNodes) {
                         for (const name in result.namedNodes) { this.nodesMap.set(`${key}_${name}`, result.namedNodes[name]); }
                         this.nodesMap.set(key, result.output);
@@ -87,6 +96,13 @@ export class Voice {
                 const feedbackNode = this.nodesMap.get(`${effectKey}_feedback`);
                 if (feedbackNode) feedbackNode.gain.setTargetAtTime(val, now, 0.05);
             }
+        } else if (compType === 'reverb') {
+            const dryNode = this.nodesMap.get(`${effectKey}_dry`);
+            const wetNode = this.nodesMap.get(`${effectKey}_wet`);
+            if (paramName === 'mix') {
+                if (dryNode) dryNode.gain.setTargetAtTime(1 - val, now, 0.05);
+                if (wetNode) wetNode.gain.setTargetAtTime(val, now, 0.05);
+            }
         }
     }
 
@@ -105,7 +121,10 @@ export class Voice {
                 this.envNode.gain.setValueAtTime(startVal, time);
                 const r = Math.max(0.005, this.adsr.r || 0.1);
                 this.envNode.gain.exponentialRampToValueAtTime(0.0001, time + r);
-                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + r) * 1000 + 100));
+                
+                // 考慮效果器尾跡 (Reverb/Delay)
+                const totalReleaseTime = r + (this.extraTail || 0);
+                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + totalReleaseTime) * 1000 + 100));
             } catch (e) { this.kill(); }
         } else if (this.gateNode) {
             // --- 關鍵修正：實施隱形安全淡出 (De-clicking) ---
@@ -116,7 +135,9 @@ export class Voice {
                 // 5毫秒的淡出足以消除爆音且耳朵幾乎聽不出延遲
                 const safetyRelease = 0.005; 
                 this.gateNode.gain.exponentialRampToValueAtTime(0.0001, time + safetyRelease);
-                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + safetyRelease) * 1000 + 50));
+
+                const totalReleaseTime = safetyRelease + (this.extraTail || 0);
+                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + totalReleaseTime) * 1000 + 50));
             } catch (e) { this.kill(); }
         } else { this.kill(); }
     }

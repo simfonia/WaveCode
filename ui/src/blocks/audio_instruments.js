@@ -161,6 +161,24 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "%{BKY_AUDIO_FILTER_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
     "helpUrl": "effects"
   },
+
+  {
+    "type": "wc_effect_reverb",
+    "message0": "%{BKY_AUDIO_EFFECT_REVERB}",
+    "args0": [
+      { "type": "input_value", "name": "SECONDS", "check": "Number" },
+      { "type": "input_value", "name": "DECAY", "check": "Number" },
+      { "type": "input_value", "name": "MIX", "check": "Number" }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_EFFECTS_HUE}",
+    "tooltip": "%{BKY_AUDIO_REVERB_TOOLTIP}%{BKY_WAVECODE_HELP_HINT}",
+    "helpUrl": "effects"
+  },
+
+
   {
     "type": "wc_effect_delay",
     "message0": "%{BKY_AUDIO_EFFECT_DELAY}",
@@ -236,6 +254,7 @@ Blockly.defineBlocksWithJsonArray([
           ["%{BKY_AUDIO_FILTER_TYPE}", "filter"],
           ["音量 (Volume)", "volume"],
           ["延遲 (Delay)", "delay"],
+          ["殘響 (Reverb)", "reverb"],
           ["位元粉碎 (BitCrush)", "bitcrush"],
           ["失真 (Distortion)", "distortion"]
         ]
@@ -270,6 +289,8 @@ Blockly.Extensions.register('wc_set_effect_param_sync', function() {
       options = [['音量百分比 (Value)', 'val']];
     } else if (type === 'delay') {
       options = [['延遲時間 (Time)', 'time'], ['回授 (Feedback)', 'feedback']];
+    } else if (type === 'reverb') {
+      options = [['時間 (Seconds)', 'seconds'], ['衰減 (Decay)', 'decay'], ['混合 (Mix)', 'mix']];
     } else if (type === 'bitcrush') {
       options = [['位元數 (Bits)', 'bits']];
     } else if (type === 'distortion') {

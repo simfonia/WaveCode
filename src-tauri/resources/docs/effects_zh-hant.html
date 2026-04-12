@@ -25,7 +25,20 @@
     <p>效果器是音訊合成的「鍊金術」。它們透過數學運算與物理模擬，改變原始振盪器產生的波形。在 WaveCode 中，效果器遵循<strong>串行連接 (Series Connection)</strong> 原則：訊號會從上至下流經每個積木，前一個效果器的輸出即為下一個的輸入。</p>
 
     <div class="important">
-        <strong>順序的重要性：</strong> 不同的排列會產生截然不同的音色。例如：<code>失真 -> 濾波</code> 會產生溫暖的電子音色；而 <code>濾波 -> 失真</code> 則會讓失真效果作用於特定頻段，產生更具侵略性的聲音。
+        <strong>訊號鏈的黃金法則：</strong> 
+        <p>在合成器架構中，建議遵循以下順序來獲得最佳音質：</p>
+        <ol>
+            <li><strong>發聲源 (Oscillator / Sampler)</strong>：聲音的起點。</li>
+            <li><strong>音色修飾 (Filter / Distortion)</strong>：改變波形的原始質感。</li>
+            <li><strong>動態控制 (ADSR Envelope)</strong>：決定聲音的起音與釋放。</li>
+            <li><strong>空間效果 (Delay / Reverb)</strong>：放在 ADSR 之後，能讓音符停止後，殘響仍能在空間中自然擴散。</li>
+            <li><strong>最終輸出 (Compressor / Volume)</strong>：最後進行音量平衡，防止破音。</li>
+        </ol>
+    </div>
+
+    <div class="tip">
+        <strong>為什麼要將空間效果放在 ADSR 之後？</strong><br>
+        如果您將 Reverb 放在 ADSR 之前，當 ADSR 的釋放階段 (Release) 結束後，所有聲音（包含正在產生的殘響）都會被立刻切斷。將 Reverb 放在 ADSR 之後，則能確保「門關上後，回聲還能繼續在走廊迴盪」。 WaveCode 具備<strong>尾跡守衛 (Tail Guard)</strong> 技術，會自動偵測並保留這些效果餘韻，避免產生爆音。
     </div>
 
     <!-- 1. Filter -->
@@ -111,8 +124,24 @@
         </ul>
     </div>
 
+    <!-- 6. Reverb -->
+    <div class="block-box">
+        <h2>6. 殘響 (Reverb)</h2>
+        <p>殘響模擬聲音在室內空間中經過無數次反射、疊加與擴散後的殘餘聲。它能為聲音帶來深度與「距離感」。</p>
+
+        <div class="physics">
+            <strong>物理原理：</strong> WaveCode 使用<strong>卷積殘響 (Convolution Reverb)</strong> 技術。它透過一個隨機產生的「脈衝響應 (Impulse Response)」緩衝區來模擬空間特性。<strong>時間 (Seconds)</strong> 決定了虛擬空間的大小；<strong>衰減 (Decay)</strong> 決定了牆面材質的吸收率（數值越高，聲音消失得越快，模擬表面較軟的房間）。
+        </div>
+
+        <ul>
+            <li><span class="param-name">殘響時間 (Seconds)</span> <span class="range">[0.1 - 10.0 秒]</span>：聲音在空間中持續的時間。長殘響（如 5 秒）會產生如大教堂般的廣大空間感。</li>
+            <li><span class="param-name">衰減率 (Decay)</span> <span class="range">[0.5 - 5.0]</span>：反射能量消失的速度。數值越小，反射聲越均勻持久；數值越大，反射聲會更迅速變弱，適合模擬小型或吸音良好的房間。</li>
+            <li><span class="param-name">混合度 (Mix)</span> <span class="range">[0.0 - 1.0]</span>：原始音（乾聲）與殘響音（濕聲）的比例。0 代表完全沒有殘響；1.0 代表只聽到殘響聲（適合製作夢幻、遠處傳來的音色）。</li>
+        </ul>
+    </div>
+
     <div class="tip">
-        <strong>混合建議：</strong> 使用「壓縮器」放在訊號鏈末端（音量積木之前），可以有效防止多個效果器疊加導致的 Clipping，並讓您的合成器音色在混音中更具存在感。
+        <strong>空間深度建議：</strong> 在「定義樂器」中，將殘響放在效果鏈的<strong>最後一項</strong>（但在音量積木之前）。如果您希望製作更有層次的聲音，可以先使用延遲 (Delay) 產生明顯的重複，再透過殘響 (Reverb) 將這些重複音擴散到空間中。
     </div>
 </body>
 </html>

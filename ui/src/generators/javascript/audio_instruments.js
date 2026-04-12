@@ -71,3 +71,10 @@ Blockly.JavaScript.forBlock['wc_effect_compressor'] = function(block) {
   const makeup = Blockly.JavaScript.valueToCode(block, 'MAKEUP', Blockly.JavaScript.ORDER_ATOMIC) || '0';
   return `  // >> Compressor(thresh:${thresh}dB, ratio:${ratio}:1, makeup:${makeup}dB)\n`;
 };
+
+Blockly.JavaScript.forBlock['wc_effect_reverb'] = function(block) {
+  const seconds = Blockly.JavaScript.valueToCode(block, 'SECONDS', Blockly.JavaScript.ORDER_ATOMIC) || '3';
+  const decay = Blockly.JavaScript.valueToCode(block, 'DECAY', Blockly.JavaScript.ORDER_ATOMIC) || '2';
+  const mix = Blockly.JavaScript.valueToCode(block, 'MIX', Blockly.JavaScript.ORDER_ATOMIC) || '0.5';
+  return `  // >> Reverb(sec:${seconds}s, decay:${decay}, mix:${mix})\n`;
+};

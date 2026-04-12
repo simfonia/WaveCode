@@ -172,6 +172,18 @@ export const WaveCodeToolbox = {
                         'Q': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
                     }
                 },
+
+                {
+                    'kind': 'block',
+                    'type': 'wc_effect_reverb',
+                    'inputs': {
+                        'SECONDS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 3 } } },
+                        'DECAY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 2 } } },
+                        'MIX': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } }
+                    }
+                },
+
+
                 {
                     'kind': 'block',
                     'type': 'wc_effect_delay',
