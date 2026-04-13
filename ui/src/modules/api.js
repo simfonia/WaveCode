@@ -10,7 +10,7 @@ export const WaveCodeAPI = {
     // --- 核心狀態 ---
     _playbackTime: 0,
     _contextStartTime: 0,  
-    _lookAhead: 0.15,
+    _lookAhead: 0.1, // 初始預覽緩衝 (秒)
     _execId: 0,
     _bpm: 120,
     _currentInstrument: 'none',
@@ -24,17 +24,23 @@ export const WaveCodeAPI = {
     _serialFields: {},
     _lastFields: {},
     _serialHandlers: [],
+    _midiHandlers: [],
+    _midiInitialized: false,
 
     startScript: function() {
         this.reset();
+        this._initMidi(); // 啟動腳本時確保 MIDI 已初始化
         const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-        this._playbackTime = now + 0.15;
+        // 修正：起跑時間動態對齊 Look-ahead
+        this._playbackTime = now + this._lookAhead;
         this._contextStartTime = this._playbackTime;
         return this._execId;
     },
 
     createTrack: function() {
         const track = Object.create(this);
+        // 修正：必須拷貝值而非引用，否則重置後所有 Track 的 ID 都會跟著變
+        track._execId = this._execId; 
         track._playbackTime = this._playbackTime;
         track._contextStartTime = this._playbackTime;
         track._currentInstrument = this._currentInstrument;
@@ -83,6 +89,14 @@ export const WaveCodeAPI = {
         AudioManager.setMasterVolume(val);
     },
 
+    appendLog: function(msg, type = 'info') {
+        if (window.LogManager && window.LogManager.appendLog) {
+            window.LogManager.appendLog(msg, type);
+        } else {
+            console.log(`[WaveCode Log] ${type}: ${msg}`);
+        }
+    },
+
     wait: async function(ms) {
         const id = WaveCodeAPI._execId;
         return new Promise(resolve => {
@@ -104,7 +118,11 @@ export const WaveCodeAPI = {
 
         this._playbackTime += totalSec;
         const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
-        if (this._playbackTime < now - 0.2) this._playbackTime = now;
+        
+        // 修正：落後保護也使用動態比例
+        if (this._playbackTime < now - (this._lookAhead + 0.1)) {
+            this._playbackTime = now;
+        }
 
         const remainingSec = (this._playbackTime - this._lookAhead) - now;
         if (remainingSec > 0) await this.wait(remainingSec * 1000);
@@ -317,6 +335,59 @@ export const WaveCodeAPI = {
     },
     getSerialField: function(prefix) { return this._serialFields[prefix] || ""; },
     registerSerialHandler: function(h) { this._serialHandlers.push(h); },
+    
+    registerMidiHandler: function(h) { this._midiHandlers.push(h); },
+
+    _initMidi: async function() {
+        if (this._midiInitialized) return;
+        if (!navigator.requestMIDIAccess) {
+            console.warn("WaveCode: 您的瀏覽器不支援 MIDI API。");
+            return;
+        }
+        try {
+            const midi = await navigator.requestMIDIAccess();
+            const inputs = midi.inputs.values();
+            for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                input.value.onmidimessage = (msg) => this._onMidiMessage(msg);
+            }
+            midi.onstatechange = (e) => {
+                if (e.port.type === 'input' && e.port.state === 'connected') {
+                    e.port.onmidimessage = (msg) => this._onMidiMessage(msg);
+                }
+            };
+            this._midiInitialized = true;
+            console.log("WaveCode: MIDI 系統已就緒。");
+        } catch (err) {
+            console.error("WaveCode: MIDI 初始化失敗:", err);
+        }
+    },
+
+    _onMidiMessage: function(msg) {
+        const [status, note, velocity] = msg.data;
+        const type = status & 0xf0;
+        const channel = (status & 0x0f) + 1;
+        const id = WaveCodeAPI._execId;
+
+        // Note On
+        if (type === 0x90 && velocity > 0) {
+            this._midiHandlers.forEach(h => {
+                try { h('noteon', { channel, note, velocity }, id); } catch (e) {}
+            });
+        }
+        // Note Off
+        else if (type === 0x80 || (type === 0x90 && velocity === 0)) {
+            this._midiHandlers.forEach(h => {
+                try { h('noteoff', { channel, note, velocity }, id); } catch (e) {}
+            });
+        }
+        // Control Change
+        else if (type === 0xb0) {
+            this._midiHandlers.forEach(h => {
+                try { h('cc', { channel, number: note, value: velocity }, id); } catch (e) {}
+            });
+        }
+    },
+
     handleSerialData: function(data) {
         if (!data || data === this._serialRaw) return;
         this._serialRaw = data;

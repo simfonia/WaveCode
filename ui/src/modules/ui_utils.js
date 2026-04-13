@@ -353,13 +353,20 @@ export const UIUtils = {
                 }, 300);
             };
 
-            searchInput.onkeydown = (e) => {
-                if (e.key === 'Escape') {
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    e.preventDefault();
+                    e.stopPropagation();
                     searchInput.value = '';
                     performSearch('');
                     searchInput.blur();
+                    
+                    // 強制再次隱藏飛出面板以防萬一
+                    const toolbox = workspace.getToolbox();
+                    const flyout = toolbox ? toolbox.getFlyout() : null;
+                    if (flyout) flyout.hide();
                 }
-            };
+            }, true); // 使用 capture 模式優先攔截
         };
 
         setTimeout(doInject, 500);
@@ -374,7 +381,12 @@ export const UIUtils = {
         'wc_master', 
         'wc_perform', 
         'wc_loop',
+        'wc_phrase_def',
         'wc_serial_data_received',
+        'wc_key_event',
+        'wc_midi_on_note',
+        'wc_midi_on_note_off',
+        'wc_midi_on_cc',
         'wc_select_current_instrument', 
         'wc_comment', 
         'procedures_defnoreturn', 

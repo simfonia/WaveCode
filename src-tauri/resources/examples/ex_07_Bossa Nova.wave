@@ -51,16 +51,16 @@
     <field name="ID">Bass</field>
     <statement name="CHAIN">
       <block type="wc_component_osc" id="|8t*6+N#Rde3j!_pUW@]">
-        <field name="WAVE">1</field>
+        <field name="WAVE">2</field>
         <next>
           <block type="wc_component_adsr" id="zO)%3vOztWYgBS9h%hmz">
             <field name="A">0.01</field>
-            <field name="D">0.5</field>
-            <field name="S">0</field>
-            <field name="R">0.5</field>
+            <field name="D">0.05</field>
+            <field name="S">0.2</field>
+            <field name="R">1</field>
             <next>
               <block type="wc_component_volume" id="gpx]}lY#F`l*G|)$F+WW">
-                <field name="VOL">70</field>
+                <field name="VOL">50</field>
               </block>
             </next>
           </block>
@@ -191,7 +191,7 @@
         <field name="INST0">Clap</field>
         <field name="VEL0">100</field>
         <field name="MODE0">NOTE</field>
-        <field name="PATTERN0">x--- --x- --x- x---</field>
+        <field name="PATTERN0">x... ..x. ..x. x...</field>
         <field name="INST1">Piano</field>
         <field name="VEL1">100</field>
         <field name="MODE1">CHORD</field>
@@ -199,7 +199,7 @@
         <field name="INST2">Bass</field>
         <field name="VEL2">100</field>
         <field name="MODE2">NOTE</field>
-        <field name="PATTERN2">D2--- ---- A2--- ----</field>
+        <field name="PATTERN2">D2-.. .... A2-.. ....</field>
         <next>
           <block type="wc_rhythm_v2" id="MmN-JTuYD#F/PK:QGw-|">
             <mutation items="3"></mutation>
@@ -210,7 +210,7 @@
             <field name="INST0">Kick</field>
             <field name="VEL0">150</field>
             <field name="MODE0">NOTE</field>
-            <field name="PATTERN0">x--- --x- --x- x---</field>
+            <field name="PATTERN0">x... ..x. ..x. x...</field>
             <field name="INST1">Piano</field>
             <field name="VEL1">100</field>
             <field name="MODE1">CHORD</field>
@@ -218,7 +218,7 @@
             <field name="INST2">Bass</field>
             <field name="VEL2">100</field>
             <field name="MODE2">NOTE</field>
-            <field name="PATTERN2">G1--- ---- D2--- ----</field>
+            <field name="PATTERN2">G1-.. .... D2-.. ....</field>
             <next>
               <block type="wc_rhythm_v2" id="Bp#u*|I|LzWcj;o[[Xv(">
                 <mutation items="2"></mutation>
@@ -233,7 +233,7 @@
                 <field name="INST1">Bass</field>
                 <field name="VEL1">100</field>
                 <field name="MODE1">NOTE</field>
-                <field name="PATTERN1">C2--- ---- G2--- ----</field>
+                <field name="PATTERN1">C2-.. .... G2-.. ....</field>
                 <next>
                   <block type="wc_rhythm_v2" id="m{=qy%kdg|la2V./`vUz">
                     <mutation items="2"></mutation>
@@ -244,11 +244,11 @@
                     <field name="INST0">Piano</field>
                     <field name="VEL0">100</field>
                     <field name="MODE0">CHORD</field>
-                    <field name="PATTERN0">..A7. ..A7. ---- A7...</field>
+                    <field name="PATTERN0">..A7. ..A7. .... A7...</field>
                     <field name="INST1">Bass</field>
                     <field name="VEL1">100</field>
                     <field name="MODE1">NOTE</field>
-                    <field name="PATTERN1">A1--- ---- E2--- ----</field>
+                    <field name="PATTERN1">A1-.. .... E2-.. ....</field>
                   </block>
                 </next>
               </block>

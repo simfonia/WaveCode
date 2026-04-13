@@ -22,6 +22,7 @@
     "WAVECODE_TAB_CODE": "音訊腳本 (Audio DSL)",
     "WAVECODE_STAGE_LOG": "系統日誌",
     "WAVECODE_HELP_HINT": "點擊積木以查看說明",
+    "WAVECODE_LATENCY_HINT": "延遲補償 (Look-ahead)：\n1. 調小 (左)：反應更即時，適合現場合奏與對拍。\n2. 調大 (右)：播放更穩定，適合積木很多、電腦較慢時防止節奏抖動或破音。",
     "WAVECODE_LANG_SETTING": "語言設定",
     "WAVECODE_SCROLL_OPTIONS": "自動捲動功能 (Scroll Options)",
     
@@ -29,6 +30,7 @@
     "MSG_WARNING": "警告",
     "MSG_UNSAVED_CHANGES": "目前的變更尚未儲存，確定要放棄嗎？",
     "MSG_NEW_PROJECT_CONFIRM": "確定要建立新專案嗎？這將清除目前所有積木。",
+    "WAVECODE_DO": "執行",
     
     // 分類名稱
     "CAT_AUDIO_TRAIN": "音訊電路",
@@ -46,6 +48,8 @@
     "CAT_EFFECTS": "音訊效果",
     "CAT_PERFORMANCE": "音樂演奏",
     "CAT_MASTER": "主輸出控制",
+    "CAT_PC_KEYBOARD": "電腦鍵盤",
+    "CAT_MIDI": "MIDI 裝置",
 
     // 樂器定義 (C 型帽子模式)
     "AUDIO_DEFINE_INSTRUMENT": "定義樂器 %1",
@@ -165,8 +169,12 @@
     // 顏色定義 (對齊 #processing)
     "SOUND_SOURCES_HUE": "#016c8d",
     "INSTRUMENT_CONTROL_HUE": "#FF5722",
-    "EFFECTS_HUE": "#8E44AD",
+    "EFFECTS_HUE": "#4b049b",
     "PERFORMANCE_HUE": "#E67E22",
+    "PHRASES_HUE": "#df028a",
+    "CORE_PLAY_HUE": "#8E44AD",
+    "CONTROL_HUE": "#16A085",
+    "ADVANCED_HUE": "#7F8C8D",
     "SYSTEM_HUE": "#546e7a",
     "SERIAL_HUE": "#2c3e50",
     "LOGIC_HUE": "#b198de",
@@ -174,7 +182,24 @@
     "MATH_HUE": "#5C68A6",
     "VARIABLES_HUE": "#ef9a9a",
     "FUNCTIONS_HUE": "#d22f73",
+    "PC_KEYBOARD_HUE": "#2c3e50",
+    "MIDI_HUE": "#5B67E7",
     "TEXT_HUE": "#6a8871",
+
+    // 事件積木訊息
+    "EVENT_KEY": "當按下電腦按鍵 %1 時",
+    "EVENT_KEY_TOOLTIP": "偵測電腦鍵盤按鍵事件。您可以選取特定的按鍵（如 A, S, D, 空白鍵等）。",
+    "MIDI_ON_NOTE": "當收到 MIDI 音符 (Ch: %1, Note: %2, Vel: %3)",
+    "MIDI_ON_NOTE_TOOLTIP": "當外接 MIDI 鍵盤按下時觸發。變數會儲存通道、音高與力道。",
+    "MIDI_OFF_NOTE": "當放開 MIDI 音符 (Ch: %1, Note: %2, Vel: %3)",
+    "MIDI_OFF_NOTE_TOOLTIP": "當外接 MIDI 鍵盤放開時觸發。",
+    "MIDI_ON_CC": "當收到 MIDI 控制訊息 (Ch: %1, No: %2, Val: %3)",
+    "MIDI_ON_CC_TOOLTIP": "當外接 MIDI 旋鈕或推桿轉動時觸發。變數會儲存通道、編號與數值。",
+    "MIDI_LP_XY_TO_NOTE": "Launchpad 座標轉換：%1 X %2 Y %3 轉為 MIDI 音符",
+    "MIDI_LP_XY_TO_NOTE_TOOLTIP": "將 Launchpad 的 8x8 網格座標 (0-7) 轉換為 MIDI 音符編號。支援經典 XY 模式與現代 Note 模式。",
+    "MIDI_LP_MODE_XY": "經典 (XY)",
+    "MIDI_LP_MODE_NOTE": "現代 (Note)",
+
     "WC_TEXT_PRINT": "列印 %1",
     "WC_TEXT_PRINT_TOOLTIP": "將訊息輸出至瀏覽器主控台 (F12)。",
     "WC_COMMENT": "註解 %1",

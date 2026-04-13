@@ -5,6 +5,19 @@
 
 export const NodeFactory = {
     /**
+     * 將積木傳來的波形值轉換為合法的 Web Audio OscillatorType
+     */
+    mapWaveType(val) {
+        if (!val) return 'sine';
+        const v = String(val).toLowerCase();
+        const map = {
+            '0': 'sine', '1': 'square', '2': 'sawtooth', '3': 'triangle',
+            'sine': 'sine', 'square': 'square', 'sawtooth': 'sawtooth', 'triangle': 'triangle'
+        };
+        return map[v] || 'sine';
+    },
+
+    /**
      * 建立節點
      */
     create(ctx, comp, freqOrNote, lastNode, startTime, AudioManager, voice) {
@@ -14,7 +27,7 @@ export const NodeFactory = {
         switch (comp.type) {
             case 'osc': {
                 const osc = ctx.createOscillator();
-                osc.type = comp.wave || 'sine';
+                osc.type = this.mapWaveType(comp.wave);
                 osc.frequency.setValueAtTime(baseFreq, time);
                 osc.start(time);
                 
@@ -32,7 +45,7 @@ export const NodeFactory = {
                 const nodes = [groupGain];
                 comp.partials.forEach(p => {
                     const osc = ctx.createOscillator();
-                    osc.type = p.wave || 'sine';
+                    osc.type = this.mapWaveType(p.wave);
                     osc.frequency.setValueAtTime(baseFreq * (parseFloat(p.ratio) || 1), time);
                     const pGain = ctx.createGain();
                     pGain.gain.setValueAtTime(parseFloat(p.amp) || 0, time);

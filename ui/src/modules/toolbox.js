@@ -233,27 +233,18 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_PERFORMANCE}',
             'colour': '%{BKY_PERFORMANCE_HUE}',
             'contents': [
-                { 'kind': 'block', 'type': 'wc_perform' },  // 演奏
-                { 'kind': 'block', 'type': 'wc_loop' },     // 背景循環
-                {
-                    'kind': 'block',
-                    'type': 'wc_count_in',   // 預備拍
-                    'inputs': {
-                        'MEASURES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
-                        'BEATS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
-                        'BEAT_UNIT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'wc_transport_set_bpm',  // 設定 BPM
-                    'inputs': {
-                        'BPM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 120 } } }
-                    }
-                },
-                { 'kind': 'block', 'type': 'wc_define_chord' }, // 新增：定義和弦
-                { 'kind': 'block', 'type': 'wc_select_current_instrument' },  // 選擇樂器
+                { 'kind': 'label', 'text': '--- 演奏容器 (Containers) ---' },
+                { 'kind': 'block', 'type': 'wc_perform' },
+                { 'kind': 'block', 'type': 'wc_loop' },
+                
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 和弦與樂句封裝 (Chords and Phrases) ---' },
+                { 'kind': 'block', 'type': 'wc_define_chord' },
+                { 'kind': 'block', 'type': 'wc_phrase_def' },
+                { 'kind': 'block', 'type': 'wc_phrase_call' },
+
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 核心演奏 (Core Play) ---' },
                 {
                     'kind': 'block',
                     'type': 'wc_play_note',
@@ -273,30 +264,54 @@ export const WaveCodeToolbox = {
                     }
                 },
                 { 'kind': 'block', 'type': 'wc_play_melody' },
-                { 'kind': 'block', 'type': 'wc_rhythm_v2' }, // 進階序列器
-                { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
+                { 'kind': 'block', 'type': 'wc_rhythm_v2' },
+
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 控制與等待 (Control) ---' },
                 {
                     'kind': 'block',
-                    'type': 'wc_wait_musical', // 音樂性等待
+                    'type': 'wc_transport_set_bpm',
+                    'inputs': {
+                        'BPM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 120 } } }
+                    }
+                },
+                { 'kind': 'block', 'type': 'wc_select_current_instrument' },
+                {
+                    'kind': 'block',
+                    'type': 'wc_count_in',
+                    'inputs': {
+                        'MEASURES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
+                        'BEATS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
+                        'BEAT_UNIT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
+                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_wait_musical',
                     'inputs': {
                         'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
                     }
                 },
+                { 'kind': 'block', 'type': 'wc_wait', 'inputs': { 'MS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 500 } } } } },
+                { 'kind': 'block', 'type': 'wc_stop' },
+
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 進階控制 (Advanced) ---' },
                 {
                     'kind': 'block',
-                    'type': 'wc_release_note', // 釋放音符
+                    'type': 'wc_release_note',
                     'inputs': {
                         'FREQ': { 'shadow': { 'type': 'wc_note' } }
                     }
                 },
-                { 'kind': 'block', 'type': 'wc_note' },
-                { 'kind': 'block', 'type': 'wc_stop' }
+                { 'kind': 'block', 'type': 'wc_note' }
             ]
         },
 
         { 'kind': 'sep' },  
         
-        // 8. 序列埠與硬體 (Serial & Hardware)          
+        // 8. 序列埠、PC 鍵盤與 MIDI 裝置 (Serial & Hardware)          
         {
             'kind': 'category',
             'name': '%{BKY_CAT_SERIAL}',
@@ -306,6 +321,32 @@ export const WaveCodeToolbox = {
                 { 'kind': 'block', 'type': 'wc_serial_data_received' },
                 { 'kind': 'block', 'type': 'wc_serial_check_ttp' },
                 { 'kind': 'block', 'type': 'wc_serial_get_field' }
+            ]
+        },
+        {
+            'kind': 'category',
+            'name': '%{BKY_CAT_PC_KEYBOARD}',
+            'colour': '%{BKY_PC_KEYBOARD_HUE}',
+            'contents': [
+                { 'kind': 'block', 'type': 'wc_key_event' }
+            ]
+        },
+        {
+            'kind': 'category',
+            'name': '%{BKY_CAT_MIDI}',
+            'colour': '%{BKY_MIDI_HUE}',
+            'contents': [
+                { 'kind': 'block', 'type': 'wc_midi_on_note' },
+                { 'kind': 'block', 'type': 'wc_midi_on_note_off' },
+                { 'kind': 'block', 'type': 'wc_midi_on_cc' },
+                {
+                    'kind': 'block',
+                    'type': 'wc_midi_lp_xy_to_note',
+                    'inputs': {
+                        'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
+                        'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
+                    }
+                }
             ]
         }
     ]

@@ -8,6 +8,7 @@ import './lang/zh-hant.js';
 // --- 模組化積木與產生器 ---
 import './blocks/audio_instruments.js';
 import './blocks/audio_performance.js';
+import './blocks/events.js';
 import './blocks/text.js';
 
 import './generators/javascript/audio_instruments.js';
@@ -96,9 +97,38 @@ const openBlockHelp = (block) => {
 // 將 UIUtils 的功能暴露到全域供 MDIManager 使用
 window.updateVisualHelp = UIUtils.updateVisualHelp;
 
-toolbarManager.onWorkspaceChanged = () => {
-    debouncedUpdateLiveCode();
-    debouncedOrphanUpdate();
+toolbarManager.onWorkspaceChanged = (e) => {
+    // 1. 嚴格過濾無效事件 (如視角變動、點擊、選取、或是 UI 工具列觸發的 UI 事件)
+    if (!e || e.type === Blockly.Events.VIEWPORT_CHANGE || 
+              e.type === Blockly.Events.SELECTED || 
+              e.type === Blockly.Events.CLICK || 
+              e.type === Blockly.Events.THEME_CHANGE ||
+              e.isUiEvent) {
+        return;
+    }
+
+    // 2. 更新 Live Code (包含結構與數值變動)
+    if (e.type === Blockly.Events.BLOCK_CREATE || 
+        e.type === Blockly.Events.BLOCK_DELETE || 
+        e.type === Blockly.Events.BLOCK_MOVE || 
+        e.type === Blockly.Events.BLOCK_CHANGE) {
+        debouncedUpdateLiveCode();
+    }
+
+    // 3. 只有「結構性或屬性變動」才觸發孤兒檢測、鍵盤樂器標記與 MDI 狀態同步
+    if (e.type === Blockly.Events.BLOCK_CREATE || 
+        e.type === Blockly.Events.BLOCK_DELETE || 
+        e.type === Blockly.Events.BLOCK_MOVE ||
+        e.type === Blockly.Events.BLOCK_CHANGE) {
+        
+        // 孤兒檢測依然只針對結構變動以節省效能
+        if (e.type !== Blockly.Events.BLOCK_CHANGE) {
+            debouncedOrphanUpdate();
+        }
+        
+        // 鍵盤控制器標記 Dirty (包含改名等屬性變動)
+        KeyboardController.setDirty();
+    }
 };
 
 // --- 【關鍵修復】註冊右鍵說明選單 (#nyx 對齊) ---
@@ -192,7 +222,7 @@ function debouncedOrphanUpdate() {
     orphanTimeout = setTimeout(() => {
         const workspace = toolbarManager.workspace;
         if (workspace) UIUtils.updateOrphanBlocks(workspace);
-    }, 100);
+    }, 500); // 增加延遲至 500ms
 }
 
 // --- 5. 系統啟動 ---

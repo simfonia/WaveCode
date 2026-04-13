@@ -25,12 +25,12 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["lead_synth", "lead_synth"]]
+        "options": [["Piano", "Piano"]]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CORE_PLAY_HUE}",
     "tooltip": "演奏一個音符或已定義的和弦。音符可填如 C4, Eb5；和弦可填 CM7；休止符填 R。持續時間支援拍數(1)或代碼(Q)。音量範圍 0-100。",
     "helpUrl": "melody",
     "extensions": ["wc_play_note_instrument_dropdown"]
@@ -45,12 +45,12 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["lead_synth", "lead_synth"]]
+        "options": [["Piano", "Piano"]]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CORE_PLAY_HUE}",
     "tooltip": "非同步觸發音符或和弦。音量範圍 0-100。",
     "helpUrl": "melody",
     "extensions": ["wc_play_note_instrument_dropdown"]
@@ -77,7 +77,7 @@ Blockly.defineBlocksWithJsonArray([
       }
     ],
     "output": "String",
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_ADVANCED_HUE}",
     "tooltip": "%{BKY_AUDIO_NOTE_TOOLTIP}"
   },
   {
@@ -88,7 +88,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "%{BKY_AUDIO_WAIT_TOOLTIP}"
   },
   {
@@ -96,7 +96,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "%{BKY_AUDIO_STOP}",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "%{BKY_AUDIO_STOP_TOOLTIP}"
   },
   {
@@ -108,7 +108,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_PHRASES_HUE}",
     "tooltip": "%{BKY_AUDIO_DEFINE_CHORD_TOOLTIP}",
     "helpUrl": ""
   },
@@ -120,7 +120,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "%{BKY_AUDIO_SET_BPM_TOOLTIP}"
   },
   {
@@ -130,12 +130,12 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["lead_synth", "lead_synth"]]
+        "options": [["Piano", "Piano"]]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "%{BKY_AUDIO_SELECT_INSTRUMENT_TOOLTIP}",
     "extensions": ["wc_play_note_instrument_dropdown"]
   },
@@ -146,7 +146,7 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["lead_synth", "lead_synth"]]
+        "options": [["Piano", "Piano"]]
       }
     ],
     "message1": "%{BKY_AUDIO_PLAY_MELODY_SCORE}",
@@ -155,7 +155,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CORE_PLAY_HUE}",
     "tooltip": "%{BKY_AUDIO_PLAY_MELODY_TOOLTIP}",
     "helpUrl": "melody",
     "extensions": ["wc_play_note_instrument_dropdown"]
@@ -245,7 +245,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "音樂性等待。系統會自動根據 BPM 計算精確的排程時間。"
   },
   {
@@ -259,7 +259,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_CONTROL_HUE}",
     "tooltip": "播放 Click 預備拍。系統會根據拍號自動調整速度。適合現場演奏對齊拍點。"
   },
   {
@@ -275,20 +275,48 @@ Blockly.defineBlocksWithJsonArray([
     "hat": true
   },
   {
+    "type": "wc_phrase_def",
+    "message0": "定義樂句 %1 %2 %3",
+    "args0": [
+      { "type": "field_input", "name": "NAME", "text": "A段" },
+      { "type": "input_dummy" },
+      { "type": "input_statement", "name": "STACK" }
+    ],
+    "colour": "%{BKY_PHRASES_HUE}",
+    "tooltip": "將一連串音符或節奏打包成一個『樂句』。之後可以使用『演奏樂句』積木重複使用它。",
+    "hat": true
+  },
+  {
+    "type": "wc_phrase_call",
+    "message0": "演奏樂句 %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "NAME",
+        "options": [["(請先定義樂句)", "none"]]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_PHRASES_HUE}",
+    "tooltip": "演奏先前定義好的樂句。系統會等待該樂句完全結束後，才繼續執行下一個積木。",
+    "extensions": ["wc_phrase_call_dropdown"]
+  },
+  {
     "type": "wc_release_note",
     "message0": "釋放樂器 %1 的音符 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["lead_synth", "lead_synth"]]
+        "options": [["Piano", "Piano"]]
       },
       { "type": "input_value", "name": "FREQ" }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "inputsInline": true,
-    "colour": "%{BKY_PERFORMANCE_HUE}",
+    "colour": "%{BKY_ADVANCED_HUE}",
     "tooltip": "手動觸發特定音符的 Release 階段。適合現場控制長音的結束時機。",
     "extensions": ["wc_play_note_instrument_dropdown"]
   },
@@ -323,7 +351,7 @@ Blockly.Blocks['wc_rhythm_v2'] = {
       ],
       "previousStatement": null,
       "nextStatement": null,
-      "colour": "%{BKY_PERFORMANCE_HUE}",
+      "colour": "%{BKY_CORE_PLAY_HUE}",
       "tooltip": "音序器配置。拍號設定（如 3/4 拍）。每拍等分設定每一拍要分割成幾份。節奏格式：x 代表發聲，. 代表靜音，- 代表連音。",
       "helpUrl": "sequencer",
       "mutator": "wc_rhythm_v2_mutator"
@@ -433,5 +461,18 @@ Blockly.Extensions.register('wc_serial_port_scanner', function() {
     updatePorts().then(() => {
       originalShow.call(dropdown);
     });
+  };
+});
+
+Blockly.Extensions.register('wc_phrase_call_dropdown', function() {
+  const dropdown = this.getField('NAME');
+  dropdown.menuGenerator_ = function() {
+    const workspace = dropdown.getSourceBlock().workspace;
+    const blocks = workspace.getBlocksByType('wc_phrase_def');
+    const options = blocks.map(b => {
+      const name = b.getFieldValue('NAME');
+      return [name, name];
+    });
+    return options.length > 0 ? options : [['(尚未定義)', 'none']];
   };
 });

@@ -28,6 +28,7 @@ export const KeyboardController = {
     runCallback: null,
     stopCallback: null,
     _initialized: false,
+    _needsRefresh: true, // 預設需要重新整理
 
     init: (runCallback, stopCallback) => {
         if (KeyboardController._initialized) return;
@@ -40,11 +41,19 @@ export const KeyboardController = {
         window.addEventListener('blur', () => KeyboardController.stopAll());
         
         window.addEventListener('mdi-tab-changed', () => {
+            // 0. 強行關閉任何正在編輯的積木欄位 (對齊 #nyx 修正 Ghosting)
+            if (window.Blockly) {
+                if (Blockly.WidgetDiv) Blockly.WidgetDiv.hide();
+                if (Blockly.DropDownDiv) Blockly.DropDownDiv.hide();
+                if (document.activeElement) document.activeElement.blur();
+            }
+
             // 1. 立即停止所有音頻並清空按鍵追蹤，徹底解決掛留音問題
             KeyboardController.stopAll();
             KeyboardController.activeVoices.clear();
             
-            // 2. 延時刷新新分頁的樂器清單 (雙重保險以對位 Workspace 載入)
+            // 2. 標記為需要刷新，並延時刷新新分頁的樂器清單
+            KeyboardController._needsRefresh = true;
             setTimeout(() => KeyboardController.refreshInstruments(true), 100);
             setTimeout(() => KeyboardController.refreshInstruments(true), 500);
         });
@@ -53,18 +62,31 @@ export const KeyboardController = {
         KeyboardController._initialized = true;
     },
 
-    refreshInstruments: (shouldResetIndex = false) => {
+    /**
+     * 手動標記為需要刷新 (供外部 ChangeListener 調用)
+     */
+    setDirty: () => {
+        KeyboardController._needsRefresh = true;
+    },
+
+    refreshInstruments: (force = false) => {
+        // 如果不需要刷新且非強制執行，直接返回
+        if (!KeyboardController._needsRefresh && !force) return;
+
         const mdi = WaveCodeAPI.mdiManager || (window.WaveCode && window.WaveCode.mdiManager);
         const workspace = mdi ? mdi.getActiveWorkspace() : null;
         if (!workspace) return;
 
         const configs = WaveCodeCompiler.scanInstruments(workspace);
         WaveCodeAPI.setInstruments(configs);
+        KeyboardController._needsRefresh = false; // 重置旗標
 
         const keys = Object.keys(WaveCodeAPI._instruments);
         if (keys.length > 0) {
-            if (shouldResetIndex) KeyboardController.instrumentIndex = 0;
-            else if (KeyboardController.instrumentIndex >= keys.length) KeyboardController.instrumentIndex = 0;
+            if (force) {
+                // 強制執行時通常是初始化或切換分頁，重置索引
+                if (KeyboardController.instrumentIndex >= keys.length) KeyboardController.instrumentIndex = 0;
+            }
             
             const instId = keys[KeyboardController.instrumentIndex];
             WaveCodeAPI.setCurrentInstrument(instId);
@@ -93,6 +115,7 @@ export const KeyboardController = {
     },
 
     switchInstrument: (delta) => {
+        // 僅在必要時刷新
         KeyboardController.refreshInstruments(false);
         const keys = Object.keys(WaveCodeAPI._instruments);
         const len = keys.length;
@@ -166,11 +189,13 @@ export const KeyboardController = {
             if (KeyboardController.runCallback) { e.preventDefault(); e.stopImmediatePropagation(); KeyboardController.runCallback(); }
             return;
         }
+
+        if (isTyping) return;
+
         if (e.key === 'Escape') {
             if (KeyboardController.stopCallback) { e.preventDefault(); e.stopImmediatePropagation(); KeyboardController.stopCallback(); }
             return;
         }
-        if (isTyping) return;
         
         const key = e.key.toLowerCase();
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', '=', '+', '-', '_', 'Backspace'].includes(e.key) || KEY_MAP[key]) {

@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_comment" id="}bERe7xuU!Px5z=_%+-R" x="50" y="10">
-    <field name="TEXT">【使用步進音序器編寫 Bossa Nova 節奏】&amp;#10;1. 經典和弦：Dm7 -&gt; G7 -&gt; CM7 -&gt; A7。&amp;#10;2. 節奏與風格：鋼琴利用切分音營造慵懶感，低音使用根音-五音交替。&amp;#10;3. 享受音樂的魅力：點擊執行後可隨節奏即興演奏！</field>
+    <field name="TEXT">本範例示範如何創建樂句並重複使用&amp;#10;&amp;#10;1. 使用 &lt;定義樂句&gt; 積木編寫一段樂句。&amp;#10;2. 在 &lt;演奏&gt; 積木中，使用 &lt;演奏樂句&gt; 安排樂句順序。</field>
   </block>
   <block type="wc_instrument" id="{?OuNyv)HzP+8U`+.7l@" x="50" y="130">
     <field name="ID">Sax</field>
@@ -51,13 +51,13 @@
     <field name="ID">Bass</field>
     <statement name="CHAIN">
       <block type="wc_component_osc" id="|8t*6+N#Rde3j!_pUW@]">
-        <field name="WAVE">1</field>
+        <field name="WAVE">2</field>
         <next>
           <block type="wc_component_adsr" id="zO)%3vOztWYgBS9h%hmz">
             <field name="A">0.01</field>
-            <field name="D">0.5</field>
-            <field name="S">0</field>
-            <field name="R">0.5</field>
+            <field name="D">0.05</field>
+            <field name="S">0.2</field>
+            <field name="R">1</field>
             <next>
               <block type="wc_component_volume" id="gpx]}lY#F`l*G|)$F+WW">
                 <field name="VOL">70</field>
@@ -185,9 +185,8 @@
       </block>
     </statement>
   </block>
-  <block type="procedures_defnoreturn" id="T/cUNjl`S-XZQWDi}Tva" x="50" y="1030">
+  <block type="wc_phrase_def" id="UnK+np`{pD{B7CG^).:p" x="50" y="1030">
     <field name="NAME">A</field>
-    <comment pinned="false" h="80" w="160">描述此函式...</comment>
     <statement name="STACK">
       <block type="wc_rhythm_v2" id="f;?:-*/8g+`s;@hp0-%$">
         <mutation items="3"></mutation>
@@ -198,7 +197,7 @@
         <field name="INST0">Clap</field>
         <field name="VEL0">100</field>
         <field name="MODE0">NOTE</field>
-        <field name="PATTERN0">x--- --x- --x- x---</field>
+        <field name="PATTERN0">x... ..x. ..x. x...</field>
         <field name="INST1">Piano</field>
         <field name="VEL1">100</field>
         <field name="MODE1">CHORD</field>
@@ -206,7 +205,7 @@
         <field name="INST2">Bass</field>
         <field name="VEL2">100</field>
         <field name="MODE2">NOTE</field>
-        <field name="PATTERN2">D2--- ---- A2--- ----</field>
+        <field name="PATTERN2">D2-.. .... A2-.. ....</field>
         <next>
           <block type="wc_rhythm_v2" id="MmN-JTuYD#F/PK:QGw-|">
             <mutation items="3"></mutation>
@@ -217,7 +216,7 @@
             <field name="INST0">Kick</field>
             <field name="VEL0">150</field>
             <field name="MODE0">NOTE</field>
-            <field name="PATTERN0">x--- --x- --x- x---</field>
+            <field name="PATTERN0">x... ..x. ..x. x...</field>
             <field name="INST1">Piano</field>
             <field name="VEL1">100</field>
             <field name="MODE1">CHORD</field>
@@ -225,7 +224,7 @@
             <field name="INST2">Bass</field>
             <field name="VEL2">100</field>
             <field name="MODE2">NOTE</field>
-            <field name="PATTERN2">G1--- ---- D2--- ----</field>
+            <field name="PATTERN2">G1-.. .... D2-.. ....</field>
             <next>
               <block type="wc_rhythm_v2" id="Bp#u*|I|LzWcj;o[[Xv(">
                 <mutation items="2"></mutation>
@@ -240,7 +239,7 @@
                 <field name="INST1">Bass</field>
                 <field name="VEL1">100</field>
                 <field name="MODE1">NOTE</field>
-                <field name="PATTERN1">C2--- ---- G2--- ----</field>
+                <field name="PATTERN1">C2-.. .... G2-.. ....</field>
                 <next>
                   <block type="wc_rhythm_v2" id="m{=qy%kdg|la2V./`vUz">
                     <mutation items="2"></mutation>
@@ -251,11 +250,11 @@
                     <field name="INST0">Piano</field>
                     <field name="VEL0">100</field>
                     <field name="MODE0">CHORD</field>
-                    <field name="PATTERN0">..A7. ..A7. ---- A7...</field>
+                    <field name="PATTERN0">..A7. ..A7. .... A7...</field>
                     <field name="INST1">Bass</field>
                     <field name="VEL1">100</field>
                     <field name="MODE1">NOTE</field>
-                    <field name="PATTERN1">A1--- ---- E2--- ----</field>
+                    <field name="PATTERN1">A1-.. .... E2-.. ....</field>
                   </block>
                 </next>
               </block>
@@ -265,9 +264,8 @@
       </block>
     </statement>
   </block>
-  <block type="procedures_defnoreturn" id="#EEdel5Ep]:-[OYlspk@" x="50" y="1470">
+  <block type="wc_phrase_def" id="~Sh)LvU$3;7O%h~7TL2o" x="50" y="1470">
     <field name="NAME">B</field>
-    <comment pinned="false" h="80" w="160">描述此函式...</comment>
     <statement name="STACK">
       <block type="wc_rhythm_v2" id="($Bs7JPROM!=9H,$o:ZQ">
         <mutation items="2"></mutation>
@@ -282,7 +280,7 @@
         <field name="INST1">Bass</field>
         <field name="VEL1">100</field>
         <field name="MODE1">NOTE</field>
-        <field name="PATTERN1">D2--- ---- G1--- ----</field>
+        <field name="PATTERN1">D2-.. .... G1-.. ....</field>
         <next>
           <block type="wc_rhythm_v2" id="H0HB4SsH|s!)xZn$mimL">
             <mutation items="2"></mutation>
@@ -297,7 +295,7 @@
             <field name="INST1">Bass</field>
             <field name="VEL1">100</field>
             <field name="MODE1">NOTE</field>
-            <field name="PATTERN1">C2--- ---- ---- ----</field>
+            <field name="PATTERN1">C2--- ---- .... ....</field>
           </block>
         </next>
       </block>
@@ -305,20 +303,20 @@
   </block>
   <block type="wc_perform" id="wzCVz];chODD07O;OhQI" x="50" y="1710">
     <statement name="DO">
-      <block type="procedures_callnoreturn" id=";Ct=u@SNRH|^`Z0@2Qsb">
-        <mutation name="A"></mutation>
+      <block type="wc_phrase_call" id="hNC?DT9l2!+O?MQTG)=i">
+        <field name="NAME">A</field>
         <next>
-          <block type="procedures_callnoreturn" id="Ei4PVob5q=TKB14`9~-v">
-            <mutation name="A"></mutation>
+          <block type="wc_phrase_call" id="FT!0IiOebm~jnzJ=2xe4">
+            <field name="NAME">A</field>
             <next>
-              <block type="procedures_callnoreturn" id="Kb%A(-!z]oNBQb8j|@u_">
-                <mutation name="B"></mutation>
+              <block type="wc_phrase_call" id="-u;X,It^{x?]3s4)MOJX">
+                <field name="NAME">B</field>
                 <next>
-                  <block type="procedures_callnoreturn" id="5wWV1:+Qr4F#N4-lGr[i">
-                    <mutation name="A"></mutation>
+                  <block type="wc_phrase_call" id="jOfO/1vh*u,~9mNuI9.}">
+                    <field name="NAME">A</field>
                     <next>
-                      <block type="procedures_callnoreturn" id="I1)q:NI-)`)S1C3j+$6P">
-                        <mutation name="B"></mutation>
+                      <block type="wc_phrase_call" id="MtuZQ!Jo1drhI;v-H/H#">
+                        <field name="NAME">B</field>
                       </block>
                     </next>
                   </block>

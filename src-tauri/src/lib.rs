@@ -86,6 +86,15 @@ async fn save_project(app_state: State<'_, AppState>, xml_content: String, path:
 }
 
 #[tauri::command]
+async fn load_default_template(app_handle: tauri::AppHandle) -> Result<String, String> {
+    let template_path = utils::get_resource_base(&app_handle).join("default_template.wave");
+    if !template_path.exists() {
+        return Ok("".to_string());
+    }
+    fs::read_to_string(&template_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn load_project(app_state: State<'_, AppState>, path: String) -> Result<String, String> {
     let path_buf = PathBuf::from(&path);
     if !path_buf.exists() {
@@ -408,7 +417,7 @@ pub fn run() {
     })
     .invoke_handler(tauri::generate_handler![
         update_patch, trigger_note, release_note, stop_audio, restart_audio,
-        save_project, load_project, list_examples, open_url, get_doc_content, open_samples_dir,
+        save_project, load_project, load_default_template, list_examples, open_url, get_doc_content, open_samples_dir,
         set_master_volume, log, list_samples_recursive, read_sample_file, decode_audio_to_pcm,
         list_serial_ports, open_serial, close_serial, get_version
     ])

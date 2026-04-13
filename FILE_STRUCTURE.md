@@ -6,14 +6,16 @@
     - `.taurignore`: **[新增] Tauri 忽略檔，避免 resources 資料夾變動導致 App 重啟**
     - `src/engine.rs`: [已轉型] 資源管理器 (負責載入音訊檔至前端)
     - `resources/`: 應用程式資源
+        - `default_template.wave`: **[新增] 專案初始樣板 (MasterOut + OnInit)**
         - `examples/`: **[更新] 子目錄結構支援, 新增 Serial_Interactions 專題**
         - `docs/`: [更新] 輔助說明文件 (master, effects, melody)
 - `ui/`: 前端程式碼 (Vite + JavaScript)
     - `src/main.js`: 前端主進入點 (整合 DSL 即時語法高亮與轉譯邏輯)
     - `src/preinit.js`: **[關鍵] 全域變數、Mutators 與輔助函式預初始化 (解決 ESM Hoisting 問題)**
     - `src/blocks/`: 積木定義
-        - `audio_instruments.js`: 拆分 wc_effect_ 獨立效果器, 新增 wc_master 總線積木, **[新增] Reverb 效果器**
-        - `audio_performance.js`: **[新增] 序列埠初始化與 TTP229 解析積木**
+        - `audio_instruments.js`: 拆分 wc_effect_ 獨立效果器, 新增 wc_master 總線積木, [新增] Reverb 效果器
+        - `audio_performance.js`: [新增] 序列埠處理與 TTP229 解析積木
+        - `events.js`: **[新增] 鍵盤與 MIDI 事件處理積木 (對齊 #nyx 規範)**
         - `text.js`: 基礎文字處理積木
     - `src/generators/`: 轉型為「音訊 DSL」產生器模式
         - `javascript/`: 產出 DSL 結構的 JS 產生器 (audio_instruments.js, audio_performance.js, system.js)

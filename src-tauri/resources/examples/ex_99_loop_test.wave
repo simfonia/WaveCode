@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_instrument" id="%xOiQ?IFA1N_0TFiqfl2" x="50" y="50">
-    <field name="ID">my_piano</field>
+    <field name="ID">Piano</field>
     <statement name="CHAIN">
       <block type="wc_component_osc" id="{9+5aQ96?5PC`C=/0@Dn">
         <field name="WAVE">0</field>
@@ -20,10 +20,38 @@
       </block>
     </statement>
   </block>
-  <block type="wc_comment" id="63mZurP7s*k=^a}8u7e)" x="50" y="290">
-    <field name="COMMENT">在無窮迴圈中，若沒有等待時間，應用程式將會卡死。&amp;#10;WaveCode自帶同步無窮迴圈守衛，可以自動停止程式。</field>
+  <block type="wc_master" id="t$,/YFe%VC?apqa#gxX7" x="50" y="270">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="0*Lmw$5tlaJsY*8,_]%z">
+        <value name="THRESH">
+          <shadow type="math_number" id="$xxy_kdA~|i(-HBM31^`">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="@_?Lq6jN@dVlKIG_?:1_">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="mlLQbY^U}~DCf}tgRsyd">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="6Ae6|%s}w[Q7mR;gCz(@">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="t}B6MYCj-qQpgtF/sSE(">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
   </block>
-  <block type="wc_perform" id="odm}2!u9lk:E5P2K3f?+" x="50" y="370">
+  <block type="wc_perform" id="odm}2!u9lk:E5P2K3f?+" x="50" y="470">
     <statement name="DO">
       <block type="controls_whileUntil" id="x,I^j0w(C.f#d+pll3L#">
         <field name="MODE">WHILE</field>
@@ -33,51 +61,92 @@
           </block>
         </value>
         <statement name="DO">
-          <block type="wc_play_note_async" id="aofHu/q-rK,o.Hb,T.yH">
-            <field name="INSTRUMENT">my_piano</field>
-            <value name="FREQ">
-              <shadow type="wc_note" id="`OV4Rm`zE3=dHWDNGsZW">
-                <field name="NOTE">261.63</field>
-              </shadow>
-            </value>
-            <value name="DUR">
-              <shadow type="math_number" id="L!}{ddXlXTFpD(-+zE]v">
-                <field name="NUM">500</field>
-              </shadow>
-            </value>
+          <block type="wc_comment" id="63mZurP7s*k=^a}8u7e)">
+            <field name="TEXT">在一個無窮迴圈中，若沒有加入等待時間把執行緒時間讓出來給主程式，&amp;#10;將會凍結程式而無法操作使用者介面(UI) 。&amp;#10;WaveCode 內建保護機制會自動終止程式。</field>
             <next>
-              <block type="wc_play_note_async" id="Ai/X8a:5`hG8sfUA=YW1">
-                <field name="INSTRUMENT">my_piano</field>
-                <value name="FREQ">
-                  <shadow type="wc_note" id="$Fd8Q:ahHEd}}-p!aRjf">
-                    <field name="NOTE">329.63</field>
+              <block type="wc_play_note_async" id="1fO(:g-A]Q.)/cIbdsF#">
+                <field name="INSTRUMENT">Piano</field>
+                <value name="NOTE">
+                  <shadow type="text" id="I0y),vD}H9{G,66Q{0yQ">
+                    <field name="TEXT">C4</field>
                   </shadow>
                 </value>
                 <value name="DUR">
-                  <shadow type="math_number" id="j;clsiCt^*FI9E9v~g-0">
-                    <field name="NUM">500</field>
+                  <shadow type="text" id="rCy;y,WP{^59*do]{HV7">
+                    <field name="TEXT">1</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id=".jVhK^#qB$$akhC[Jn6u">
+                    <field name="NUM">100</field>
                   </shadow>
                 </value>
                 <next>
-                  <block type="wc_play_note_async" id="a53E651K`QS4--.j21+i">
-                    <field name="INSTRUMENT">my_piano</field>
-                    <value name="FREQ">
-                      <shadow type="wc_note" id="HA{W`/.,-p@rk5[,y;0e">
-                        <field name="NOTE">392.00</field>
+                  <block type="wc_play_note_async" id="k_q.tavY[Rx6RUuq~N++">
+                    <field name="INSTRUMENT">Piano</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="aU8N@^@g$eVEq9p@@zqL">
+                        <field name="TEXT">E4</field>
                       </shadow>
                     </value>
                     <value name="DUR">
-                      <shadow type="math_number" id="YeywqP2iU)K^qj8YPeD^">
-                        <field name="NUM">500</field>
+                      <shadow type="text" id="{(_QG{YzH?o(t=`7^BEW">
+                        <field name="TEXT">1</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="Vu27Y/4D~^?T0sZYK3(v">
+                        <field name="NUM">100</field>
                       </shadow>
                     </value>
                     <next>
-                      <block type="wc_wait" id="]7mtDKxTGm5JbT#bqR^r" disabled-reasons="MANUALLY_DISABLED">
-                        <value name="MS">
-                          <shadow type="math_number" id="fi/4M*^Xg$MeM0OYD3/z">
-                            <field name="NUM">500</field>
+                      <block type="wc_play_note_async" id="Y,})5[]q_J9%jg7C}I:#">
+                        <field name="INSTRUMENT">Piano</field>
+                        <value name="NOTE">
+                          <shadow type="text" id="7=,fCp)7LuC.4|^/c(*O">
+                            <field name="TEXT">G4</field>
                           </shadow>
                         </value>
+                        <value name="DUR">
+                          <shadow type="text" id="@;z35-r;83f,9}xM(67:">
+                            <field name="TEXT">1</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="z1$6upZMMP?QR8)`C)eh">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="wc_play_note_async" id="$jgzdovTm+w}%Xj0[|MH">
+                            <field name="INSTRUMENT">Piano</field>
+                            <value name="NOTE">
+                              <shadow type="text" id="O~=Ij=yby5:+qN[yqHhr">
+                                <field name="TEXT">Bb4</field>
+                              </shadow>
+                            </value>
+                            <value name="DUR">
+                              <shadow type="text" id="[Td)Apbl)V`cu0u+GO])">
+                                <field name="TEXT">1</field>
+                              </shadow>
+                            </value>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="xN40.rQoqR+~6@QjS3E6">
+                                <field name="NUM">100</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="wc_wait_musical" id="7^a%/f:QPegdb8ebNhBH" disabled-reasons="MANUALLY_DISABLED">
+                                <field name="UNIT">BEATS</field>
+                                <value name="VALUE">
+                                  <shadow type="math_number" id="tvXx=C~@j_+$,Jnv]jOg">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
                       </block>
                     </next>
                   </block>

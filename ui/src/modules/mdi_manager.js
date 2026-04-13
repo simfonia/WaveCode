@@ -68,7 +68,7 @@ export class MDIManager {
                 if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type)) {
                     this.updateTabDirty(tabId, true);
                     if (this.activeTabId === tabId && this.toolbarManager.onWorkspaceChanged) {
-                        this.toolbarManager.onWorkspaceChanged();
+                        this.toolbarManager.onWorkspaceChanged(e); // 修正：傳遞事件對象 e
                     }
                 }
             }
@@ -121,22 +121,39 @@ export class MDIManager {
         if (isActive) {
             this.switchTab(tabId);
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 workspace.isClearing = true;
                 workspace.clear();
                 
-                if (initialXml) {
-                    const dom = Blockly.utils.xml.textToDom(initialXml);
-                    Blockly.Xml.domToWorkspace(dom, workspace);
-                    
-                    // --- 關鍵修正：加入視覺邊距補正 ---
-                    setTimeout(() => {
-                        if (workspace) {
-                            workspace.scrollX += 30;
-                            workspace.scrollY += 30;
-                            workspace.render();
+                let finalXml = initialXml;
+                if (!finalXml) {
+                    try {
+                        const invoke = WaveCodeAPI.getInvoke();
+                        if (invoke) {
+                            finalXml = await invoke('load_default_template');
                         }
-                    }, 100);
+                    } catch (err) {
+                        console.warn('WaveCode: 載入樣板失敗，將使用程式內置預設。', err);
+                    }
+                }
+
+                if (finalXml && finalXml.trim().length > 0) {
+                    try {
+                        const dom = Blockly.utils.xml.textToDom(finalXml);
+                        Blockly.Xml.domToWorkspace(dom, workspace);
+                        
+                        // --- 關鍵修正：加入視覺邊距補正 ---
+                        setTimeout(() => {
+                            if (workspace) {
+                                workspace.scrollX += 30;
+                                workspace.scrollY += 30;
+                                workspace.render();
+                            }
+                        }, 100);
+                    } catch (err) {
+                        console.error('WaveCode: 解析樣板 XML 失敗', err);
+                        if (this.toolbarManager) this.toolbarManager.createDefaultBlocks();
+                    }
                 } else if (this.toolbarManager) {
                     this.toolbarManager.createDefaultBlocks();
                 }

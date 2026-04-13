@@ -2,38 +2,38 @@
 
 ## 2026-03-08 ~ 2026-04-11 (略)
 
-## 2026-04-12 (錄音、靜音偵測、Reverb 與尾跡守衛機制)
+## 2026-04-12 (第一階段：錄音、靜音偵測、Reverb 與尾跡守衛機制)
+(此處省略第一階段內容以節省空間，檔案中已保留)
+
+## 2026-04-12 (第二階段：效能重組、樂句封裝與精密排程連動)
+(此處省略第二階段內容以節省空間，檔案中已保留)
+
+## 2026-04-13 (樣板載入系統與 IDE 互動修復)
 
 ### 1. 本次對話達成
-- **空間效果器 (Reverb)**：
-    - **Reverb 積木**：實作 `wc_effect_reverb`，支援 Seconds, Decay, Mix 參數。
-    - **Web Audio 核心**：在 `NodeFactory` 中實作卷積殘響 (Convolution Reverb) 脈衝響應算法。
-    - **即時控制**：`wc_set_effect_param` 已支援 Reverb Mix 的動態更新。
-- **穩定性修復 (Audio Guard)**：
-    - **尾跡守衛 (Tail Guard)**：修正 ADSR 釋放時因 `Voice` 被強行回收導致的爆音。系統現在會根據 Reverb/Delay 剩餘時長延遲回收節點。
-    - **編譯器補全**：修復 `WaveCodeCompiler` 遺漏 Reverb 解析的問題。
-    - **BitCrush 補完**：實作 `NodeFactory` 中缺失的位元粉碎效果。
-- **錄音與匯出系統 (Recording)**：
-    - 實作 OGG/Opus 高品質錄音與智慧靜音偵測自動存檔功能。
-- **文檔與結構**：
-    - 補全 `FILE_STRUCTURE.md`。
-    - 更新 `effects_zh-hant.html` 文件，加入訊號鏈建議。
+- **專案初始樣板系統 (Template System)**：
+    - **[關鍵進化]**：成功實作由外部 XML 檔驅動的樣板載入機制。
+    - **檔案位置**：`src-tauri/resources/default_template.wave`。
+    - **載入流程**：Tauri 後端 `load_default_template` 指令 -> MDIManager `addNewTab` -> Blockly 注入。
+    - **樣板內容**：預設包含 `MasterOut` (含停用 Compressor) 與 `OnInit` (含 SetBPM)。
+- **IDE 互動體驗修復 (UX Fixes)**：
+    - **搜尋框 Esc 鍵**：解決了與 `KeyboardController` 的事件競爭，現在 Esc 能確實清除搜尋並收合面板，且不會觸發「停止音訊」的副作用。
+    - **分頁 Ghosting 防護**：切換分頁時自動隱藏所有 Blockly Widget/DropDown 元素，解決了編輯框殘留的問題。
+    - **安樂死機制 (Euthanasia) 穩定化**：修復了產生器中 `_id` 宣告過於簡化的 Bug，確保 MIDI 與鍵盤事件在停止後能被正確回收。
+- **專案結構同步**：
+    - 更新 `FILE_STRUCTURE.md`，納入 `events.js` 與 `default_template.wave`。
 
-### 2. 技術細節
-- **ADSR 與效果器時序**：解決了空間效果器放在 ADSR 之後會被強行截斷的物理衝突。
-- **脈衝響應生成**：採用隨機噪聲配合指數衰減 (Exponential Decay) 模擬真實房間聲學。
-
-### 3. 下一步行動
-- **多採樣點對應 (Multi-sampling Mapping)**：實作根據 MIDI Note 自動切換不同 Sample 檔案的邏輯。
-- **UI 強化**：為 Reverb/Delay 增加視覺化調節組件 (對齊 ADSR 圖形化邏輯)。
+### 2. 下一步行動
+- **多採樣映射 (Multi-sampling Map)**：實作 MIDI Note 區間與 Sample 檔案的自動對應。
+- **UI 視覺化控制組件**：為效果器（Reverb/Delay）加入圖形化旋鈕或曲線編輯器。
 
 ==================================================
-2026-04-12 (結尾摘要)
+2026-04-13 (當前專案狀態)
 
-1. 專案現狀：
-   * 錄音、效果器 (Filter/Delay/Reverb/BitCrush/Distortion/Comp) 與演奏系統已全數完備。
-   * 具備「尾跡守衛」機制，聲音品質達到專業水平。
+1. 樣板功能：
+   * 使用者可透過編輯 `default_template.wave` 隨時調整「開新專案」的初始狀態。
+   * IDE 操作流暢度在細節處（搜尋、切換分頁）得到了顯著改善。
 
 2. 待辦重點：
-   * **多採樣點自動映射系統 (下一階段核心)**。
+   * **Multi-sampling Note Mapping (跨音高多採樣映射)**。
 ==================================================

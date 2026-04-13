@@ -14,40 +14,49 @@
         table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #F5F6FF; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #f8f9fa; }
+        .mode-box { display: flex; gap: 20px; margin: 20px 0; }
+        .mode-item { flex: 1; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white; }
+        .mode-title { font-weight: bold; color: var(--theme-color); margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <h1>MIDI 與 Launchpad 控制</h1>
-    <p>本系統支援標準 MIDI 通訊，特別針對 Novation Launchpad 系列進行了優化，讓您可以輕鬆實現硬體與程式的即時互動。</p>
+    <p>WaveCode 支援標準 Web MIDI 通訊，讓您可以輕鬆實現硬體與程式的即時互動。系統會自動掃描並監聽所有連接的 MIDI 裝置。</p>
 
-    <h2>1. 基礎設定</h2>
-    <p class="block-ref">啟動 MIDI 監聽</p>
-    <ul>
-        <li><strong>輸入 (Input)</strong>: 設定 MIDI 輸入裝置的索引（通常 Launchpad 為 0）。</li>
-        <li><strong>輸出 (Output)</strong>: 設定 MIDI 輸出裝置的索引。若要讓 Launchpad 亮燈，必須正確設定此項。</li>
-    </ul>
-    <div class="note">提示：執行程式後，請查看 Processing 控制台 (Console) 輸出的裝置列表，確認正確的編號。</div>
-
-    <h2>2. 接收訊號 (Input)</h2>
+    <h2>1. 接收訊號 (Input)</h2>
     <p class="block-ref">當收到 MIDI 音符 ON / OFF</p>
-    <p>當您按下或放開硬體上的按鍵時會觸發。系統會自動將 <code>channel</code> (頻道)、<code>pitch</code> (鍵號) 與 <code>velocity</code> (力度) 存入對應變數中。</p>
+    <p>當您按下 MIDI 鍵盤上的按鍵時會觸發。變數會儲存 <code>ch</code> (頻道)、<code>note</code> (鍵號) 與 <code>vel</code> (力度)。</p>
+    <div class="note">
+        <strong>進階演奏：</strong> 您可以在「按下」時觸發音長為 0 的持續音，並在「放開」時呼叫「釋放音符」積木，實現手動控制音長的手感。
+    </div>
 
     <p class="block-ref">當收到 MIDI CC 控制訊號</p>
-    <p>用於監聽旋鈕或頂部功能鍵。通常用於切換模式或控制音量/效果參數。</p>
+    <p>用於監聽旋鈕或推桿。系統會將數據存入 <code>ch</code> (頻道)、<code>number</code> (編號) 與 <code>value</code> (數值)。適合即時調整音量或效果。</p>
 
-    <h2>3. 傳送訊號與控制燈光 (Output)</h2>
-    <p>透過向 Launchpad 傳送音符訊號，可以控制其 LED 燈光的顏色。</p>
+    <h2>2. Launchpad 專用工具</h2>
+    <p class="block-ref">Launchpad 座標轉換</p>
+    <p>此工具將 8x8 網格座標 (X, Y) 轉換為 MIDI 音符編號。請依據您的硬體型號選擇模式：</p>
     
-    <p class="block-ref">傳送 MIDI 音符</p>
+    <div class="mode-box">
+        <div class="mode-item">
+            <div class="mode-title">經典 (XY) 模式</div>
+            <p>公式：<code>Y * 16 + X</code></p>
+            <p><strong>適用硬體：</strong><br>Launchpad S / Classic / Mini / Mini MK2。</p>
+        </div>
+        <div class="mode-item">
+            <div class="mode-title">現代 (Note) 模式</div>
+            <p>公式：<code>11 + X + (Y * 10)</code></p>
+            <p><strong>適用硬體：</strong><br>Launchpad MK2 / X / Pro / Mini MK3。</p>
+        </div>
+    </div>
+
     <ul>
-        <li><strong>開啟 (ON)</strong>: 讓指定位置的燈亮起。</li>
-        <li><strong>關閉 (OFF)</strong>: 讓燈熄滅。</li>
-        <li><strong>力度 (Velocity)</strong>: 在 Launchpad 上，力度值決定了顏色（例如：15=紅, 60=綠, 62=黃）。</li>
+        <li>網格範圍均為 X (0-7), Y (0-7)。</li>
     </ul>
 
-    <h2>4. Launchpad 專用工具</h2>
-    <p class="block-ref">Launchpad 座標轉鍵號</p>
-    <p>Launchpad 的 8x8 網格座標範圍為 (0,0) 到 (7,7)，其中 <strong>(0,0) 為左上角第一顆按鈕</strong>。此積木會自動根據公式 <code>Note = Y * 16 + X</code> 轉換為正確的 MIDI 鍵號，方便您精確定位特定按鈕。</p>
+    <div class="note">
+        <strong>提示：</strong> 若要開始使用 MIDI，請確保裝置已連接，並在啟動專案後點擊一次頁面任意處以啟用瀏覽器的存取權限。
+    </div>
 
     <h2>Launchpad S 常用顏色表</h2>
     <table>

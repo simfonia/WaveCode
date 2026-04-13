@@ -205,7 +205,8 @@ export class ToolbarManager {
             generator.init(this.workspace);
 
             // 【安全性強化】同步迴圈守衛：防止無窮迴圈鎖死 UI
-            generator.INFINITE_LOOP_TRAP = `WaveCode.checkLoop(_id);\n`;
+            // 修正：改用 WaveCode._execId 確保在 Phrase 等函式作用域內也能正確存取 ID
+            generator.INFINITE_LOOP_TRAP = `WaveCode.checkLoop(WaveCode._execId);\n`;
             
             // 【關鍵修正】直接獲取完整工作區代碼，這能自動處理帽子積木 (wc_perform) 的順序 with 同步
             const blocksCode = generator.workspaceToCode(this.workspace);
@@ -233,8 +234,12 @@ export class ToolbarManager {
             } catch (err) {
                 if (err.message !== 'Script cancelled') {
                     console.error('腳本執行錯誤:', err);
+                    let errorMsg = err.message || err;
+                    if (errorMsg.includes('迴圈次數過多')) {
+                        errorMsg = '偵測到疑似無窮迴圈，系統已自動終止程式以防止當機。';
+                    }
                     if (this.stageUI && this.stageUI.appendLog) {
-                        this.stageUI.appendLog('腳本執行錯誤: ' + err, 'error');
+                        this.stageUI.appendLog('腳本執行錯誤: ' + errorMsg, 'error');
                     }
                 }
             } finally {
@@ -540,7 +545,7 @@ export class ToolbarManager {
         if (!this.workspace || this.workspace.isClearing) return;
         try {
             const inst = this.workspace.newBlock('wc_instrument');
-            inst.setFieldValue('my_piano', 'ID');
+            inst.setFieldValue('Piano', 'ID');
             inst.initSvg(); inst.render(); inst.moveBy(50, 50);
             
             const osc = this.workspace.newBlock('wc_component_osc');

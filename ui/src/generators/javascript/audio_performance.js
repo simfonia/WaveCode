@@ -9,7 +9,14 @@ Blockly.JavaScript.forBlock['wc_perform'] = function(block) {
   const _id = typeof _execId !== 'undefined' ? _execId : window.WaveCode._execId;
   const _track = window.WaveCode.createTrack();
   const WaveCode = _track; // 作用域遮蔽
-  ${code}
+  try {
+    ${code}
+  } catch (err) {
+    if (err.message !== 'Script cancelled') {
+      const msg = err.message.includes('迴圈次數過多') ? '偵測到疑似無窮迴圈，系統已自動終止背景任務。' : err.message;
+      WaveCode.appendLog('演奏任務錯誤: ' + msg, 'error');
+    }
+  }
 })();
 `;
 };
@@ -99,13 +106,20 @@ Blockly.JavaScript.forBlock['wc_serial_data_received'] = function(block) {
   const varName = Blockly.JavaScript.nameDB_.getName(varId, Blockly.Variables.NAME_TYPE);
   const code = Blockly.JavaScript.statementToCode(block, 'DO');
 
-  // 使用 WaveCode.registerSerialHandler 訂閱
-  // 使用 setVar 賦值，解決變數作用域與宣告問題
   return `
 WaveCode.registerSerialHandler(async (data, id) => {
   if (WaveCode.isScriptCancelled(id)) return;
-  WaveCode.setVar("${varName}", data);
-  ${code}
+  const _id = id;
+  const WaveCode = window.WaveCode.createTrack(); // 事件觸發也建立新軌道
+  try {
+    WaveCode.setVar("${varName}", data);
+    ${code}
+  } catch (err) {
+    if (err.message !== 'Script cancelled') {
+      const msg = err.message.includes('迴圈次數過多') ? '偵測到疑似無窮迴圈，已終止事件處理。' : err.message;
+      WaveCode.appendLog('序列埠事件錯誤: ' + msg, 'error');
+    }
+  }
 });
 `;
 };
@@ -170,7 +184,10 @@ Blockly.JavaScript.forBlock['wc_loop'] = function(block) {
       }
     }
   } catch (err) {
-    if (err.message !== 'Script cancelled') console.error('Loop Error:', err);
+    if (err.message !== 'Script cancelled') {
+        const msg = err.message.includes('迴圈次數過多') ? '偵測到疑似無窮迴圈，系統已自動終止背景循環。' : err.message;
+        WaveCode.appendLog('背景循環錯誤: ' + msg, 'error');
+    }
   }
 })();
 `;
@@ -180,6 +197,25 @@ Blockly.JavaScript.forBlock['wc_release_note'] = function(block) {
   const inst = block.getFieldValue('INSTRUMENT');
   const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
   return `await WaveCode.releaseNote(${freq}, 0, "${inst}");\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_phrase_def'] = function(block) {
+  const phraseName = block.getFieldValue('NAME');
+  // 安全名稱轉換：保留中文、英文、數字、底線，其餘轉為底線
+  const safeName = phraseName.replace(/[^a-zA-Z0-9_\u4e00-\u9fa5]/g, '_');
+  const branch = Blockly.JavaScript.statementToCode(block, 'STACK');
+  
+  const code = `async function __phrase_${safeName}(WaveCode) {\n${branch}}\n`;
+  Blockly.JavaScript.definitions_['__phrase_' + safeName] = code;
+  return null;
+};
+
+Blockly.JavaScript.forBlock['wc_phrase_call'] = function(block) {
+  const phraseName = block.getFieldValue('NAME');
+  if (phraseName === 'none') return '// (未選取樂句)\n';
+  // 安全名稱轉換需與定義端一致
+  const safeName = phraseName.replace(/[^a-zA-Z0-9_\u4e00-\u9fa5]/g, '_');
+  return `await __phrase_${safeName}(WaveCode);\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_rhythm_v2'] = function(block) {

@@ -134,12 +134,21 @@ export const Oscilloscope = {
         this.fftCtx = this.fftCanvas.getContext('2d');
         this.resize();
         window.addEventListener('resize', () => this.resize());
+
+        // --- 效能優化：將 UI 更新與繪圖迴圈解耦 ---
+        if (this._uiInterval) clearInterval(this._uiInterval);
+        this._uiInterval = setInterval(() => {
+            const hasEngine = this.analyser || window.AudioManager || (window.WaveCode && window.WaveCode.AudioManager);
+            if (hasEngine) this._updateBadge();
+        }, 100);
+
         this.loop();
     },
 
     // 鍵盤切換樂器時主動調用
     setSelectedInstrument(instId) {
         this._selectedInstrument = instId;
+        // 立即反應一次以確保手感
         this._updateBadge();
     },
 
@@ -151,7 +160,7 @@ export const Oscilloscope = {
         } else {
             this._activeInstruments.delete(instId);
         }
-        this._updateBadge();
+        // 不再於此處立即調用 _updateBadge()，改由 100ms 定時器處理
     },
 
     clearInstruments() { 
@@ -179,21 +188,22 @@ export const Oscilloscope = {
             }
         }
 
+        // --- 效能優化：計算新文字並進行比對，減少 DOM 操作 ---
+        let newText = '';
         if (displayList.length === 0) { 
-            // --- 如果目前沒人在演奏，顯示選定的預選樂器 ---
             if (this._selectedInstrument) {
-                badge.textContent = `[ ${this._selectedInstrument} ]`; // 中括號表示 Ready
-                badge.classList.add('active');
-            } else {
-                badge.textContent = ''; badge.classList.remove('active'); 
+                newText = `[ ${this._selectedInstrument} ]`; 
             }
         } else if (displayList.length === 1) { 
-            // 如果剛好是選定的在彈，或者是別的在彈，就顯示 (樂器名)
-            badge.textContent = `(${displayList[0]})`; 
-            badge.classList.add('active'); 
+            newText = `(${displayList[0]})`; 
         } else { 
-            badge.textContent = `(混合輸出: ${displayList.length} 聲部)`; 
-            badge.classList.add('active'); 
+            newText = `(混合輸出: ${displayList.length} 聲部)`; 
+        }
+
+        if (badge.textContent !== newText) {
+            badge.textContent = newText;
+            if (newText) badge.classList.add('active');
+            else badge.classList.remove('active');
         }
     },
 
@@ -224,7 +234,7 @@ export const Oscilloscope = {
             });
             this._isClipped = false;
             for (let i = 0; i < this._data.length; i++) { if (Math.abs(this._data[i]) >= 0.99) { this._isClipped = true; break; } }
-            this._updateBadge();
+            // --- 階段一重點：移除此處的 this._updateBadge() ---
             this.draw();
         } else { this.clear(); }
         requestAnimationFrame(() => this.loop());

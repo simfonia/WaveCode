@@ -11,7 +11,7 @@ Blockly.defineBlocksWithJsonArray([
     "type": "wc_instrument",
     "message0": "%{BKY_AUDIO_DEFINE_INSTRUMENT}",
     "args0": [
-      { "type": "field_input", "name": "ID", "text": "my_piano" }
+      { "type": "field_input", "name": "ID", "text": "Piano" }
     ],
     "message1": "%{BKY_AUDIO_INSTRUMENT_CHAIN}",
     "args1": [
@@ -114,8 +114,8 @@ Blockly.defineBlocksWithJsonArray([
     "type": "wc_component_adsr",
     "message0": "%{BKY_AUDIO_COMP_ADSR}",
     "args0": [
-      { "type": "field_adsr", "name": "VISUAL", "a": 0.05, "d": 0.2, "s": 0.5, "r": 0.5 },
-      { "type": "field_number", "name": "A", "value": 0.05, "min": 0, "max": 2, "precision": 0.01 },
+      { "type": "field_adsr", "name": "VISUAL", "a": 0.01, "d": 0.2, "s": 0.5, "r": 0.5 },
+      { "type": "field_number", "name": "A", "value": 0.01, "min": 0, "max": 2, "precision": 0.01 },
       { "type": "field_number", "name": "D", "value": 0.2, "min": 0, "max": 2, "precision": 0.01 },
       { "type": "field_number", "name": "S", "value": 0.5, "min": 0, "max": 1, "precision": 0.01 },
       { "type": "field_number", "name": "R", "value": 0.5, "min": 0, "max": 5, "precision": 0.01 }
