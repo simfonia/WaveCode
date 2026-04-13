@@ -143,7 +143,8 @@ export const WaveCodeToolbox = {
                 { 'kind': 'block', 'type': 'wc_instrument' },
                 { 'kind': 'block', 'type': 'wc_component_osc' },
                 { 'kind': 'block', 'type': 'wc_create_additive_synth' },
-                { 'kind': 'block', 'type': 'wc_component_sampler' }
+                { 'kind': 'block', 'type': 'wc_sampler_percussion' },
+                { 'kind': 'block', 'type': 'wc_sampler_melodic' }
             ]
         },
 

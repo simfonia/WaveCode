@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #ddd; background: #1a1a20; padding: 20px; }
+        h1 { color: #016c8d; border-left: 5px solid #016c8d; padding-left: 10px; }
+        code { background: #333; padding: 2px 5px; border-radius: 3px; color: #ffab91; }
+        .hint { background: #2c3e50; padding: 10px; border-radius: 5px; margin-top: 20px; border-left: 5px solid #3498db; }
+        .file-tree { background: #000; padding: 10px; font-family: monospace; color: #10b981; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Melodic Sample Set (Folder)</h1>
+    <p>Used to play instruments with pitch variations (e.g., Piano, Strings, Flute). The system automatically maps multiple pitch samples to their correct positions.</p>
+    
+    <h3>How to Use</h3>
+    <ol>
+        <li><strong>Folder Menu:</strong> Select the directory containing the melodic samples.</li>
+        <li><strong>Auto-Mapping:</strong> If the folder contains files named with note tags like <code>C4</code>, <code>D4</code>, the system will enable auto-mapping.</li>
+    </ol>
+
+    <h3>Folder Structure & Naming</h3>
+    <p>Sample sets should be placed in <code>src-tauri/resources/samples/[Folder_Name]/</code>. Recommended naming:</p>
+    <div class="file-tree">
+        samples/<br>
+        └── piano/<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├── C4.wav<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├── Cs4.wav (C#4)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└── G4.wav
+    </div>
+
+    <h3>Smart Pitch Compensation</h3>
+    <ul>
+        <li><strong>Nearest Matching:</strong> When playing D4, if only a C4 sample exists, the system picks C4 and shifts its pitch up.</li>
+        <li><strong>Quality Preservation:</strong> The engine prefers picking a lower sample and shifting it up to maintain the brightness and detail of the sound.</li>
+    </ul>
+
+    <div class="hint">
+        <b>💡 Detection Logic:</b><br>
+        If your folder does not contain any files matching the <code>[Note][Octave]</code> format, it will not appear in this menu. Use the Percussion Sampler instead.
+    </div>
+</body>
+</html>

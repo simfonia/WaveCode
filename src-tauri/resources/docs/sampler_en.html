@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #ddd; background: #1a1a20; padding: 20px; }
+        h1 { color: #016c8d; border-left: 5px solid #016c8d; padding-left: 10px; }
+        code { background: #333; padding: 2px 5px; border-radius: 3px; color: #ffab91; }
+        .hint { background: #2c3e50; padding: 10px; border-radius: 5px; margin-top: 20px; border-left: 5px solid #3498db; }
+        .path { color: #10b981; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Percussion Sampler</h1>
+    <p>Used to play single hits or percussion sounds (e.g., Kick, Snare, Clap). These sounds usually do not require pitch shifting.</p>
+    
+    <h3>How to Use</h3>
+    <ol>
+        <li><strong>Folder Menu:</strong> Select the directory containing your percussion sounds.</li>
+        <li><strong>File Menu:</strong> Select the specific sound file within that directory.</li>
+    </ol>
+
+    <h3>Custom Samples</h3>
+    <p>You can add your own <code>.wav</code> or <code>.mp3</code> files to the following path:</p>
+    <p class="path">src-tauri/resources/samples/[YourFolder]/[YourSound.wav]</p>
+    <p>Restart the application, and your folders/files will automatically appear in the menus.</p>
+
+    <div class="hint">
+        <b>💡 Smart Filtering:</b><br>
+        The system automatically filters out "Melodic" folders. If a folder contains pitch samples like C4 or D4, please use the "Melodic Sample Set" block instead.
+    </div>
+</body>
+</html>

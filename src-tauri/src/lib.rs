@@ -354,6 +354,8 @@ async fn decode_audio_to_pcm(path: String) -> Result<DecodedPCM, String> {
 struct SampleInfo {
     path: String,
     id: String,
+    folder: String, // 新增：相對目錄路徑
+    filename: String, // 新增：純檔名
 }
 
 #[tauri::command]
@@ -375,24 +377,28 @@ fn scan_samples_to_list(dir: &std::path::Path, results: &mut Vec<SampleInfo>, pr
             let path = entry.path();
             if path.is_dir() {
                 let folder_name = path.file_name().unwrap().to_str().unwrap();
-                let new_prefix = if prefix.is_empty() { folder_name.to_string() } else { format!("{}_{}", prefix, folder_name) };
+                let new_prefix = if prefix.is_empty() { folder_name.to_string() } else { format!("{}/{}", prefix, folder_name) };
                 scan_samples_to_list(&path, results, &new_prefix, base_dir);
             } else {
                 let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_lowercase();
                 if ext == "wav" || ext == "mp3" || ext == "ogg" || ext == "flac" {
                     let file_stem = path.file_stem().unwrap().to_str().unwrap();
-                    let id = if prefix.is_empty() { file_stem.to_string() } else { format!("{}_{}", prefix, file_stem) };
+
+                    // 使用 '/' 作為目錄階層分隔，'::' 作為目錄與檔案的分隔
+                    let folder_final = if prefix.is_empty() { "General".to_string() } else { prefix.to_string() };
+                    let id = format!("{}::{}", folder_final, file_stem);
+
                     results.push(SampleInfo {
                         path: path.to_string_lossy().to_string(),
                         id,
+                        folder: folder_final,
+                        filename: file_stem.to_string(),
                     });
                 }
             }
         }
     }
-}
-
-#[tauri::command]
+}#[tauri::command]
 fn get_version(app_handle: tauri::AppHandle) -> String {
     app_handle.package_info().version.to_string()
 }

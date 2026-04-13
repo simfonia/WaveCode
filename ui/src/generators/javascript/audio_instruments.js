@@ -24,9 +24,16 @@ Blockly.JavaScript.forBlock['wc_create_additive_synth'] = function(block) {
   return `  // >> AdditiveSynth(Partials: ${block.itemCount_ || 0})\n`;
 };
 
-Blockly.JavaScript.forBlock['wc_component_sampler'] = function(block) {
-  const sample = block.getFieldValue('SAMPLE_ID');
-  return `  // >> Sampler("${sample}")\n`;
+Blockly.JavaScript.forBlock['wc_sampler_percussion'] = function(block) {
+  const folder = block.getFieldValue('FOLDER');
+  const file = block.getFieldValue('FILE');
+  const sampleId = `${folder}::${file}`;
+  return `  // >> Percussion("${sampleId}")\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_sampler_melodic'] = function(block) {
+  const folder = block.getFieldValue('FOLDER');
+  return `  // >> MelodicSet("${folder}")\n`;
 };
 
 Blockly.JavaScript.forBlock['wc_component_adsr'] = function(block) {

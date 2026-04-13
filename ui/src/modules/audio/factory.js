@@ -185,20 +185,26 @@ export const NodeFactory = {
             case 'sampler': {
                 if (!AudioManager || !AudioManager.samples) return null;
                 let buffer = null, playbackRate = 1.0;
-                const isPiano = comp.sample_id === 'piano';
-                if (isPiano || comp.sample_id === 'violin_pizz' || comp.sample_id === 'violin_sust') {
-                    const prefix = isPiano ? 'piano' : (comp.sample_id === 'violin_pizz' ? 'pizzicato' : 'vibrato-sustain');
-                    const bestMatch = this.findBestSample(AudioManager.samples, prefix, baseFreq);
-                    if (bestMatch) { buffer = bestMatch.buffer; playbackRate = bestMatch.ratio; }
-                } else {
+                
+                // --- 優先嘗試精確匹配 (例如打擊類) ---
+                if (AudioManager.samples[comp.sample_id]) {
                     buffer = AudioManager.samples[comp.sample_id];
+                } else {
+                    // --- 失敗則進入多採樣映射模式 (針對旋律類資料夾) ---
+                    const folder = comp.sample_id;
+                    const bestMatch = this.findBestSample(AudioManager.samples, folder, baseFreq);
+                    if (bestMatch) {
+                        buffer = bestMatch.buffer;
+                        playbackRate = bestMatch.ratio;
+                    }
                 }
+
                 if (!buffer) return null;
 
                 const nodes = [];
                 const source = ctx.createBufferSource();
                 source.buffer = buffer;
-                source.playbackRate.value = playbackRate;
+                source.playbackRate.setValueAtTime(playbackRate, time);
                 nodes.push(source);
 
                 const samplerGain = ctx.createGain();
@@ -224,20 +230,47 @@ export const NodeFactory = {
         return 440 * Math.pow(2, (midi - 69) / 12);
     },
 
-    findBestSample(sampleMap, prefix, targetFreq) {
+    /**
+     * 尋找最適合的多採樣檔案 (支援 folder::filename 格式)
+     * @param {Object} sampleMap ID -> Buffer 映射
+     * @param {string} folder 樂器資料夾 (如 "violin/sust")
+     * @param {number} targetFreq 目標頻率
+     */
+    findBestSample(sampleMap, folder, targetFreq) {
         const targetMidi = 69 + 12 * Math.log2(targetFreq / 440);
         let bestId = null, bestDist = 999, rootMidi = 0;
-        for (const id in sampleMap) {
-            if (id.includes(prefix)) {
-                const parts = id.split('_');
-                const mid = this.noteToMidi(parts[parts.length - 1]);
-                let diff = targetMidi - mid;
-                let dist = diff < 0 ? Math.abs(diff) * 3.0 : Math.abs(diff);
-                if (dist < bestDist) { bestDist = dist; bestId = id; rootMidi = mid; }
+        
+        // 1. 遍歷所有已載入的取樣，尋找該資料夾下的候選者
+        const separator = "::";
+        const candidates = Object.keys(sampleMap).filter(id => id.startsWith(folder + separator));
+
+        // 2. 尋找最近的音高
+        for (const id of candidates) {
+            // 取得檔名部分進行音名分析
+            const filename = id.split(separator)[1];
+            // 檔名可能包含底線，音名通常在最後一部份 (如 violin_sust_C4 -> C4)
+            const parts = filename.split("_");
+            const noteName = parts[parts.length - 1];
+            const mid = this.noteToMidi(noteName);
+            
+            if (mid === 0) continue; // 解析失敗
+
+            let diff = targetMidi - mid;
+            // 下移懲罰：傾向選擇比目標音高更低一點的取樣並升調
+            let dist = diff < 0 ? Math.abs(diff) * 3.0 : Math.abs(diff);
+            
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestId = id;
+                rootMidi = mid;
             }
         }
+
         if (!bestId) return null;
-        return { buffer: sampleMap[bestId], ratio: Math.pow(2, (targetMidi - rootMidi) / 12) };
+        
+        // 計算播放速率補償
+        const ratio = Math.pow(2, (targetMidi - rootMidi) / 12);
+        return { buffer: sampleMap[bestId], ratio };
     },
 
     noteToMidi(name) {

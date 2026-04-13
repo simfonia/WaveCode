@@ -15,6 +15,8 @@ export const AudioManager = {
     patches: {},
     masterPatch: [], // 主輸出鏈配置
     samples: {}, // ID -> AudioBuffer
+    melodicFolders: [], // 旋律類資料夾 (包含音名檔案)
+    percussionMap: {},  // 打擊類對照表 { "資料夾名": ["檔案1", "檔案2"] }
 
     async init() {
         if (this.ctx) {
@@ -48,13 +50,22 @@ export const AudioManager = {
             console.warn("WaveCode Engine: window.Oscilloscope not found during init.");
         }
 
-        if (Object.keys(this.samples).length === 0) {
-            await this.loadSamples();
-        }
+        // 啟動自動掃描與分類
+        await this.loadSamples();
 
         Recorder.init(this.ctx);
 
         console.log("WaveCode Engine: Web Audio Manager Initialized");
+    },
+
+    /**
+     * 檢查字串是否符合音名格式 (如 C4, Fs3, Eb2)
+     */
+    isNoteName(str) {
+        if (!str) return false;
+        // 支援 A-G + (s/b/#) + 數字，不分大小寫
+        const regex = /^[a-gA-G][sb#]?\d$/;
+        return regex.test(str);
     },
 
     /**
@@ -100,18 +111,26 @@ export const AudioManager = {
         try {
             const files = await invoke('list_samples_recursive'); 
             let loadedCount = 0;
+            const melodicSet = new Set();
+            const pMap = {};
 
-            // --- 全並行處理 (不再分 Chunk) ---
-            // 瀏覽器與 Tauri 的非同步機制會自動處理執行緒調度
+            // --- 全並行處理 ---
             await Promise.all(files.map(async (file) => {
-                const { path, id } = file;
+                const { path, id, folder, filename } = file;
+                
+                // --- 根據 Rust 傳回的精確目錄結構進行分類 ---
+                // 1. 如果檔名是音名 -> 歸入旋律資料夾
+                if (this.isNoteName(filename)) {
+                    melodicSet.add(folder);
+                } else {
+                    // 2. 否則 -> 歸入打擊類對照表
+                    if (!pMap[folder]) pMap[folder] = [];
+                    pMap[folder].push(filename);
+                }
+
                 try {
-                    // 1. 讀取二進位位元組 (傳輸 Vec<u8> 在 Tauri 中極快，不經過 JSON 數值序列化)
                     const bytes = await invoke('read_sample_file', { path });
-                    
-                    // 2. 利用瀏覽器內建的原生解碼器 (具備 C++ 級別的多執行緒優化)
                     const audioBuffer = await this.ctx.decodeAudioData(new Uint8Array(bytes).buffer);
-                    
                     this.samples[id] = audioBuffer;
                     loadedCount++;
                 } catch (err) {
@@ -119,8 +138,15 @@ export const AudioManager = {
                 }
             }));
 
+            this.melodicFolders = Array.from(melodicSet).sort();
+            this.percussionMap = pMap;
+
             const endTime = performance.now();
-            console.log(`WaveCode Engine: 已載入 ${loadedCount} 個取樣檔案，耗時 ${((endTime - startTime)/1000).toFixed(2)} 秒 (並行優化版)`);
+            const stats = `WaveCode Engine: 載入完成。共 ${loadedCount} 個檔案，耗時 ${((endTime - startTime)/1000).toFixed(2)} 秒 (旋律組: ${this.melodicFolders.length}, 打擊組: ${Object.keys(pMap).length})`;
+            console.log(stats);
+            
+            // 修正：透過 Tauri invoke 傳送到 IDE 日誌面板
+            invoke('log', { message: stats, level: "info" });
         } catch (e) {
             console.error("WaveCode Engine: 載入取樣清單失敗:", e);
         }

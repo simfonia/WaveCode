@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #ddd; background: #1a1a20; padding: 20px; }
+        h1 { color: #016c8d; border-left: 5px solid #016c8d; padding-left: 10px; }
+        code { background: #333; padding: 2px 5px; border-radius: 3px; color: #ffab91; }
+        .hint { background: #2c3e50; padding: 10px; border-radius: 5px; margin-top: 20px; border-left: 5px solid #3498db; }
+        .file-tree { background: #000; padding: 10px; font-family: monospace; color: #10b981; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>取樣集資料夾 (旋律類)</h1>
+    <p>用於播放具有音高變化的樂器（如鋼琴、弦樂、長笛）。系統會自動將一組不同音高的聲音檔案映射到正確的位置。</p>
+    
+    <h3>使用方式</h3>
+    <ol>
+        <li><strong>資料夾選單：</strong> 直接選取已偵測到的樂器資料夾。</li>
+        <li><strong>自動映射：</strong> 只要資料夾內包含 <code>C4</code>, <code>D4</code> 等命名檔案，系統就會啟動自動映射。</li>
+    </ol>
+
+    <h3>資料夾結構與命名建議</h3>
+    <p>取樣集應放置於 <code>src-tauri/resources/samples/[資料夾名]/</code>。檔名建議如下：</p>
+    <div class="file-tree">
+        samples/<br>
+        └── piano/<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├── C4.wav<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├── Cs4.wav (即 C#4)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└── G4.wav
+    </div>
+
+    <h3>智慧音高補償</h3>
+    <ul>
+        <li><strong>最近匹配：</strong> 演奏 D4 時，若只有 C4 檔案，系統會挑選 C4 並升調播放。</li>
+        <li><strong>音質保護：</strong> 系統會優先選擇較低頻率的取樣並「升調」，以保留聲音的明亮度。</li>
+    </ul>
+
+    <div class="hint">
+        <b>💡 偵測機制：</b><br>
+        如果您的資料夾內沒有任何符合 <code>[音名][八度]</code> 格式的檔案，它就不會出現在此積木的選單中，請改用打擊類取樣器。
+    </div>
+</body>
+</html>

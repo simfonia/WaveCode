@@ -46,3 +46,19 @@
 
 ---
 *最後更新：2026-04-12 (Reverb Implementation, Full Structure Update)*
+
+# WaveCode 專案結構 (2026-04-13 更新)
+## 核心路徑 (Core Paths)
+- src-tauri/src/: Rust 後端邏輯。
+    - lib.rs: Tauri 指令與取樣掃描 (提供 folder/filename 精確欄位)。
+    - engine.rs: 音訊引擎核心。
+    - utils.rs: 資源路徑輔助。
+- src-tauri/resources/: 唯讀資源與靜態資產。
+    - samples/: 取樣庫 (分 Melodic/Percussion 子目錄)。
+    - docs/: 積木 HTML 說明文件 (sampler, multisampler 等)。
+    - examples/: .wave 格式的官方範例 (已全量遷移至新版積木)。
+- ui/src/modules/audio/: Web Audio 引擎。
+    - manager.js: 核心管理員 (負責分類掃描、Master Bus、IDE 日誌同步)。
+    - factory.js: 組件工廠 (實作 :: 分隔符號支援與智慧映射算法)。
+- ui/src/blocks/: Blockly 積木定義。
+    - audio_instruments.js: 包含打擊類(兩層選單)與旋律類(資料夾選單)積木。

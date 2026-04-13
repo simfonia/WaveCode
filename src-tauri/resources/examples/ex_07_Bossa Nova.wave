@@ -26,8 +26,8 @@
   <block type="wc_instrument" id="YqS[WCNs:7]2TApQkwo!" x="570" y="130">
     <field name="ID">Piano</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="^^1o|9~=dlmuz07aL~^m">
-        <field name="SAMPLE_ID">piano</field>
+      <block type="wc_sampler_melodic" id="^^1o|9~=dlmuz07aL~^m">
+        <field name="FOLDER">piano</field>
         <next>
           <block type="wc_component_adsr" id="t=fXz-y@dI/o:Xb=Nv;k">
             <field name="A">0.01</field>
@@ -42,8 +42,9 @@
   <block type="wc_instrument" id="AX$j5v*o2_f%}5|9l)~V" x="570" y="290">
     <field name="ID">Clap</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="Ev}[Ib@2c3h[k?Rn?cDC">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HANDCLP1</field>
+      <block type="wc_sampler_percussion" id="Ev}[Ib@2c3h[k?Rn?cDC">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">HANDCLP1</field>
       </block>
     </statement>
   </block>
@@ -71,16 +72,18 @@
   <block type="wc_instrument" id="z@K4vhpzSpfr;|M47~on" x="570" y="370">
     <field name="ID">Kick</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="#fp3WD]xjpmv:s{bR_l)">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+      <block type="wc_sampler_percussion" id="#fp3WD]xjpmv:s{bR_l)">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Bass_BTAAADA</field>
       </block>
     </statement>
   </block>
   <block type="wc_instrument" id="Ny{xXU13cJr|A7JB,gnE" x="570" y="450">
     <field name="ID">CHiHat</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="JrM8zKxI)~FU=m1^U+EQ">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HiHatClosed_HHCD2</field>
+      <block type="wc_sampler_percussion" id="JrM8zKxI)~FU=m1^U+EQ">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">HiHatClosed_HHCD2</field>
       </block>
     </statement>
   </block>

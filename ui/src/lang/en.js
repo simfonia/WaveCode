@@ -48,6 +48,9 @@
 
     // Instrument Components
     "AUDIO_COMP_OSC": "Oscillator %1",
+    "AUDIO_COMP_SAMPLER": "Sampler %1",
+    "AUDIO_COMP_MULTISAMPLER": "Multi-Sampler (Folder Name) %1",
+    "AUDIO_MULTISAMPLER_TOOLTIP": "Input a sample prefix (e.g. 'piano'), and the system will automatically find the nearest sample (e.g. piano_C4, piano_Ds4) based on the target frequency and apply pitch shifting.",
     "AUDIO_COMP_ADSR": "ADSR Envelope %1 A %2 D %3 S %4 R %5",
     "AUDIO_COMP_FILTER": "Filter %1 Freq %2 Q %3",
     "AUDIO_COMP_VOLUME": "Volume %1 %",

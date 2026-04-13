@@ -81,34 +81,42 @@ Blockly.defineBlocksWithJsonArray([
     "enableContextMenu": false
   },
   {
-    "type": "wc_component_sampler",
-    "message0": "%{BKY_AUDIO_COMP_SAMPLER}",
+    "type": "wc_sampler_percussion",
+    "message0": "打擊類取樣：資料夾 %1 檔案 %2",
     "args0": [
       {
         "type": "field_dropdown",
-        "name": "SAMPLE_ID",
-        "options": [
-          ["Drum: Kick", "jazzkit_Roland_TR-909_Bass_BT0A0D3"], 
-          ["Drum: Kick 2", "jazzkit_Roland_TR-909_Bass_BTAAADA"], 
-          ["Drum: Snare", "jazzkit_Roland_TR-909_Snare_ST0T3S3"], 
-          ["Drum: Clap", "jazzkit_Roland_TR-909_HANDCLP1"],
-          ["Drum: HH Closed", "jazzkit_Roland_TR-909_HiHatClosed_HHCD2"],
-          ["Drum: HH Open", "jazzkit_Roland_TR-909_HiHatOpen_HHOD6"],
-          ["Drum: Crash", "jazzkit_Roland_TR-909_Crash_CSHD8"],
-          ["Drum: Ride", "jazzkit_Roland_TR-909_RIDED8"],
-          ["Drum: Rimshot", "jazzkit_Roland_TR-909_Rimshot_RIM63"],
-          ["Drum: Tom High", "jazzkit_Roland_TR-909_TomHigh_HT7D3"],
-          ["Drum: Tom Mid", "jazzkit_Roland_TR-909_TomMid_MT7D3"],
-          ["Drum: Tom Low", "jazzkit_Roland_TR-909_TomLow_LT7D3"],
-          ["Piano", "piano"], 
-          ["Violin Pizz", "violin_pizz"],
-          ["Violin Sust", "violin_sust"]
-        ]
+        "name": "FOLDER",
+        "options": [["(載入中...)", "none"]]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "FILE",
+        "options": [["(載入中...)", "none"]]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_SOUND_SOURCES_HUE}"
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "helpUrl": "sampler",
+    "extensions": ["wc_percussion_menu_sync"]
+  },
+  {
+    "type": "wc_sampler_melodic",
+    "message0": "旋律類取樣集 (資料夾) %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "FOLDER",
+        "options": [["(載入中...)", "none"]]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_SOUND_SOURCES_HUE}",
+    "tooltip": "%{BKY_AUDIO_MULTISAMPLER_TOOLTIP}",
+    "helpUrl": "multisampler",
+    "extensions": ["wc_melodic_menu_sync"]
   },
   {
     "type": "wc_component_adsr",
@@ -342,3 +350,40 @@ Blockly.Extensions.register('wc_adsr_visual_sync', function() {
 });
 
 Blockly.Extensions.registerMutator('wc_additive_mutator', window.WC_Utils.ADDITIVE_SYNTH_MUTATOR, undefined, ['wc_additive_synth_item']);
+
+// --- 旋律類選單同步 ---
+Blockly.Extensions.register('wc_melodic_menu_sync', function() {
+  const field = this.getField('FOLDER');
+  field.menuGenerator_ = () => {
+    const folders = (window.AudioManager && window.AudioManager.melodicFolders) || [];
+    return folders.length > 0 ? folders.map(f => [f, f]) : [['(無可用資料夾)', 'none']];
+  };
+});
+
+// --- 打擊類選單同步 (兩層連動) ---
+Blockly.Extensions.register('wc_percussion_menu_sync', function() {
+  const folderField = this.getField('FOLDER');
+  const fileField = this.getField('FILE');
+
+  folderField.menuGenerator_ = () => {
+    const pMap = (window.AudioManager && window.AudioManager.percussionMap) || {};
+    const folders = Object.keys(pMap);
+    return folders.length > 0 ? folders.map(f => [f, f]) : [['(無可用資料夾)', 'none']];
+  };
+
+  fileField.menuGenerator_ = () => {
+    const folder = folderField.getValue();
+    const pMap = (window.AudioManager && window.AudioManager.percussionMap) || {};
+    const files = pMap[folder] || [];
+    return files.length > 0 ? files.map(f => [f, f]) : [['(請先選取資料夾)', 'none']];
+  };
+
+  this.setOnChange((e) => {
+    if (e.type === Blockly.Events.BLOCK_CHANGE && e.blockId === this.id && e.name === 'FOLDER') {
+      // 當資料夾變動時，強制更新檔案選單並選取第一個檔案
+      const pMap = (window.AudioManager && window.AudioManager.percussionMap) || {};
+      const files = pMap[folderField.getValue()] || [];
+      if (files.length > 0) fileField.setValue(files[0]);
+    }
+  });
+});

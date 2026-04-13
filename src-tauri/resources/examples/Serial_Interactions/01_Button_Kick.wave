@@ -9,8 +9,9 @@
   <block type="wc_instrument" id="wvSW;JCsJUw5c9C)AoqG" x="10" y="10">
     <field name="ID">Kick</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="-{g7^2uPxwhzi(H^4M@J">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+      <block type="wc_sampler_percussion" id="-{g7^2uPxwhzi(H^4M@J">
+        <field name="FOLDER">jazzkit</field>
+        <field name="FILE">Roland_TR-909_Bass_BT0A0D3</field>
         <next>
           <block type="wc_component_adsr" id="$8]-dbDSc`d^}:AXCr9G">
             <field name="A">0.01</field>

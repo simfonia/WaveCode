@@ -61,6 +61,8 @@
     // 樂器組件
     "AUDIO_COMP_OSC": "振盪器 %1",
     "AUDIO_COMP_SAMPLER": "取樣器 %1",
+    "AUDIO_COMP_MULTISAMPLER": "多採樣 (資料夾名) %1",
+    "AUDIO_MULTISAMPLER_TOOLTIP": "輸入取樣檔案的前綴（例如 'piano'），系統會根據演奏頻率自動尋找最接近的取樣（如 piano_C4, piano_Ds4）並進行音高修補。",
     "AUDIO_CREATE_ADDITIVE_SYNTH": "加法合成器",
     "AUDIO_CREATE_ADDITIVE_SYNTH_CONTAINER": "加法合成器 (分音列表)",
     "AUDIO_CREATE_ADDITIVE_SYNTH_ITEM": "分音 (Partial)",

@@ -8,8 +8,9 @@
       <block type="wc_comment" id=":|%jzUh8oL,.a4;5#,U:">
         <field name="TEXT">短取樣建議不加ADSR</field>
         <next>
-          <block type="wc_component_sampler" id="sf*^3m:$X93KN!ph+yi:">
-            <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BTAAADA</field>
+          <block type="wc_sampler_percussion" id="sf*^3m:$X93KN!ph+yi:">
+            <field name="FOLDER">jazzkit/Roland_TR-909</field>
+            <field name="FILE">Bass_BTAAADA</field>
           </block>
         </next>
       </block>
@@ -18,24 +19,27 @@
   <block type="wc_instrument" id="2x9.H0bFh#DdUh8$#[}a" x="10" y="290">
     <field name="ID">Snare</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="]v8uEhm?L/FGvf9VuE{a">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Snare_ST0T3S3</field>
+      <block type="wc_sampler_percussion" id="]v8uEhm?L/FGvf9VuE{a">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Snare_ST0T3S3</field>
       </block>
     </statement>
   </block>
   <block type="wc_instrument" id="ZzJ{K_xOW;Qc/i@Z+.Ny" x="10" y="390">
     <field name="ID">HiHat_C</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="dwW*fH^?]aY}4S8Gp9x;">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HiHatClosed_HHCD2</field>
+      <block type="wc_sampler_percussion" id="dwW*fH^?]aY}4S8Gp9x;">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">HiHatClosed_HHCD2</field>
       </block>
     </statement>
   </block>
   <block type="wc_instrument" id="ukI1#G]Jz7NV?pM{DAlC" x="10" y="490">
     <field name="ID">Crash</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="so=Xdu9e-x6+3]6nL+6B">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Crash_CSHD8</field>
+      <block type="wc_sampler_percussion" id="so=Xdu9e-x6+3]6nL+6B">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Crash_CSHD8</field>
       </block>
     </statement>
   </block>

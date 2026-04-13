@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #ddd; background: #1a1a20; padding: 20px; }
+        h1 { color: #016c8d; border-left: 5px solid #016c8d; padding-left: 10px; }
+        code { background: #333; padding: 2px 5px; border-radius: 3px; color: #ffab91; }
+        .hint { background: #2c3e50; padding: 10px; border-radius: 5px; margin-top: 20px; border-left: 5px solid #3498db; }
+        .path { color: #10b981; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>打擊類取樣器 (Percussion Sampler)</h1>
+    <p>用於播放單一的音效或打擊樂器（如大鼓、小鼓、拍手聲）。這類聲音通常不具備音高變化。</p>
+    
+    <h3>操作方式</h3>
+    <ol>
+        <li><strong>資料夾選單：</strong> 選取存放打擊聲音的目錄。</li>
+        <li><strong>檔案選單：</strong> 選取該目錄下的具體聲音檔案。</li>
+    </ol>
+
+    <h3>自定義取樣</h3>
+    <p>您可以將自己的 <code>.wav</code> 或 <code>.mp3</code> 檔案放入以下路徑：</p>
+    <p class="path">src-tauri/resources/samples/[您的資料夾]/[您的聲音.wav]</p>
+    <p>重新啟動程式後，該資料夾與檔案就會自動出現在選單中。</p>
+
+    <div class="hint">
+        <b>💡 智慧過濾：</b><br>
+        系統會自動過濾掉「旋律類」的資料夾。如果資料夾內包含 C4, D4 等音高取樣，請改用「取樣集資料夾」積木。
+    </div>
+</body>
+</html>

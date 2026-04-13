@@ -6,8 +6,9 @@
   <block type="wc_instrument" id="inst_drums" x="10" y="10">
     <field name="ID">kick</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="samp_1">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BTAAADA</field>
+      <block type="wc_sampler_percussion" id="samp_1">
+        <field name="FOLDER">jazzkit</field>
+        <field name="FILE">Roland_TR-909_Bass_BTAAADA</field>
         <next>
           <block type="wc_component_adsr" id="adsr_1">
             <field name="A">0.01</field>
@@ -30,8 +31,9 @@
   <block type="wc_instrument" id="(JitQ_[=Im`Q!VgzdiIu" x="10" y="210">
     <field name="ID">snare</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="RTCbLu|{vjD(4;M=-%Vw">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Snare_ST0T3S3</field>
+      <block type="wc_sampler_percussion" id="RTCbLu|{vjD(4;M=-%Vw">
+        <field name="FOLDER">jazzkit</field>
+        <field name="FILE">Roland_TR-909_Snare_ST0T3S3</field>
         <next>
           <block type="wc_component_adsr" id="brwjYQu7F3x^es]VwmJ9">
             <field name="A">0.01</field>
@@ -51,8 +53,9 @@
   <block type="wc_instrument" id="TO)DCW085p_(#d|W7N+H" x="10" y="410">
     <field name="ID">chh</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="X@m$c[#bC+H@Nb1H{Hfr">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_HiHatClosed_HHCD2</field>
+      <block type="wc_sampler_percussion" id="X@m$c[#bC+H@Nb1H{Hfr">
+        <field name="FOLDER">jazzkit</field>
+        <field name="FILE">Roland_TR-909_HiHatClosed_HHCD2</field>
         <next>
           <block type="wc_component_adsr" id="]^^9KS*0SnjC0{qEp6fk">
             <field name="A">0.01</field>

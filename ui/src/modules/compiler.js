@@ -39,10 +39,17 @@ export const WaveCodeCompiler = {
               });
             }
             chain.push({ type: 'additive', partials });
-          } else if (current.type === 'wc_component_sampler') {
+          } else if (current.type === 'wc_sampler_percussion') {
+            const folder = current.getFieldValue('FOLDER');
+            const file = current.getFieldValue('FILE');
             chain.push({
               type: 'sampler',
-              sample_id: current.getFieldValue('SAMPLE_ID')
+              sample_id: `${folder}::${file}`
+            });
+          } else if (current.type === 'wc_sampler_melodic') {
+            chain.push({
+              type: 'sampler',
+              sample_id: current.getFieldValue('FOLDER')
             });
           } else if (current.type === 'wc_component_adsr') {
             chain.push({

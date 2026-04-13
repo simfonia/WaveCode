@@ -1,17 +1,60 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="wc_instrument" id="t$G)QP*+T?sMl*BYP-93" x="50" y="50">
-    <field name="ID">my_sampler</field>
+    <field name="ID">Kick</field>
     <statement name="CHAIN">
-      <block type="wc_component_sampler" id="{{.]iCHR_(M$rWhjpAmV">
-        <field name="SAMPLE_ID">jazzkit_Roland_TR-909_Bass_BT0A0D3</field>
+      <block type="wc_sampler_percussion" id="{{.]iCHR_(M$rWhjpAmV">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Bass_BTAAADA</field>
         <next>
           <block type="wc_component_adsr" id="$-Q#6Byn/,e%[+NM(?eC">
-            <field name="A">0.05</field>
+            <field name="A">0.01</field>
             <field name="D">0.2</field>
             <field name="S">0.5</field>
             <field name="R">0.5</field>
             <next>
               <block type="wc_component_volume" id="]sz^G^l6J@}Ec|6YN0!:">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id=",s^8NPl*ELb^(p+L6gok" x="50" y="250">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_melodic" id="omQ-JhkF%3E_kmGjy7#I">
+        <field name="FOLDER">piano</field>
+        <next>
+          <block type="wc_component_adsr" id="qs-HD}GvyWUXpoVHRO|w">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="-aPgEH8[986PsF0Ep4+w">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="aut^d6!@8#bcz!2yOqRj" x="50" y="450">
+    <field name="ID">Violin</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_melodic" id="d4IU[hMiBE@7~_h-89;q">
+        <field name="FOLDER">violin/violin-section-vibrato-sustain</field>
+        <next>
+          <block type="wc_component_adsr" id=";Dp$}zpNtgb8XPBP2R0l">
+            <field name="A">0.5</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="vBM:sE2?Z}Mop=TvP|qA">
                 <field name="VOL">80</field>
               </block>
             </next>
