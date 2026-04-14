@@ -21,6 +21,7 @@
     "WAVECODE_HELP_TITLE": "輔助說明",
     "WAVECODE_TAB_CODE": "音訊腳本 (Audio DSL)",
     "WAVECODE_STAGE_LOG": "系統日誌",
+    "WAVECODE_FFT_MODE_HINT": "切換頻譜模式：\n1. 線性 (1/n)：X 軸線性、Y 軸線性振幅。適合教學演示傅立葉級數 (1/n) 的比例關係。\n2. 分貝 (dB)：X 軸線性、Y 軸對數分貝。適合觀察微弱的高階諧波訊號。",
     "WAVECODE_HELP_HINT": "點擊積木以查看說明",
     "WAVECODE_LATENCY_HINT": "延遲補償 (Look-ahead)：\n1. 調小 (左)：反應更即時，適合現場合奏與對拍。\n2. 調大 (右)：播放更穩定，適合積木很多、電腦較慢時防止節奏抖動或破音。",
     "WAVECODE_LANG_SETTING": "語言設定",

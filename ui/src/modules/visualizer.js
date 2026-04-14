@@ -122,8 +122,9 @@ export const Oscilloscope = {
     _data: null, _fftData: [], _isClipped: false, 
     _activeInstruments: new Set(),
     _instrumentTimers: new Map(), 
-    _selectedInstrument: null, // 當前鍵盤選定的樂器
-    LINGER_TIME: 1500, // 增加停留時間
+    _selectedInstrument: null, 
+    _fftMode: 'linear', // 'linear' (1/n) 或 'log' (專業)
+    LINGER_TIME: 1500,
 
     init(canvasId, analyser) {
         this.canvas = document.getElementById(canvasId) || document.querySelector('canvas:not([id*="fft"])');
@@ -135,7 +136,18 @@ export const Oscilloscope = {
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
-        // --- 效能優化：將 UI 更新與繪圖迴圈解耦 ---
+        // --- 綁定模式切換開關 ---
+        const modeCheckbox = document.getElementById('fft-mode-checkbox');
+        if (modeCheckbox) {
+            modeCheckbox.addEventListener('change', (e) => {
+                this._fftMode = e.target.checked ? 'log' : 'linear';
+                // 更新標籤狀態
+                document.querySelectorAll('.mode-label').forEach(el => {
+                    el.classList.toggle('active', el.dataset.mode === this._fftMode);
+                });
+            });
+        }
+
         if (this._uiInterval) clearInterval(this._uiInterval);
         this._uiInterval = setInterval(() => {
             const hasEngine = this.analyser || window.AudioManager || (window.WaveCode && window.WaveCode.AudioManager);
@@ -210,7 +222,6 @@ export const Oscilloscope = {
     loop() {
         if (!this.ctx || !this.fftCtx) return;
 
-        // --- 效能優化：限制渲染頻率為 ~30fps ---
         const now = Date.now();
         if (this._lastDrawTime && (now - this._lastDrawTime < 32)) {
             requestAnimationFrame(() => this.loop());
@@ -223,18 +234,24 @@ export const Oscilloscope = {
                         (window.WaveCode && window.WaveCode.AudioManager && window.WaveCode.AudioManager.analyser);
         if (analyser) {
             const bufferLength = analyser.frequencyBinCount;
+            
+            // 處理波形數據
             if (!this._data || this._data.length !== bufferLength) this._data = new Float32Array(bufferLength);
             analyser.getFloatTimeDomainData(this._data);
-            const fftArray = new Float32Array(bufferLength);
-            analyser.getFloatFrequencyData(fftArray);
+            
+            // 處理頻譜數據 (dB)
+            if (!this._fftRaw || this._fftRaw.length !== bufferLength) this._fftRaw = new Float32Array(bufferLength);
+            analyser.getFloatFrequencyData(this._fftRaw);
+            
+            // 計算線性數據供線性模式 (1/n) 使用
             const sensitivity = 20.0; 
-            this._fftData = Array.from(fftArray).map(db => {
+            this._fftData = Array.from(this._fftRaw).map(db => {
                 if (db === -Infinity || db < -100) return 0;
                 return Math.pow(10, db / 20) * sensitivity;
             });
+
             this._isClipped = false;
             for (let i = 0; i < this._data.length; i++) { if (Math.abs(this._data[i]) >= 0.99) { this._isClipped = true; break; } }
-            // --- 階段一重點：移除此處的 this._updateBadge() ---
             this.draw();
         } else { this.clear(); }
         requestAnimationFrame(() => this.loop());
@@ -277,17 +294,52 @@ export const Oscilloscope = {
 
     drawFFT() {
         const ctx = this.fftCtx, w = this.fftCanvas.width, h = this.fftCanvas.height;
-        ctx.clearRect(0, 0, w, h); if (!this._fftData.length) return;
-        const bins = 240, data = this._fftData.slice(0, bins);
-        const barW = w / bins, drawH = h - 2 * window.devicePixelRatio;
-        for (let i = 0; i < bins; i++) {
-            const val = Math.min(drawH, data[i] * drawH); 
-            const x = i * barW, y = drawH - val;
-            const hue = 200 + (i / bins) * 180;
-            ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
-            ctx.fillRect(x, y, barW - 0.5, val);
-            ctx.fillStyle = `hsl(${hue}, 100%, 85%)`;
-            ctx.fillRect(x, y, barW - 0.5, 1.5 * window.devicePixelRatio);
+        ctx.clearRect(0, 0, w, h);
+        if (!this._fftData || !this._fftData.length) return;
+
+        const drawH = h - 2 * window.devicePixelRatio;
+        const pixelRatio = window.devicePixelRatio;
+
+        if (this._fftMode === 'linear') {
+            // --- 模式一：線性模式 (教學用 1/n 視覺) ---
+            const bins = 240;
+            const data = this._fftData.slice(0, bins);
+            const barW = w / bins;
+            for (let i = 0; i < bins; i++) {
+                const val = Math.min(drawH, data[i] * drawH); 
+                const x = i * barW, y = drawH - val;
+                const hue = 200 + (i / bins) * 180;
+                ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
+                ctx.fillRect(x, y, barW - 0.5, val);
+                ctx.fillStyle = `hsl(${hue}, 100%, 85%)`;
+                ctx.fillRect(x, y, barW - 0.5, 1.5 * pixelRatio);
+            }
+        } else {
+            // --- 模式二：分貝模式 (線性頻率 X + 對數分貝 Y) ---
+            const bins = 240; // 維持與線性模式相同的頻率範圍 (約 0-5kHz)
+            const barW = w / bins;
+            
+            for (let i = 0; i < bins; i++) {
+                const db = this._fftRaw[i] || -120;
+                
+                // 將 -70dB ~ -10dB 映射到高度 (這會讓微弱諧波變得非常清晰)
+                const minDB = -70, maxDB = -10;
+                const norm = Math.max(0, (db - minDB) / (maxDB - minDB));
+                const val = norm * drawH;
+                
+                const x = i * barW, y = drawH - val;
+                const hue = 200 + (i / bins) * 180;
+                
+                // 繪製細針譜線 (與線性模式對齊，但高度反映 dB)
+                ctx.fillStyle = `hsl(${hue}, 85%, 50%)`;
+                ctx.fillRect(x, y, Math.max(1, barW - 0.5), val);
+                
+                // 頂部高亮
+                if (val > 2) {
+                    ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
+                    ctx.fillRect(x, y, Math.max(1, barW - 0.5), 1.5 * pixelRatio);
+                }
+            }
         }
     }
 };

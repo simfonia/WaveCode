@@ -99,6 +99,15 @@
                     <div class="section-content" id="visualizer-container">
                         <canvas id="waveformCanvas"></canvas>
                         <canvas id="fftCanvas"></canvas>
+                        <!-- 頻譜模式切換開關 (浮動於右上角) -->
+                        <div id="fft-mode-toggle" class="fft-mode-control" data-i18n-title="WAVECODE_FFT_MODE_HINT">
+                            <span class="mode-label active" data-mode="linear">Linear</span>
+                            <div class="mode-switch" >
+                                <input type="checkbox" id="fft-mode-checkbox">
+                                <label for="fft-mode-checkbox"></label>
+                            </div>
+                            <span class="mode-label" data-mode="log">Log</span>
+                        </div>
                     </div>
                 </div>
 

@@ -11,7 +11,7 @@ export const NodeFactory = {
         if (!val) return 'sine';
         const v = String(val).toLowerCase();
         const map = {
-            '0': 'sine', '1': 'square', '2': 'sawtooth', '3': 'triangle',
+            '0': 'sine', '1': 'sawtooth', '2': 'square', '3': 'triangle',
             'sine': 'sine', 'square': 'square', 'sawtooth': 'sawtooth', 'triangle': 'triangle'
         };
         return map[v] || 'sine';

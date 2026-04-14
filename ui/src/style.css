@@ -396,3 +396,58 @@ body.resizing-panel {
 .code-number  { color: #d19a66; } /* 橘色 */
 .code-comment { color: #5c6370; font-style: italic; } /* 灰色 */
 .code-error   { color: #e06c75; background: rgba(224, 108, 117, 0.1); padding: 2px 4px; border-radius: 4px; }
+
+/* FFT Mode Control (Floating) */
+.visualizer-container { position: relative; }
+.fft-mode-control {
+  position: absolute;
+  top: 4px;
+  right: 35px;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  padding: 5px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  color: #bbb;
+  z-index: 100;
+  user-select: none;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.mode-label {
+  transition: color 0.2s;
+}
+.mode-label.active {
+  color: #75FB4C;
+  font-weight: bold;
+}
+.mode-switch {
+  position: relative;
+  width: 28px;
+  height: 14px;
+  margin: 0 6px;
+}
+.mode-switch input { display: none; }
+.mode-switch label {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #333;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.mode-switch label:after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  left: 2px; bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.mode-switch input:checked + label { background-color: #75FB4C; }
+.mode-switch input:checked + label:after { transform: translateX(14px); }
+
