@@ -1,9 +1,13 @@
+# Node & Frontend
+/ui/node_modules/
+/ui/dist/
+/ui/.vite/
+/ui/.next/
+
 # Rust
 /src-tauri/target/
 /src-tauri/gen/
-
-# Node
-/ui/node_modules/
+/src-tauri/Cargo.lock.lock
 
 # OS
 .DS_Store

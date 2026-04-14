@@ -172,10 +172,21 @@ export const KeyboardController = {
                         const xml = (Blockly.utils && Blockly.utils.xml) ? 
                                     Blockly.utils.xml.textToDom(KeyboardController._globalClipboard) : 
                                     Blockly.Xml.textToDom(KeyboardController._globalClipboard);
+                        
+                        // --- 修正：計算當前視窗中心點 ---
+                        const metrics = workspace.getMetrics();
+                        const scale = workspace.scale;
+                        // 計算目前視窗中心在工作區座標系中的位置
+                        const centerX = (metrics.viewLeft + metrics.viewWidth / 2) / scale;
+                        const centerY = (metrics.viewTop + metrics.viewHeight / 2) / scale;
+
                         const block = Blockly.Xml.domToBlock(xml, workspace);
+                        // 將積木移動到中心點，並稍微偏移以防重疊
+                        block.moveTo(new Blockly.utils.Coordinate(centerX, centerY));
                         block.moveBy(20, 20);
+                        
                         block.select();
-                        if (window.LogManager) window.LogManager.appendLog("Block pasted from global clipboard.", "info");
+                        if (window.LogManager) window.LogManager.appendLog("Block pasted to view center.", "info");
                     } catch (err) {
                         console.warn("Global paste failed:", err);
                     }

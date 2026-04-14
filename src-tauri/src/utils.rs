@@ -4,33 +4,33 @@ use tauri::Manager;
 
 /// 獲取資源目錄的輔助函式，支援開發與生產環境
 pub fn get_resource_base(app_handle: &tauri::AppHandle) -> PathBuf {
-    // 1. 開發環境優先：偵測 src-tauri/resources (原始原始碼目錄)
-    // 這能避免在開發過程中，target 目錄殘留舊檔案導致的「幽靈範例」現象。
-    if let Ok(mut dev_path) = std::env::current_dir() {
-        // 如果是在專案根目錄，進入 src-tauri
-        let target = if dev_path.ends_with("WaveCode") {
-            dev_path.join("src-tauri").join("resources")
-        } else if dev_path.ends_with("src-tauri") {
-            dev_path.join("resources")
-        } else {
-            // 回退到嘗試在目前目錄尋找 resources
-            dev_path.join("resources")
-        };
-
-        if target.exists() {
-            return target;
+    // 1. 如果有設定開發環境環境變數，或是在專案目錄下執行，優先使用源碼路徑
+    if let Ok(dir) = std::env::current_dir() {
+        let is_dev = dir.ends_with("WaveCode") || dir.ends_with("src-tauri");
+        if is_dev {
+            let target = if dir.ends_with("WaveCode") {
+                dir.join("src-tauri").join("resources")
+            } else {
+                dir.join("resources")
+            };
+            if target.exists() { return target; }
         }
     }
 
-    // 2. 生產環境 (已打包)：使用 Tauri 解析的路徑
+    // 2. 正式環境：使用 Tauri 內建路徑 (處理打包與安裝情況)
+    // 在 Windows 打包後，resource_dir 通常就是 exe 所在的目錄 (或其 resource 子目錄)
     if let Ok(resource_dir) = app_handle.path().resource_dir() {
+        // 先嘗試資源包路徑
         let prod_path = resource_dir.join("resources");
-        if prod_path.exists() {
-            return prod_path;
+        if prod_path.exists() { return prod_path; }
+        
+        // 如果 resource_dir 本身就是資源根目錄 (某些打包配置)
+        if resource_dir.join("default_template.wave").exists() {
+            return resource_dir;
         }
     }
 
-    // 3. 最後回退
+    // 3. 最後回退 (目前目錄)
     PathBuf::from("resources")
 }
 

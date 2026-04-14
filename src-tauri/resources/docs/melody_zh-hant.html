@@ -27,7 +27,11 @@
         <h2>1. 音符與和弦 (Notes & Chords)</h2>
         <p>在「音符」欄位中，你可以輸入以下內容：</p>
         <ul>
-            <li><span class="highlight">單音</span>：如 <code>C4</code> (中央C)、<code>F#3</code> (升F)、<code>Bb5</code> (降B)。</li>
+            <li><span class="highlight">單音</span>：包含音名 (A-G)、記號與八度 (0-9)。</li>
+            <ul>
+                <li><strong>升記號</strong>：支援 <code>#</code>, <code>s</code>, <code>S</code>。例如 <code>C#4</code> 或 <code>Cs4</code>。</li>
+                <li><strong>降記號</strong>：支援 <code>b</code>, <code>B</code>。例如 <code>Eb4</code> 或 <code>EB4</code> (Bb 亦可正確識別)。</li>
+            </ul>
             <li><span class="highlight">休止符</span>：使用 <code>R</code> 代表不發聲。</li>
             <li><span class="highlight">和弦名稱</span>：若你已使用「定義和弦」積木，可直接輸入名稱如 <code>MyChord</code>。</li>
             <li><span class="highlight">頻率</span>：直接輸入數字如 <code>440</code> (Hz)。</li>

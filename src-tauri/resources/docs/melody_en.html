@@ -21,12 +21,13 @@
 
     <div class="type-box">
         <h2>1. Note Names & Octaves</h2>
-        <p>A note consists of a <strong>Note Name (A-G)</strong>, <strong>Accidentals (#/b)</strong>, and an <strong>Octave (0-9)</strong>:</p>
+        <p>A note consists of a <strong>Note Name (A-G)</strong>, <strong>Accidentals (#/b/s/B)</strong>, and an <strong>Octave (0-9)</strong>:</p>
         <ul>
-            <li><strong>Format</strong>: e.g., <code>C4</code> (Middle C), <code>G#3</code> (G sharp), <code>Bb5</code> (B flat).</li>
+            <li><strong>Format</strong>: e.g., <code>C4</code> (Middle C).</li>
+            <li><strong>Sharps</strong>: Supports <code>#</code>, <code>s</code>, or <code>S</code>. e.g., <code>C#4</code> or <code>Cs4</code>.</li>
+            <li><strong>Flats</strong>: Supports <code>b</code> or <code>B</code>. e.g., <code>Eb4</code> or <code>EB4</code> (Bb is also supported).</li>
             <li><strong>Case Insensitive</strong>: <code>c4</code> is the same as <code>C4</code>.</li>
             <li><strong>Octave Range</strong>: Standard MIDI range 0 to 9 (default is 4).</li>
-            <li><strong>Omitted Octave</strong>: Writing just <code>C</code> will use the current default octave.</li>
         </ul>
     </div>
 

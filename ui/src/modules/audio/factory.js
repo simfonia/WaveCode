@@ -226,8 +226,18 @@ export const NodeFactory = {
 
     noteToFreq(name) {
         if (!name || typeof name !== 'string') return 440;
-        const midi = this.noteToMidi(name);
-        return 440 * Math.pow(2, (midi - 69) / 12);
+        // 引用 WaveCodeAPI 的統一解析邏輯 (MusicUtils)
+        if (window.WaveCode && window.WaveCode.MusicUtils) {
+            const midi = window.WaveCode.MusicUtils.noteToMidi(name);
+            if (midi === 0) return 0;
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+        // 後備方案
+        const n = name.toUpperCase();
+        const octave = (n.match(/\d/) || [4])[0];
+        const baseMap = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11 };
+        let base = baseMap[n[0]] || 0;
+        return 440 * Math.pow(2, ((parseInt(octave) + 1) * 12 + base - 69) / 12);
     },
 
     /**
@@ -251,7 +261,14 @@ export const NodeFactory = {
             // 檔名可能包含底線，音名通常在最後一部份 (如 violin_sust_C4 -> C4)
             const parts = filename.split("_");
             const noteName = parts[parts.length - 1];
-            const mid = this.noteToMidi(noteName);
+            
+            // 引用統一 MIDI 轉換
+            let mid = 0;
+            if (window.WaveCode && window.WaveCode.MusicUtils) {
+                mid = window.WaveCode.MusicUtils.noteToMidi(noteName);
+            } else {
+                mid = this.noteToMidi(noteName);
+            }
             
             if (mid === 0) continue; // 解析失敗
 

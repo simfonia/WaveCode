@@ -18,6 +18,41 @@ export const WaveCodeAPI = {
     _variables: {},
     _chords: {},
     _loopCounters: new Map(),
+
+    /**
+     * 音樂解析工具 (全域唯一真理來源)
+     */
+    MusicUtils: {
+        // 音名/和弦名稱匹配 (支援 #, s, S, b, B)
+        NOTE_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_]+|R)$/,
+        // 旋律 Token 匹配 (音名 + 時值 + 力度)
+        MELODY_TOKEN_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_]+|R)([WHQES][^:v]*)(?:[:v](\d+))?$/,
+        
+        noteToMidi: function(name) {
+            if (!name || typeof name !== 'string') return 60;
+            const n = name.toUpperCase();
+            if (n === 'R') return 0;
+            const octaveMatch = n.match(/\d/);
+            const octave = octaveMatch ? parseInt(octaveMatch[0]) : 4;
+            const baseMap = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11 };
+            let base = baseMap[n[0]] || 0;
+            
+            // 取得除去音名首字與八度數字後的記號部分 (如 Bb4 -> B, Cs4 -> S)
+            const accidentalPart = n.slice(1).replace(/\d/g, '');
+            if (accidentalPart.includes('#') || accidentalPart.includes('S')) {
+                base += 1;
+            } else if (accidentalPart.includes('B')) {
+                base -= 1;
+            }
+            return (octave + 1) * 12 + base;
+        },
+        
+        noteToFreq: function(name) {
+            const midi = this.noteToMidi(name);
+            if (midi === 0) return 0;
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+    },
     
     _serialPort: null,
     _serialRaw: "",
@@ -182,8 +217,8 @@ export const WaveCodeAPI = {
         for (const token of tokens) {
             if (this.isScriptCancelled(id)) return;
             
-            // 嚴格模式：一個 Token 必須包含 [音名/和弦] + [時值] + [可選力度]
-            const match = token.match(/^([A-Ga-g][#bB]?\d?|[A-Za-z0-9_]+|R)([WHQES][^:v]*)(?:[:v](\d+))?$/);
+            // 引用統一音樂解析模式
+            const match = token.match(this.MusicUtils.MELODY_TOKEN_PATTERN);
             if (!match) continue;
             
             const noteOrChord = match[1];
