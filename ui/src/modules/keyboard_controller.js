@@ -209,8 +209,11 @@ export const KeyboardController = {
         }
         
         const key = e.key.toLowerCase();
+        // 僅攔截特定控制鍵與鋼琴映射鍵，但改用較溫和的攔截方式以利積木事件並行
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', '=', '+', '-', '_', 'Backspace'].includes(e.key) || KEY_MAP[key]) {
-            e.stopPropagation(); e.stopImmediatePropagation();
+            // 不再使用 stopImmediatePropagation()，讓其他 Capturing Listener (如 WaveCodeAPI) 也能看到事件
+            // 但仍需 preventDefault 防止瀏覽器預設行為 (如 Backspace 倒退、Arrow 捲動)
+            if (e.key === 'Backspace' || e.key.startsWith('Arrow')) e.preventDefault();
         }
 
         if (e.key === 'ArrowUp') { KeyboardController.transpose += 12; KeyboardController.logTranspose(); return; }

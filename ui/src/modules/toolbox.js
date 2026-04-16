@@ -303,7 +303,12 @@ export const WaveCodeToolbox = {
                     'kind': 'block',
                     'type': 'wc_release_note',
                     'inputs': {
-                        'FREQ': { 'shadow': { 'type': 'wc_note' } }
+                        'NOTE': {
+                            'shadow': {
+                                'type': 'text',
+                                'fields': { 'TEXT': 'C4' }
+                            }
+                        }
                     }
                 },
                 { 'kind': 'block', 'type': 'wc_note' }
@@ -337,15 +342,51 @@ export const WaveCodeToolbox = {
             'name': '%{BKY_CAT_MIDI}',
             'colour': '%{BKY_MIDI_HUE}',
             'contents': [
+                { 'kind': 'label', 'text': '--- MIDI 事件 (Events) ---' },
                 { 'kind': 'block', 'type': 'wc_midi_on_note' },
                 { 'kind': 'block', 'type': 'wc_midi_on_note_off' },
                 { 'kind': 'block', 'type': 'wc_midi_on_cc' },
+
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 轉換與判定 (Tools) ---' },
+                { 'kind': 'block', 'type': 'wc_midi_note_to_freq', 'inputs': { 'NOTE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } } } },
+                { 'kind': 'block', 'type': 'wc_midi_note_to_name', 'inputs': { 'NOTE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } } } },
+                { 'kind': 'block', 'type': 'wc_midi_is_pressed', 'inputs': { 'NOTE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } } } },
                 {
                     'kind': 'block',
                     'type': 'wc_midi_lp_xy_to_note',
                     'inputs': {
                         'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
                         'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
+                    }
+                },
+
+                { 'kind': 'sep', 'gap': '32' },
+                { 'kind': 'label', 'text': '--- 發送訊號 (Output) ---' },
+                {
+                    'kind': 'block',
+                    'type': 'wc_midi_send_note',
+                    'inputs': {
+                        'NOTE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } },
+                        'VEL': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
+                        'CH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_midi_send_note_off',
+                    'inputs': {
+                        'NOTE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } },
+                        'CH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
+                    }
+                },
+                {
+                    'kind': 'block',
+                    'type': 'wc_midi_send_cc',
+                    'inputs': {
+                        'NO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
+                        'VAL': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 127 } } },
+                        'CH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
                     }
                 }
             ]

@@ -101,47 +101,6 @@ Blockly.JavaScript.forBlock['wc_comment'] = function(block) {
     const commentedText = text.split('\n').map(line => `// ${line}`).join('\n');
     return `${commentedText}\n`;
 };
-Blockly.JavaScript.forBlock['wc_serial_data_received'] = function(block) {
-  const varId = block.getFieldValue('DATA');
-  const varName = Blockly.JavaScript.nameDB_.getName(varId, Blockly.Variables.NAME_TYPE);
-  const code = Blockly.JavaScript.statementToCode(block, 'DO');
-
-  return `
-WaveCode.registerSerialHandler(async (data, id) => {
-  if (WaveCode.isScriptCancelled(id)) return;
-  const _id = id;
-  const WaveCode = window.WaveCode.createTrack(); // 事件觸發也建立新軌道
-  try {
-    WaveCode.setVar("${varName}", data);
-    ${code}
-  } catch (err) {
-    if (err.message !== 'Script cancelled') {
-      const msg = err.message.includes('迴圈次數過多') ? '偵測到疑似無窮迴圈，已終止事件處理。' : err.message;
-      WaveCode.appendLog('序列埠事件錯誤: ' + msg, 'error');
-    }
-  }
-});
-`;
-};
-
-Blockly.JavaScript.forBlock['wc_serial_init'] = function(block) {
-  const port = block.getFieldValue('PORT');
-  const baud = block.getFieldValue('BAUD');
-  return `await WaveCode.openSerial("${port}", ${baud});\n`;
-};
-
-Blockly.JavaScript.forBlock['wc_serial_check_ttp'] = function(block) {
-  const prefix = block.getFieldValue('PREFIX');
-  const key = block.getFieldValue('KEY');
-  const code = `WaveCode.isTtpTriggered("${prefix}", ${key})`;
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript.forBlock['wc_serial_get_field'] = function(block) {
-  const prefix = block.getFieldValue('PREFIX');
-  const code = `WaveCode.getSerialField("${prefix}")`;
-  return [code, Blockly.JavaScript.ORDER_ATOMIC];
-};
 
 Blockly.JavaScript.forBlock['wc_wait_musical'] = function(block) {
   const val = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC) || '1';
@@ -195,9 +154,10 @@ Blockly.JavaScript.forBlock['wc_loop'] = function(block) {
 
 Blockly.JavaScript.forBlock['wc_release_note'] = function(block) {
   const inst = block.getFieldValue('INSTRUMENT');
-  const freq = Blockly.JavaScript.valueToCode(block, 'FREQ', Blockly.JavaScript.ORDER_ATOMIC) || '440';
-  return `await WaveCode.releaseNote(${freq}, 0, "${inst}");\n`;
+  const note = Blockly.JavaScript.valueToCode(block, 'NOTE', Blockly.JavaScript.ORDER_ATOMIC) || "'C4'";
+  return `await WaveCode.releaseNote(${note}, 0, '${inst}');\n`;
 };
+
 
 Blockly.JavaScript.forBlock['wc_phrase_def'] = function(block) {
   const phraseName = block.getFieldValue('NAME');

@@ -1,0 +1,305 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_master" id="hBgy:wMZaI6U8qJ3rdDK" x="50" y="30">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="it3}BP*W(oa4PQOl@{c{">
+        <value name="THRESH">
+          <shadow type="math_number" id="95@w2=Ss[`:eZhfy-IxX">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="{s%F.Is`@cH!hh`~}V-s">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="t4~bHww=Yffv:@aRon$+">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="E+39Wdh).YkK`XyMQSDi">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="xMgAw!jGUTije6|Eij9T">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="$2jmylkY9d*0u`PJ?gTS" x="50" y="230">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="Pv_LOa7q|12bK9.4$X-}">
+        <field name="WAVE">0</field>
+        <next>
+          <block type="wc_component_adsr" id="MXaL|(l`3l])UqU$Z,jk">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="0y{~QwP3+%J-`)/(o){x">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="F~fsi--YAT#A[xzznz9h" x="50" y="430">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="g+diORjGF#jhte:/Z#Gz">
+        <value name="BPM">
+          <shadow type="math_number" id="jSMah;9#r.M]tn`tOQmC">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_key_event" id="]7h^|EM8HEG@bJmKt,Vs" x="50" y="530">
+    <field name="KEY">a</field>
+    <field name="ACTION">down</field>
+    <statement name="DO">
+      <block type="wc_comment" id="zxW,vQvGr8m8EY-CcgBi">
+        <field name="TEXT">使用"不等待"的發聲積木，並設為0拍，可由按鍵控制發聲時間，&amp;#10;方便即時演奏。</field>
+        <next>
+          <block type="wc_play_note_async" id="VOMW7,P?-yG~?^wZ8{Re">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="Pu2PyHw-q+EWjH_cNh}Q">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="+tk9o,KsPpUUTp4CNcwn">
+                <field name="TEXT">0</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="Py-~Xr+`*D#loQ*/dgen">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_key_event" id="nX~`p2lLbWquGT:V:_VC" x="50" y="690">
+    <field name="KEY">a</field>
+    <field name="ACTION">up</field>
+    <statement name="DO">
+      <block type="wc_comment" id="8n3n(6%=yN7oUc?_/#Qo">
+        <field name="TEXT">要記得釋放按鍵所觸發的樂器音符，否則會一直響下去。&amp;#10;若此時有其它演奏積木也使用Piano的C4音，會同時被消音。&amp;#10;解決方式是建立兩個樂器：Piano1 與 Piano2，&amp;#10;讓按鍵觸發的樂器使用Piano1，其它演奏的樂器使用Piano2。</field>
+        <next>
+          <block type="wc_release_note" id="L(p:TB_C(hE.l7/061fL">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="(HtesR+ah+aXr%ztujeG">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id=":gI?^o(}Gn16m0Tu)9%4" x="50" y="890">
+    <field name="ID">Windchimes</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_percussion" id="!Cx994-/3P7s{0WJ?-x[">
+        <field name="FOLDER">sound</field>
+        <field name="FILE">windchimes-1</field>
+        <next>
+          <block type="wc_component_volume" id="q.:)*gx+PRW%P$?!CW}n">
+            <field name="VOL">100</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_key_event" id="SwCd#|LgD3lq,E~I!icM" x="50" y="1010">
+    <field name="KEY">z</field>
+    <field name="ACTION">down</field>
+    <statement name="DO">
+      <block type="wc_comment" id="sfP:^^oj1:ynV}l9Lj-x">
+        <field name="TEXT">觸發式發聲，指定拍子並編排順序，按一下就可啟動。&amp;#10;啟動後就讓後續動作自主進行，不再干涉。</field>
+        <next>
+          <block type="wc_play_note" id="Ou.l{Y2`xF9MkxoXjcaO">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="sgo.4Em$[bE9t(g)XH~_">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="eQ_x78lkiEfVaUI-E_=A">
+                <field name="TEXT">2</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="4s^q*fSy2n@j1~4CwjH:">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_play_note" id="whq,SC3ZA;0.VyID]^g{">
+                <field name="INSTRUMENT">Piano</field>
+                <value name="NOTE">
+                  <shadow type="text" id="S]B[yP$$7B!%s2I2XwfF">
+                    <field name="TEXT">D4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id="/LhZ^/J*k(g5EYt!uUTV">
+                    <field name="TEXT">2</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="2*KA2jR:O~)2Y:8gCBpS">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note" id="yi+RRei}@|mnM@5-|5R!">
+                    <field name="INSTRUMENT">Piano</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="YoO{|K[VV*j!q:ausZ*,">
+                        <field name="TEXT">E4</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="text" id="0^gU+k/wH@QpI*Ryq9Sd">
+                        <field name="TEXT">2</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="%7f*wn5qJIIHREynodKJ">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_play_note_async" id="1$IZMfdxAD*HAB-0HA:I">
+                        <field name="INSTRUMENT">Windchimes</field>
+                        <value name="NOTE">
+                          <shadow type="text" id="zV*RQ;0Vmqalnl,N-{t1">
+                            <field name="TEXT">x</field>
+                          </shadow>
+                        </value>
+                        <value name="DUR">
+                          <shadow type="text" id="]#|G3t8|0X1.iGKwguwv">
+                            <field name="TEXT">0</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="X!@gCVv5Mi-638!_@@(v">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_key_event" id="UUr7y-mzG8?ODz)%f_z~" x="50" y="1290">
+    <field name="KEY">x</field>
+    <field name="ACTION">down</field>
+    <statement name="DO">
+      <block type="wc_comment" id="W;a]+.a1pk[]!~S@hX=J">
+        <field name="TEXT">觸發式發聲，指定拍子並編排順序，按一下就可啟動。&amp;#10;啟動後就讓後續動作自主進行，不再干涉。</field>
+        <next>
+          <block type="wc_play_note_async" id="a]{?%IsUzppT3w2od(H.">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="QqZ}uG%4#RG=Kq+%neiI">
+                <field name="TEXT">C4</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="~b+^.`A=hot8HVagvhT~">
+                <field name="TEXT">2</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="+NJGo71})VxN;m4mI`jG">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_play_note_async" id=",Q_aWVT-O@J@?HSnqV_F">
+                <field name="INSTRUMENT">Piano</field>
+                <value name="NOTE">
+                  <shadow type="text" id="o[TrM|[,7?U0o~^H.EEw">
+                    <field name="TEXT">E4</field>
+                  </shadow>
+                </value>
+                <value name="DUR">
+                  <shadow type="text" id="JAKx*uI]G+ssYkkL--=?">
+                    <field name="TEXT">2</field>
+                  </shadow>
+                </value>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="0U%t;VUBk3bQ!l*o2hE}">
+                    <field name="NUM">300</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_play_note_async" id="LYKi6gVl,qGDx3XzY#H^">
+                    <field name="INSTRUMENT">Piano</field>
+                    <value name="NOTE">
+                      <shadow type="text" id="`_2;Q}4AVcK9qo:9vC4S">
+                        <field name="TEXT">G4</field>
+                      </shadow>
+                    </value>
+                    <value name="DUR">
+                      <shadow type="text" id="{RAKFjE.+!@/I3LA=E9]">
+                        <field name="TEXT">2</field>
+                      </shadow>
+                    </value>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="Bc98$wptEPjsdhJ`jdw8">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_play_note_async" id="enqh{%F%@r.Uf.?M]_,H">
+                        <field name="INSTRUMENT">Windchimes</field>
+                        <value name="NOTE">
+                          <shadow type="text" id=".%pR%ZR1!yvze3%H13F1">
+                            <field name="TEXT">x</field>
+                          </shadow>
+                        </value>
+                        <value name="DUR">
+                          <shadow type="text" id="dCG0rgL_@{TC7C{#uXjB">
+                            <field name="TEXT">0</field>
+                          </shadow>
+                        </value>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="0N29xvf#qb[J!26:-]Ft">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -82,17 +82,17 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "wc_sampler_percussion",
-    "message0": "打擊類取樣：資料夾 %1 檔案 %2",
+    "message0": "%{BKY_AUDIO_COMP_SAMPLER_PERCUSSION}",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "FOLDER",
-        "options": [["(載入中...)", "none"]]
+        "options": [["%{BKY_WAVECODE_LOADING}", "none"]]
       },
       {
         "type": "field_dropdown",
         "name": "FILE",
-        "options": [["(載入中...)", "none"]]
+        "options": [["%{BKY_WAVECODE_LOADING}", "none"]]
       }
     ],
     "previousStatement": null,
@@ -103,12 +103,12 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "wc_sampler_melodic",
-    "message0": "旋律類取樣集 (資料夾) %1",
+    "message0": "%{BKY_AUDIO_COMP_SAMPLER_MELODIC}",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "FOLDER",
-        "options": [["(載入中...)", "none"]]
+        "options": [["%{BKY_WAVECODE_LOADING}", "none"]]
       }
     ],
     "previousStatement": null,
@@ -154,9 +154,9 @@ Blockly.defineBlocksWithJsonArray([
         "type": "field_dropdown",
         "name": "TYPE",
         "options": [
-          [Blockly.Msg['AUDIO_FILTER_LP'] || "lowpass", "lowpass"], 
-          [Blockly.Msg['AUDIO_FILTER_HP'] || "highpass", "highpass"], 
-          ["bandpass", "bandpass"]
+          ["%{BKY_AUDIO_FILTER_LP}", "lowpass"], 
+          ["%{BKY_AUDIO_FILTER_HP}", "highpass"], 
+          ["%{BKY_AUDIO_FILTER_BP}", "bandpass"]
         ]
       },
       { "type": "input_value", "name": "FREQ", "check": "Number" },
@@ -253,24 +253,24 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
-        "options": [["(目前樂器)", "none"]]
+        "options": [["%{BKY_AUDIO_CURRENT_INSTRUMENT}", "none"]]
       },
       {
         "type": "field_dropdown",
         "name": "EFFECT_TYPE",
         "options": [
           ["%{BKY_AUDIO_FILTER_TYPE}", "filter"],
-          ["音量 (Volume)", "volume"],
-          ["延遲 (Delay)", "delay"],
-          ["殘響 (Reverb)", "reverb"],
-          ["位元粉碎 (BitCrush)", "bitcrush"],
-          ["失真 (Distortion)", "distortion"]
+          ["%{BKY_AUDIO_PARAM_VOLUME}", "volume"],
+          ["%{BKY_AUDIO_PARAM_DELAY}", "delay"],
+          ["%{BKY_AUDIO_PARAM_REVERB}", "reverb"],
+          ["%{BKY_AUDIO_PARAM_BITCRUSH}", "bitcrush"],
+          ["%{BKY_AUDIO_PARAM_DISTORTION}", "distortion"]
         ]
       },
       {
         "type": "field_dropdown",
         "name": "PARAM_NAME",
-        "options": [["頻率", "freq"]]
+        "options": [["%{BKY_AUDIO_PARAM_FREQ}", "freq"]]
       },
       { "type": "input_value", "name": "VALUE", "check": "Number" }
     ],
@@ -292,17 +292,27 @@ Blockly.Extensions.register('wc_set_effect_param_sync', function() {
   const updateParams = (type) => {
     let options = [];
     if (type === 'filter') {
-      options = [['頻率 (Frequency)', 'freq'], ['Q值 (Q)', 'q']];
+      options = [
+        [Blockly.Msg['AUDIO_PARAM_FREQ'] || 'Frequency', 'freq'], 
+        [Blockly.Msg['AUDIO_PARAM_Q'] || 'Q', 'q']
+      ];
     } else if (type === 'volume') {
-      options = [['音量百分比 (Value)', 'val']];
+      options = [[Blockly.Msg['AUDIO_PARAM_VALUE'] || 'Value', 'val']];
     } else if (type === 'delay') {
-      options = [['延遲時間 (Time)', 'time'], ['回授 (Feedback)', 'feedback']];
+      options = [
+        [Blockly.Msg['AUDIO_PARAM_TIME'] || 'Time', 'time'], 
+        [Blockly.Msg['AUDIO_PARAM_FEEDBACK'] || 'Feedback', 'feedback']
+      ];
     } else if (type === 'reverb') {
-      options = [['時間 (Seconds)', 'seconds'], ['衰減 (Decay)', 'decay'], ['混合 (Mix)', 'mix']];
+      options = [
+        [Blockly.Msg['AUDIO_PARAM_SECONDS'] || 'Seconds', 'seconds'], 
+        [Blockly.Msg['AUDIO_PARAM_DECAY'] || 'Decay', 'decay'], 
+        [Blockly.Msg['AUDIO_PARAM_MIX'] || 'Mix', 'mix']
+      ];
     } else if (type === 'bitcrush') {
-      options = [['位元數 (Bits)', 'bits']];
+      options = [[Blockly.Msg['AUDIO_PARAM_BITS'] || 'Bits', 'bits']];
     } else if (type === 'distortion') {
-      options = [['失真量 (Amount)', 'amount']];
+      options = [[Blockly.Msg['AUDIO_PARAM_AMOUNT'] || 'Amount', 'amount']];
     }
     
     // 如果目前的選項不在新清單中，重置為第一個
@@ -356,7 +366,8 @@ Blockly.Extensions.register('wc_melodic_menu_sync', function() {
   const field = this.getField('FOLDER');
   field.menuGenerator_ = () => {
     const folders = (window.AudioManager && window.AudioManager.melodicFolders) || [];
-    return folders.length > 0 ? folders.map(f => [f, f]) : [['(無可用資料夾)', 'none']];
+    const noFoldersMsg = Blockly.Msg['WAVECODE_NO_FOLDERS'] || '(No Folders)';
+    return folders.length > 0 ? folders.map(f => [f, f]) : [[noFoldersMsg, 'none']];
   };
 });
 
@@ -368,14 +379,16 @@ Blockly.Extensions.register('wc_percussion_menu_sync', function() {
   folderField.menuGenerator_ = () => {
     const pMap = (window.AudioManager && window.AudioManager.percussionMap) || {};
     const folders = Object.keys(pMap);
-    return folders.length > 0 ? folders.map(f => [f, f]) : [['(無可用資料夾)', 'none']];
+    const noFoldersMsg = Blockly.Msg['WAVECODE_NO_FOLDERS'] || '(No Folders)';
+    return folders.length > 0 ? folders.map(f => [f, f]) : [[noFoldersMsg, 'none']];
   };
 
   fileField.menuGenerator_ = () => {
     const folder = folderField.getValue();
     const pMap = (window.AudioManager && window.AudioManager.percussionMap) || {};
     const files = pMap[folder] || [];
-    return files.length > 0 ? files.map(f => [f, f]) : [['(請先選取資料夾)', 'none']];
+    const selectFolderFirstMsg = Blockly.Msg['WAVECODE_SELECT_FOLDER_FIRST'] || '(Select Folder First)';
+    return files.length > 0 ? files.map(f => [f, f]) : [[selectFolderFirstMsg, 'none']];
   };
 
   this.setOnChange((e) => {

@@ -129,6 +129,34 @@
     "AUDIO_REVERB_TOOLTIP": "Add spatial reverb effect to simulate room ambience.",
 
     "AUDIO_SET_EFFECT_PARAM": "instrument %1 effect %2 param %3 value %4",
-    "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "Dynamically update effect parameters for active voices. Useful for real-time control with external sensors."
+    "AUDIO_SET_EFFECT_PARAM_TOOLTIP": "Dynamically update effect parameters for active voices. Useful for real-time control with external sensors.",
+
+    // MIDI
+    "CAT_MIDI": "MIDI Device",
+    "MIDI_HUE": "#d22f73",
+    "MIDI_ON_NOTE": "when MIDI note received (Ch: %1, Note: %2, Vel: %3)",
+    "MIDI_ON_NOTE_TOOLTIP": "Triggered when an external MIDI keyboard key is pressed. Variables store channel, pitch, and velocity.",
+    "MIDI_OFF_NOTE": "when MIDI note released (Ch: %1, Note: %2, Vel: %3)",
+    "MIDI_OFF_NOTE_TOOLTIP": "Triggered when an external MIDI keyboard key is released.",
+    "MIDI_ON_CC": "when MIDI CC received (Ch: %1, No: %2, Val: %3)",
+    "MIDI_ON_CC_TOOLTIP": "Triggered when an external MIDI knob or fader is moved. Variables store channel, number, and value.",
+    "MIDI_LP_XY_TO_NOTE": "Launchpad XY %1 X %2 Y %3 to MIDI Note",
+    "MIDI_LP_XY_TO_NOTE_TOOLTIP": "Convert Launchpad 8x8 grid coordinates (0-7) to MIDI note number.",
+    "MIDI_LP_MODE_XY": "Classic (XY)",
+    "MIDI_LP_MODE_NOTE": "Modern (Note)",
+
+    "WC_MIDI_SEND_NOTE": "send MIDI note %1 vel %2 ch %3 device %4",
+    "WC_MIDI_SEND_NOTE_TOOLTIP": "Send MIDI NoteOn/Off signal to specified physical or virtual device. Velocity 0 is equivalent to NoteOff.",
+    "WC_MIDI_SEND_NOTE_OFF": "release MIDI note %1 ch %2 device %3",
+    "WC_MIDI_SEND_NOTE_OFF_TOOLTIP": "Send MIDI NoteOff signal to specified device.",
+    "WC_MIDI_SEND_CC": "send MIDI CC %1 value %2 ch %3 device %4",
+    "WC_MIDI_SEND_CC_TOOLTIP": "Send MIDI Control Change signal to control external hardware knobs, faders, etc.",
+    "WC_MIDI_NOTE_TO_FREQ": "MIDI note %1 to frequency",
+    "WC_MIDI_NOTE_TO_FREQ_TOOLTIP": "Convert MIDI note number (0-127) to corresponding frequency (Hz). e.g., 60 to 261.63Hz (C4).",
+    "WC_MIDI_NOTE_TO_NAME": "MIDI note %1 to name",
+    "WC_MIDI_NOTE_TO_NAME_TOOLTIP": "Convert MIDI note number (0-127) to human-readable note name. e.g., 60 to 'C4'.",
+    "WC_MIDI_IS_PRESSED": "MIDI key %1 is pressed?",
+    "WC_MIDI_IS_PRESSED_TOOLTIP": "Detect if a specific MIDI key is currently pressed. This is a real-time detection that works regardless of whether the code is running.",
+    "WC_MIDI_ALL_DEVICES": "All Devices"
   });
 })(Blockly);

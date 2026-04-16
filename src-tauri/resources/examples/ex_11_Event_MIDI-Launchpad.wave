@@ -1,0 +1,447 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="rn6kkLemU_ZXPY5)})zU">ch</variable>
+    <variable id="j=u7m@04~iQF3y14cuY_">note</variable>
+    <variable id="tFPNtRcNsk#F#D4py01=">vel</variable>
+  </variables>
+  <block type="wc_comment" id="be]x=aRuPR.3a~;9e%XN" x="50" y="-110">
+    <field name="TEXT">【Launchpad S Drum &amp; Chord Pad】&amp;#10;1. 裝置名稱設定為 LaunchPad。&amp;#10;2. 底層 112-115：電子鼓 (Kick, Snare, Hi-hat, Open Hat)。&amp;#10;3. 底層 116-119：和弦 (Dm7, G7, CM7, A7)。&amp;#10;4. 燈光回饋：包含按下亮燈與放開熄燈。</field>
+  </block>
+  <block type="wc_master" id="hBgy:wMZaI6U8qJ3rdDK" x="50" y="30">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="it3}BP*W(oa4PQOl@{c{">
+        <value name="THRESH">
+          <shadow type="math_number" id="95@w2=Ss[`:eZhfy-IxX">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="{s%F.Is`@cH!hh`~}V-s">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="t4~bHww=Yffv:@aRon$+">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="E+39Wdh).YkK`XyMQSDi">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="xMgAw!jGUTije6|Eij9T">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="$2jmylkY9d*0u`PJ?gTS" x="50" y="230">
+    <field name="ID">Kick</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_percussion" id="Xt}y0(pmpm*p*g?0_DqA">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Bass</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="Vg@]wc#kk@=bEV+$q{G*" x="50" y="330">
+    <field name="ID">Snare</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_percussion" id="g+m4yd`BANgs%gH,U,?I">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">Snare</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="[^)Rn?a@;ekK0n,4n6Z;" x="50" y="430">
+    <field name="ID">HiHatC</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_percussion" id="^dY;Jpr#`jSPgDr]8eKC">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">HiHatClosed</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="_$@H.aG=bJ/_sYvJ#mc=" x="50" y="530">
+    <field name="ID">HiHatO</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_percussion" id="*3XwIU}|%jEdpw+K#[5D">
+        <field name="FOLDER">jazzkit/Roland_TR-909</field>
+        <field name="FILE">HiHatOpen</field>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="MwieVZ)1q#@*Bsco7YtR" x="50" y="630">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_sampler_melodic" id="s5|iyoFF_FAkp`7]sP]P">
+        <field name="FOLDER">piano</field>
+        <next>
+          <block type="wc_component_adsr" id="i*71:BE*N(H=nS[Lqc7S">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="F~fsi--YAT#A[xzznz9h" x="50" y="810">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="g+diORjGF#jhte:/Z#Gz">
+        <value name="BPM">
+          <shadow type="math_number" id="jSMah;9#r.M]tn`tOQmC">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_define_chord" id=";v`APJx[so1}P3xYOCO:">
+            <field name="NAME">Dm7</field>
+            <field name="NOTES">D4,F4,A4,C5</field>
+            <next>
+              <block type="wc_define_chord" id="-C#$Vd-Dv;qbG@!YX2hi">
+                <field name="NAME">G7</field>
+                <field name="NOTES">G3,B3,D4,F4</field>
+                <next>
+                  <block type="wc_define_chord" id="hbz/|^!8V%_sa@ri8(vJ">
+                    <field name="NAME">CM7</field>
+                    <field name="NOTES">C4,E4,G4,B4</field>
+                    <next>
+                      <block type="wc_define_chord" id="]mnnc[5SNswyiUT`u=77">
+                        <field name="NAME">A7</field>
+                        <field name="NOTES">A3,C#4,E4,G4</field>
+                        <next>
+                          <block type="wc_count_in" id=",uAv~afXiO55J*^3(lVg">
+                            <value name="MEASURES">
+                              <shadow type="math_number" id="v..r|8jl_m]oAVnvE^-4">
+                                <field name="NUM">1</field>
+                              </shadow>
+                            </value>
+                            <value name="BEATS">
+                              <shadow type="math_number" id="EUL[cD?`e?bv)Jy*5)xb">
+                                <field name="NUM">4</field>
+                              </shadow>
+                            </value>
+                            <value name="BEAT_UNIT">
+                              <shadow type="math_number" id=".sivRZ{?%U-Inz,:t:$+">
+                                <field name="NUM">4</field>
+                              </shadow>
+                            </value>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="Km5A$}z:Uu]!0/#0pQSu">
+                                <field name="NUM">100</field>
+                              </shadow>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_midi_on_note" id="B@;XmMo:~!:==0Ri_(f:" x="50" y="1070">
+    <field name="CH" id="rn6kkLemU_ZXPY5)})zU">ch</field>
+    <field name="NOTE" id="j=u7m@04~iQF3y14cuY_">note</field>
+    <field name="VEL" id="tFPNtRcNsk#F#D4py01=">vel</field>
+    <statement name="DO">
+      <block type="controls_if" id="C1Kg3dpS+8$#U9Ng]4fV">
+        <mutation elseif="7"></mutation>
+        <value name="IF0">
+          <block type="logic_compare" id="5HjV+lz9[`suue[`15N3">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="KF^+;ip/ED.sU.$cAy;]">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="Ey1no6X@*^cLrCa}fB)}">
+                <field name="NUM">112</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="wc_play_note_async" id="GTLAo/6Y_/rOR,f!=G{S">
+            <field name="INSTRUMENT">Kick</field>
+            <value name="NOTE">
+              <shadow type="text" id="qj;noM@G]y%D*6(n*0Iu">
+                <field name="TEXT">x</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="tcdE9%0$cch,R9|mf/f*">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="|jhiTzvpT1@qk6*CJn]Q">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF1">
+          <block type="logic_compare" id=")ntd7y=MG)xJeMrAeH|f">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id=";H}]C72CN3IcOUbl%uGs">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="`v0AXkjyCi2BE(xob~r9">
+                <field name="NUM">113</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO1">
+          <block type="wc_play_note_async" id="[Y_tn_By$c]7hC{xDP9[">
+            <field name="INSTRUMENT">Snare</field>
+            <value name="NOTE">
+              <shadow type="text" id="x(Zn/|S+JjzJ26Na@c{:">
+                <field name="TEXT">x</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="pa[}1c~vrcz)`^7s1/a@">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="4E$z|^-Wtnk,TWorw#*8">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF2">
+          <block type="logic_compare" id="6ETL2C^qQ]I?{JEy*^q$">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="ssP^v{ryBm0|`]+$!G^K">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="K/kPzZ0lqU|@PqYD=?)c">
+                <field name="NUM">114</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO2">
+          <block type="wc_play_note_async" id="GYO=Mms^7waf8=z43du)">
+            <field name="INSTRUMENT">HiHatC</field>
+            <value name="NOTE">
+              <shadow type="text" id="XFNz9j6Y]o^ixC=-WeO|">
+                <field name="TEXT">x</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="DFU@D!xMn5tO-:e(@,i_">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="/mN-DYS:WGB.,EZPz6g.">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF3">
+          <block type="logic_compare" id="f?[V(h7A]FE5W[4Q+$wn">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="GVNNbo^xfY?s}GXd{mBC">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="4huMU,Ze$YbMHU4yt$w?">
+                <field name="NUM">115</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO3">
+          <block type="wc_play_note_async" id="YKj%D8|KCqYxUJN`l3!%">
+            <field name="INSTRUMENT">HiHatO</field>
+            <value name="NOTE">
+              <shadow type="text" id="|6M!PUM8;;cmdR!bN_cw">
+                <field name="TEXT">x</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="3UhQ/Vj}=FaaaEHhT0a,">
+                <field name="TEXT">1</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="Ky]uyu%!q_mj856D$A%U">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF4">
+          <block type="logic_compare" id="/iJn%ZWM)07c]fXQ.RtJ">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="8[Yf|)oTV|6*]_xx#jI6">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id=";*q|aYWkDw9}u?|3aZgm">
+                <field name="NUM">116</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO4">
+          <block type="wc_play_note_async" id="U@{uUIORHRht#+2L5fj-">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="3G$0H./y/;1sStn;MieN">
+                <field name="TEXT">Dm7</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="t1w8Se/#7sd(l~[k*tF^">
+                <field name="TEXT">0</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="vb]ENB{fOZv/Vi.uRUQ?">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF5">
+          <block type="logic_compare" id="=7@NRC_YIR+_DU4J?3|Q">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="O+EN]pQ{KKTg2p3ouLor">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="DgwuC7V;#RNVL(Ylx;[d">
+                <field name="NUM">117</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO5">
+          <block type="wc_play_note_async" id="8`G7iekl|EeFJc`VE+2!">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="B9w].V?r.LeDJdYw=}eZ">
+                <field name="TEXT">G7</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="5nPkg~k(INU0{zZ*[uq.">
+                <field name="TEXT">0</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="SL!%d~Z]:%:Trr;!M!-6">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF6">
+          <block type="logic_compare" id="d*XPmR9!+VjWMei5$3Bx">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id=")#P,cSUDL-;[SF+S(F1~">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="!#J+~,@LkhJ)}q[H3`Q7">
+                <field name="NUM">118</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO6">
+          <block type="wc_play_note_async" id="I[:l:.@f8$NP-|EW-w,]">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="uHi)LIiQ~J!3xfFg8wu]">
+                <field name="TEXT">CM7</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="R3.q(Z6B~e!2RYFL0R3[">
+                <field name="TEXT">0</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="eR+qaWqg:]$+UlP53#rc">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+        <value name="IF7">
+          <block type="logic_compare" id="$AV/VwB(S:/,|J|@+)*$">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="rhq=7H.):)JE*$=^d0;L">
+                <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="#n4GmIKw!V{!gd)-PbKG">
+                <field name="NUM">119</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO7">
+          <block type="wc_play_note_async" id="),fl4x:yP:rpYVQ%xJfJ">
+            <field name="INSTRUMENT">Piano</field>
+            <value name="NOTE">
+              <shadow type="text" id="D(3GJ|Xat=P/6;%1=hs;">
+                <field name="TEXT">A7</field>
+              </shadow>
+            </value>
+            <value name="DUR">
+              <shadow type="text" id="Y!IA%`u{ONHb@XgfHVt1">
+                <field name="TEXT">0</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id=":U-[FS?!}Z.cUGJ*%9}-">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_midi_on_note_off" id="-.`NVZfgcS?7Hz~9$XJ%" x="50" y="1790">
+    <field name="CH" id="rn6kkLemU_ZXPY5)})zU">ch</field>
+    <field name="NOTE" id="j=u7m@04~iQF3y14cuY_">note</field>
+    <field name="VEL" id="tFPNtRcNsk#F#D4py01=">vel</field>
+  </block>
+</xml>

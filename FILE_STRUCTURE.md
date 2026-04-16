@@ -20,25 +20,26 @@
     - `src/generators/`: 轉型為「音訊 DSL」產生器模式
         - `javascript/`: 產出 DSL 結構的 JS 產生器 (audio_instruments.js, audio_performance.js, system.js)
     - `src/lang/`: 多國語言語系檔 (en.js, zh-hant.js)
-    - `src/modules/`: 功能模組
-        - `audio/`: Web Audio API 核心引擎
-            - `manager.js`: 支援動態主鏈 rebuildMasterChain, 整合 Recorder 接入點
-            - `factory.js`: **[重大更新] 實作 ADSR 穩定 Ramp、3.0x 下移懲罰取樣算法與鋼琴亮化濾波器**
-            - `voice.js`: **[重大更新] 實作 5ms 安全淡出機制 (De-clicking) 與音量標準化**
-            - `recorder.js`: **[新增] 高高品質 OGG 錄音模組，支援智慧靜音偵測結算**
-            - `visualizer.js`: 示波器與視覺化邏輯
-        - `api.js`: **[終極穩定版] 整合 Look-ahead 預排程、瞬時緩衝序列器與多軌作用域隔離**
-        - `toolbar_manager.js`: **[重大更新] 實作動態錄音控制 UI 與連動自動執行邏輯**
-        - `toolbox.js`: **[關鍵] 定義 Blockly 工具箱分類與內容結構**
-        - `ui_utils.js`: [更新] 補全 Orphan Block 白名單 (含序列埠事件)
-        - `keyboard_controller.js`: [重大更新] 實作分頁切換安全鎖、詳細日誌與 UI 同步
-    - `ui/src/style.css`: 加入 Code DSL 語法高亮樣式
-    - `index.html`: 前端主 HTML
-    - `vite.config.js`: Vite 建置設定
-- `log/`: 開發紀錄與計畫
-    - `handover.md`: 跨對話任務交接紀錄
-    - `details.md`: 技術細節與問題解決紀錄
-    - `todo.md`: 任務清單與進度管理
+    - ui/src/modules/: 功能模組
+            - `audio/`: Web Audio API 核心引擎
+                - `manager.js`: 支援動態主鏈 rebuildMasterChain, 整合 Recorder 接入點, [新增] MIDI 全時初始化啟動
+                - `factory.js`: **[重大更新] 實作 ADSR 穩定 Ramp、3.0x 下移懲罰取樣算法與鋼琴亮化濾波器**
+                - `voice.js`: **[重大更新] 實作 5ms 安全淡出機制 (De-clicking) 與音量標準化**
+                - `recorder.js`: **[新增] 高高品質 OGG 錄音模組，支援智慧靜音偵測結算**
+                - `visualizer.js`: 示波器與視覺化邏輯
+            - `api.js`: **[終極穩定版] 整合 Look-ahead 預排程、瞬時緩衝序列器、[新增] MIDI 雙向傳送與狀態追蹤 (pressedMidiKeys)**
+            - `toolbar_manager.js`: **[重大更新] 實作動態錄音控制 UI 與 [新增] MIDI 連線狀態/活動閃爍回饋**
+            - `toolbox.js`: **[關鍵] 定義 Blockly 工具箱分類與內容結構**
+            - `ui_utils.js`: [更新] 補全 Orphan Block 白名單 (含序列埠與 MIDI 事件)
+            - `keyboard_controller.js`: [重大更新] 實作分頁切換安全鎖、詳細日誌與 UI 同步
+        - `ui/src/style.css`: 加入 Code DSL 語法高亮樣式與 [新增] MIDI 狀態發光 CSS
+        - `index.html`: 前端主 HTML [新增] MIDI 狀態按鈕
+        - `vite.config.js`: Vite 建置設定
+    - `log/`: 開發紀錄與計畫
+
+    ---
+    *最後更新：2026-04-15 (Industrial MIDI Upgrade, All-time Connection & Dual-way Communication)*
+
     - `work/`: 每日工作摘要 (yyyy-mm-dd.md)
 - `backup/`: 檔案備份目錄
 - `GEMINI.md`: 專案開發規範 (Mandates)
@@ -62,3 +63,8 @@
     - factory.js: 組件工廠 (實作 :: 分隔符號支援與智慧映射算法)。
 - ui/src/blocks/: Blockly 積木定義。
     - audio_instruments.js: 包含打擊類(兩層選單)與旋律類(資料夾選單)積木。
+
+## 2026-04-15 更新 (MIDI 系統整合)
+- **ui/src/blocks/events.js**: 整合 MIDI 輸出選單同步 Extension 與所有 MIDI 報導積木。
+- **ui/src/modules/api.js**: 實作 MusicUtils.midiToFreq 並優化 MIDI 裝置選單翻譯產出。
+- **ui/src/modules/toolbox.js**: 分類細分 (Events, Tools, Output)，增加 MIDI 演奏便捷性。

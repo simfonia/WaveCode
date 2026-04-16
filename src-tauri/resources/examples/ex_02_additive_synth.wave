@@ -164,4 +164,35 @@
       </block>
     </statement>
   </block>
+  <block type="wc_master" id="s?5=sD%HlOZPnOP_V=dZ" x="10" y="1890">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="C^j*OU#-,{8jHK-qdh8(">
+        <value name="THRESH">
+          <shadow type="math_number" id="I;=)WYNpmv;aOEtwGQO[">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="c_L/fmA5uVXqe5z$SYKD">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="YIL#~V@5kTErh=m]8/Ei">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="t_HKQ8M.y`=%=j,1,9k4">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="jcU9tAK)yhWyG?#W-@W0">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
 </xml>

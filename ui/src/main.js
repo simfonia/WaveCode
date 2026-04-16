@@ -13,6 +13,7 @@ import './blocks/text.js';
 
 import './generators/javascript/audio_instruments.js';
 import './generators/javascript/audio_performance.js';
+import './generators/javascript/events.js';
 import './generators/javascript/text.js';
 import './generators/javascript/system.js';
 
@@ -46,7 +47,8 @@ const scrollMetrics = window.ScrollMetricsManager || (ScrollOptionsPlugin ? Scro
 const waveCodeTheme = Blockly.Theme.defineTheme('wavecode_theme', {
     'base': Blockly.Themes.Classic,
     'blockStyles': { 
-        'audio_blocks': { 'colourPrimary': '#E67E22' } 
+        'audio_blocks': { 'colourPrimary': '#E67E22' },
+        'procedure_blocks': { 'colourPrimary': Blockly.Msg['FUNCTIONS_HUE'] || '#d22f73' }
     },
     'componentStyles': { 
         'workspaceBackgroundColour': '#050505', 

@@ -6,18 +6,18 @@
 Blockly.defineBlocksWithJsonArray([
   {
     "type": "wc_init",
-    "message0": "初始化設定 %1 %2",
+    "message0": "%{BKY_AUDIO_INIT_TITLE}",
     "args0": [
       { "type": "input_dummy" },
       { "type": "input_statement", "name": "DO" }
     ],
     "colour": "%{BKY_SYSTEM_HUE}",
-    "tooltip": "在此放置所有程式開始時僅需執行一次的設定，例如 BPM 設定、和弦定義等。",
+    "tooltip": "%{BKY_AUDIO_INIT_TOOLTIP}",
     "hat": true
   },
   {
     "type": "wc_play_note",
-    "message0": "演奏音符/和弦 %1 持續 %2 拍 音量 %3 樂器 %4",
+    "message0": "%{BKY_AUDIO_PLAY_NOTE_V2}",
     "args0": [
       { "type": "input_value", "name": "NOTE" },
       { "type": "input_value", "name": "DUR" },
@@ -31,13 +31,13 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_CORE_PLAY_HUE}",
-    "tooltip": "演奏一個音符或已定義的和弦。音符可填如 C4, Eb5；和弦可填 CM7；休止符填 R。持續時間支援拍數(1)或代碼(Q)。音量範圍 0-100。",
+    "tooltip": "%{BKY_AUDIO_PLAY_NOTE_TOOLTIP}",
     "helpUrl": "melody",
     "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
     "type": "wc_play_note_async",
-    "message0": "觸發音符/和弦 %1 持續 %2 拍 音量 %3 樂器 %4 (不等待)",
+    "message0": "%{BKY_AUDIO_PLAY_NOTE_ASYNC_V2}",
     "args0": [
       { "type": "input_value", "name": "NOTE" },
       { "type": "input_value", "name": "DUR" },
@@ -51,7 +51,7 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_CORE_PLAY_HUE}",
-    "tooltip": "非同步觸發音符或和弦。音量範圍 0-100。",
+    "tooltip": "%{BKY_AUDIO_PLAY_NOTE_ASYNC_TOOLTIP}",
     "helpUrl": "melody",
     "extensions": ["wc_play_note_instrument_dropdown"]
   },
@@ -192,7 +192,7 @@ Blockly.defineBlocksWithJsonArray([
       {
         "type": "field_dropdown",
         "name": "PORT",
-        "options": [["(掃描中...)", "none"]]
+        "options": [["%{BKY_WAVECODE_SCANNING}", "none"]]
       },
       {
         "type": "field_dropdown",
@@ -208,49 +208,49 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "wc_serial_check_ttp",
-    "message0": "解析 16-bits 字串：欄位 %1 的第 %2 個位元由 0 轉 1",
+    "message0": "%{BKY_AUDIO_SERIAL_CHECK_TTP_V2}",
     "args0": [
       { "type": "field_input", "name": "PREFIX", "text": "TTP" },
       { "type": "field_number", "name": "KEY", "value": 1, "min": 1, "max": 16 }
     ],
     "output": "Boolean",
     "colour": "%{BKY_SERIAL_HUE}",
-    "tooltip": "從 16-bit 狀態字串中偵測邊緣觸發。注意：最左邊為第 1 位元。"
+    "tooltip": "%{BKY_AUDIO_SERIAL_CHECK_TTP_TOOLTIP_V2}"
   },
   {
     "type": "wc_serial_get_field",
-    "message0": "擷取序列埠欄位 [%1]",
+    "message0": "%{BKY_AUDIO_SERIAL_GET_FIELD_V2}",
     "args0": [
       { "type": "field_input", "name": "PREFIX", "text": "LDR" }
     ],
     "output": "String",
     "colour": "%{BKY_SERIAL_HUE}",
-    "tooltip": "從目前的序列埠資料中抓取指定前綴的數值 (如 LDR:512)。"
+    "tooltip": "%{BKY_AUDIO_SERIAL_GET_FIELD_TOOLTIP_V2}"
   },
   {
     "type": "wc_wait_musical",
-    "message0": "等待 %1 %2",
+    "message0": "%{BKY_AUDIO_WAIT_MUSICAL_V2}",
     "args0": [
       { "type": "input_value", "name": "VALUE", "check": "Number" },
       {
         "type": "field_dropdown",
         "name": "UNIT",
         "options": [
-          ["拍 (Beats)", "BEATS"],
-          ["小節 (Measures)", "MEASURES"],
-          ["秒 (Seconds)", "SECONDS"],
-          ["毫秒 (ms)", "MS"]
+          ["%{BKY_AUDIO_WAIT_MUSICAL_UNIT_BEATS}", "BEATS"],
+          ["%{BKY_AUDIO_WAIT_MUSICAL_UNIT_MEASURES}", "MEASURES"],
+          ["%{BKY_AUDIO_WAIT_MUSICAL_UNIT_S}", "SECONDS"],
+          ["%{BKY_AUDIO_WAIT_MUSICAL_UNIT_MS}", "MS"]
         ]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_CONTROL_HUE}",
-    "tooltip": "音樂性等待。系統會自動根據 BPM 計算精確的排程時間。"
+    "tooltip": "%{BKY_AUDIO_WAIT_MUSICAL_TOOLTIP_V2}"
   },
   {
     "type": "wc_count_in",
-    "message0": "預備拍：播放 %1 小節，拍號 %2 / %3 (音量 %4)",
+    "message0": "%{BKY_AUDIO_COUNT_IN_V2}",
     "args0": [
       { "type": "input_value", "name": "MEASURES", "check": "Number" },
       { "type": "input_value", "name": "BEATS", "check": "Number" },
@@ -260,80 +260,80 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_CONTROL_HUE}",
-    "tooltip": "播放 Click 預備拍。系統會根據拍號自動調整速度。適合現場演奏對齊拍點。"
+    "tooltip": "%{BKY_AUDIO_COUNT_IN_TOOLTIP_V2}"
   },
   {
     "type": "wc_loop",
-    "message0": "背景循環執行：每 %1 小節 %2 %3",
+    "message0": "%{BKY_AUDIO_LOOP_V2}",
     "args0": [
       { "type": "field_number", "name": "INTERVAL", "value": 1, "min": 1 },
       { "type": "input_dummy" },
       { "type": "input_statement", "name": "DO" }
     ],
     "colour": "%{BKY_PERFORMANCE_HUE}",
-    "tooltip": "建立背景音軌循環。與 wc_perform 不同，此容器會依據設定的小節長度不斷重複執行。",
+    "tooltip": "%{BKY_AUDIO_LOOP_TOOLTIP_V2}",
     "hat": true
   },
   {
     "type": "wc_phrase_def",
-    "message0": "定義樂句 %1 %2 %3",
+    "message0": "%{BKY_AUDIO_PHRASE_DEF_TITLE}",
     "args0": [
       { "type": "field_input", "name": "NAME", "text": "A段" },
       { "type": "input_dummy" },
       { "type": "input_statement", "name": "STACK" }
     ],
     "colour": "%{BKY_PHRASES_HUE}",
-    "tooltip": "將一連串音符或節奏打包成一個『樂句』。之後可以使用『演奏樂句』積木重複使用它。",
+    "tooltip": "%{BKY_AUDIO_PHRASE_DEF_TOOLTIP}",
     "hat": true
   },
   {
     "type": "wc_phrase_call",
-    "message0": "演奏樂句 %1",
+    "message0": "%{BKY_AUDIO_PHRASE_CALL_TITLE}",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "NAME",
-        "options": [["(請先定義樂句)", "none"]]
+        "options": [["%{BKY_WAVECODE_PHRASE_SELECT_HINT}", "none"]]
       }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_PHRASES_HUE}",
-    "tooltip": "演奏先前定義好的樂句。系統會等待該樂句完全結束後，才繼續執行下一個積木。",
+    "tooltip": "%{BKY_AUDIO_PHRASE_CALL_TOOLTIP}",
     "extensions": ["wc_phrase_call_dropdown"]
   },
   {
     "type": "wc_release_note",
-    "message0": "釋放樂器 %1 的音符 %2",
+    "message0": "%{BKY_AUDIO_RELEASE_NOTE}",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "INSTRUMENT",
         "options": [["Piano", "Piano"]]
       },
-      { "type": "input_value", "name": "FREQ" }
+      { "type": "input_value", "name": "NOTE" }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "inputsInline": true,
     "colour": "%{BKY_ADVANCED_HUE}",
-    "tooltip": "手動觸發特定音符的 Release 階段。適合現場控制長音的結束時機。",
+    "tooltip": "%{BKY_AUDIO_RELEASE_NOTE_TOOLTIP}",
     "extensions": ["wc_play_note_instrument_dropdown"]
   },
   {
     "type": "wc_rhythm_v2_container",
-    "message0": "多軌序列器配置",
+    "message0": "%{BKY_AUDIO_RHYTHM_V2_CONTAINER_TITLE}",
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E67E22"
+    "colour": "%{BKY_CORE_PLAY_HUE}"
   },
   {
     "type": "wc_rhythm_v2_item",
-    "message0": "新增音軌",
+    "message0": "%{BKY_AUDIO_RHYTHM_V2_ITEM_TITLE}",
     "previousStatement": null,
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E67E22"
+    "colour": "%{BKY_CORE_PLAY_HUE}"
   }
   ]);
 
@@ -342,7 +342,7 @@ Blockly.Blocks['wc_rhythm_v2'] = {
   init: function() {
     this.jsonInit({
       "type": "wc_rhythm_v2",
-      "message0": "進階序列器：第 %1 小節開始, 拍號 %2 / %3, 每拍 %4 等分",
+      "message0": "%{BKY_AUDIO_RHYTHM_V2_TITLE}",
       "args0": [
         { "type": "field_input", "name": "MEASURE", "text": "1" },
         { "type": "field_input", "name": "BEATS", "text": "4" },
@@ -352,7 +352,7 @@ Blockly.Blocks['wc_rhythm_v2'] = {
       "previousStatement": null,
       "nextStatement": null,
       "colour": "%{BKY_CORE_PLAY_HUE}",
-      "tooltip": "音序器配置。拍號設定（如 3/4 拍）。每拍等分設定每一拍要分割成幾份。節奏格式：x 代表發聲，. 代表靜音，- 代表連音。",
+      "tooltip": "%{BKY_AUDIO_RHYTHM_V2_TOOLTIP_V2}",
       "helpUrl": "sequencer",
       "mutator": "wc_rhythm_v2_mutator"
     });
@@ -401,16 +401,16 @@ Blockly.Extensions.registerMutator('wc_rhythm_v2_mutator', {
     // 建立新輸入
     for (let j = 0; j < this.itemCount_; j++) {
       this.appendDummyInput('TRACK' + j)
-          .appendField("樂器")
+          .appendField(Blockly.Msg['AUDIO_RHYTHM_V2_INST'] || "Instrument")
           .appendField(new Blockly.FieldDropdown([["(讀取中...)", "none"]]), "INST" + j)
-          .appendField("音量")
+          .appendField(Blockly.Msg['AUDIO_RHYTHM_V2_VOL'] || "Volume")
           .appendField(new Blockly.FieldTextInput("100"), "VEL" + j)
-          .appendField("模式")
+          .appendField(Blockly.Msg['AUDIO_RHYTHM_V2_MODE'] || "Mode")
           .appendField(new Blockly.FieldDropdown([
-              ["單音/節奏", "NOTE"],
-              ["已定義和弦", "CHORD"]
+              [Blockly.Msg['AUDIO_RHYTHM_V2_MODE_NOTE'] || "Note", "NOTE"],
+              [Blockly.Msg['AUDIO_RHYTHM_V2_MODE_CHORD'] || "Chord", "CHORD"]
           ]), "MODE" + j)
-          .appendField("節奏")
+          .appendField(Blockly.Msg['AUDIO_RHYTHM_V2_PATTERN'] || "Pattern")
           .appendField(new Blockly.FieldTextInput("x . x ."), "PATTERN" + j);
       
       // 動態刷新樂器選單
@@ -419,7 +419,8 @@ Blockly.Extensions.registerMutator('wc_rhythm_v2_mutator', {
         const workspace = dropdown.getSourceBlock().workspace;
         const blocks = workspace.getBlocksByType('wc_instrument');
         const options = blocks.map(b => [b.getFieldValue('ID'), b.getFieldValue('ID')]);
-        return options.length > 0 ? options : [['(無樂器)', 'none']];
+        const noInstMsg = Blockly.Msg['WAVECODE_NO_INSTRUMENT'] || '(No Instrument)';
+        return options.length > 0 ? options : [[noInstMsg, 'none']];
       };
     }
   }
@@ -436,7 +437,8 @@ Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
       const id = b.getFieldValue('ID');
       return [id, id];
     });
-    return options.length > 0 ? options : [['(無樂器)', 'none']];
+    const noInstMsg = Blockly.Msg['WAVECODE_NO_INSTRUMENT'] || '(No Instrument)';
+    return options.length > 0 ? options : [[noInstMsg, 'none']];
   };
 });
 
@@ -448,7 +450,8 @@ Blockly.Extensions.register('wc_serial_port_scanner', function() {
     if (!window.WaveCode || !window.WaveCode.listSerialPorts) return;
     try {
       const ports = await window.WaveCode.listSerialPorts();
-      const options = ports.length > 0 ? ports.map(p => [p, p]) : [['(找不到裝置)', 'none']];
+      const noDeviceMsg = Blockly.Msg['WAVECODE_NO_DEVICE'] || '(No Device)';
+      const options = ports.length > 0 ? ports.map(p => [p, p]) : [[noDeviceMsg, 'none']];
       dropdown.menuGenerator_ = options;
     } catch (e) {
       console.warn("WaveCode: 掃描序列埠失敗", e);
@@ -473,6 +476,7 @@ Blockly.Extensions.register('wc_phrase_call_dropdown', function() {
       const name = b.getFieldValue('NAME');
       return [name, name];
     });
-    return options.length > 0 ? options : [['(尚未定義)', 'none']];
+    const notDefinedMsg = Blockly.Msg['WAVECODE_PHRASE_NOT_DEFINED'] || '(Not Defined)';
+    return options.length > 0 ? options : [[notDefinedMsg, 'none']];
   };
 });

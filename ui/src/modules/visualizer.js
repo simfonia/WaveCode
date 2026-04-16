@@ -133,6 +133,14 @@ export const Oscilloscope = {
         if (!this.canvas || !this.fftCanvas) return;
         this.ctx = this.canvas.getContext('2d');
         this.fftCtx = this.fftCanvas.getContext('2d');
+        
+        // --- 使用 ResizeObserver 徹底解決隱藏後展開的尺寸問題 ---
+        const resizeObserver = new ResizeObserver(() => {
+            this.resize();
+        });
+        if (this.canvas.parentElement) resizeObserver.observe(this.canvas.parentElement);
+        if (this.fftCanvas.parentElement) resizeObserver.observe(this.fftCanvas.parentElement);
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
 

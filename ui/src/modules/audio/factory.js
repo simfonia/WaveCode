@@ -205,6 +205,14 @@ export const NodeFactory = {
                 const source = ctx.createBufferSource();
                 source.buffer = buffer;
                 source.playbackRate.setValueAtTime(playbackRate, time);
+                
+                // 【關鍵修正】取樣播完後自動通知 Voice 釋放資源，解決重複觸發無聲問題
+                source.onended = () => {
+                    if (voice && voice.active) {
+                        voice.kill();
+                    }
+                };
+
                 nodes.push(source);
 
                 const samplerGain = ctx.createGain();

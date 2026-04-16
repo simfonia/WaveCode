@@ -40,6 +40,7 @@ export class ToolbarManager {
             settingsBtn: document.getElementById('settings-btn'),
             examplesBtn: document.getElementById('examples-btn'),
             updateBtn: document.getElementById('update-btn'),
+            midiStatusBtn: document.getElementById('midi-status-btn'),
             masterGain: document.getElementById('master-gain'),
             gainValue: document.getElementById('gain-value'),
             latencyAdjust: document.getElementById('latency-adjust'),
@@ -68,6 +69,14 @@ export class ToolbarManager {
         this.setupGlobalClick();
         this.setupMasterGain();
         this.setupLatencyAdjust();
+
+        // --- 全域 MIDI 事件監聽 ---
+        window.addEventListener('midi-state-changed', (e) => {
+            this.updateMidiUI(e.detail.inputs, e.detail.outputs);
+        });
+        window.addEventListener('midi-activity', () => {
+            this.flashMidiIcon();
+        });
     }
 
     setupMasterGain() {
@@ -353,6 +362,16 @@ export class ToolbarManager {
                     setTimeout(() => {
                         this.elements.updateBtn.classList.remove('pulse-animation');
                     }, 1000);
+                }
+            };
+        }
+
+        // --- 5. MIDI 狀態按鈕邏輯 (手動重新連線) ---
+        if (this.elements.midiStatusBtn) {
+            this.elements.midiStatusBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (window.WaveCode) {
+                    await window.WaveCode._initMidi();
                 }
             };
         }
@@ -719,5 +738,38 @@ export class ToolbarManager {
                 }
             }
         }, 1000);
+    }
+
+    /**
+     * 更新 MIDI UI 狀態
+     */
+    updateMidiUI(inputs, outputs) {
+        if (!this.elements.midiStatusBtn) return;
+        const icon = this.elements.midiStatusBtn.querySelector('img');
+        if (!icon) return;
+
+        const isConnected = inputs.length > 0 || outputs.length > 0;
+        if (isConnected) {
+            this.elements.midiStatusBtn.classList.remove('midi-offline');
+            this.elements.midiStatusBtn.classList.add('midi-online');
+            
+            let tooltip = `MIDI 已連線\n輸入: ${inputs.length ? inputs.join(', ') : '無'}\n輸出: ${outputs.length ? outputs.join(', ') : '無'}`;
+            this.elements.midiStatusBtn.title = tooltip;
+        } else {
+            this.elements.midiStatusBtn.classList.remove('midi-online');
+            this.elements.midiStatusBtn.classList.add('midi-offline');
+            this.elements.midiStatusBtn.title = 'MIDI 未連線';
+        }
+    }
+
+    /**
+     * MIDI 訊號活動閃爍效果
+     */
+    flashMidiIcon() {
+        if (!this.elements.midiStatusBtn) return;
+        this.elements.midiStatusBtn.classList.add('midi-active');
+        setTimeout(() => {
+            this.elements.midiStatusBtn.classList.remove('midi-active');
+        }, 100);
     }
 }

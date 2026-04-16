@@ -1,0 +1,136 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="?7]/.z-br--eaS9-js/y">ch</variable>
+    <variable id="sy?Uu!Af4FTNTNK+ENjd">note</variable>
+    <variable id="SRH!EC[0{6zo^vyu]|a0">vel</variable>
+  </variables>
+  <block type="wc_comment" id="*!s;+9N!|Frh^Lyjj-]U" x="50" y="-130">
+    <field name="TEXT">【使用MIDI鍵盤演奏 - 多裝置支援版】&amp;#10;1. 點擊「執行」啟動。&amp;#10;2. 已設定裝置名稱為 Keyboard。&amp;#10;3. 使用左/右方向鍵切換樂器。&amp;#10;4. 支援多個 MIDI 裝置並行初始化。</field>
+  </block>
+  <block type="wc_master" id="hBgy:wMZaI6U8qJ3rdDK" x="50" y="30">
+    <statement name="CHAIN">
+      <block type="wc_effect_compressor" id="it3}BP*W(oa4PQOl@{c{">
+        <value name="THRESH">
+          <shadow type="math_number" id="95@w2=Ss[`:eZhfy-IxX">
+            <field name="NUM">-24</field>
+          </shadow>
+        </value>
+        <value name="RATIO">
+          <shadow type="math_number" id="{s%F.Is`@cH!hh`~}V-s">
+            <field name="NUM">12</field>
+          </shadow>
+        </value>
+        <value name="ATTACK">
+          <shadow type="math_number" id="t4~bHww=Yffv:@aRon$+">
+            <field name="NUM">0.003</field>
+          </shadow>
+        </value>
+        <value name="RELEASE">
+          <shadow type="math_number" id="E+39Wdh).YkK`XyMQSDi">
+            <field name="NUM">0.25</field>
+          </shadow>
+        </value>
+        <value name="MAKEUP">
+          <shadow type="math_number" id="xMgAw!jGUTije6|Eij9T">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="$2jmylkY9d*0u`PJ?gTS" x="50" y="230">
+    <field name="ID">Piano</field>
+    <statement name="CHAIN">
+      <block type="wc_component_osc" id="Pv_LOa7q|12bK9.4$X-}">
+        <field name="WAVE">0</field>
+        <next>
+          <block type="wc_component_adsr" id="MXaL|(l`3l])UqU$Z,jk">
+            <field name="A">0.01</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
+            <next>
+              <block type="wc_component_volume" id="0y{~QwP3+%J-`)/(o){x">
+                <field name="VOL">80</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="F~fsi--YAT#A[xzznz9h" x="50" y="430">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="g+diORjGF#jhte:/Z#Gz">
+        <value name="BPM">
+          <shadow type="math_number" id="jSMah;9#r.M]tn`tOQmC">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_midi_on_note" id="$#9lO[fgH?P@f1V3xe$z" x="50" y="530">
+    <field name="CH" id="?7]/.z-br--eaS9-js/y">ch</field>
+    <field name="NOTE" id="sy?Uu!Af4FTNTNK+ENjd">note</field>
+    <field name="VEL" id="SRH!EC[0{6zo^vyu]|a0">vel</field>
+    <statement name="DO">
+      <block type="wc_play_note_async" id="Js$KhQor7O:kw0Y0J_#U">
+        <field name="INSTRUMENT">Piano</field>
+        <value name="NOTE">
+          <shadow type="text" id="9HhOcfq*XBzWMhy~d!%R">
+            <field name="TEXT">C4</field>
+          </shadow>
+          <block type="wc_midi_note_to_freq" id="x6PTZ|7fkLjzO.cb)j%z">
+            <value name="NOTE">
+              <shadow type="math_number" id="lcouf`11io9lAn_PMrr?" disabled-reasons="orphan">
+                <field name="NUM">60</field>
+              </shadow>
+              <block type="variables_get" id="oQr[kp?4SV}N^gUokH`O">
+                <field name="VAR" id="sy?Uu!Af4FTNTNK+ENjd">note</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <value name="DUR">
+          <shadow type="text" id="c@@Z;nd^$f9f-?(^8XH[">
+            <field name="TEXT">0</field>
+          </shadow>
+        </value>
+        <value name="VELOCITY">
+          <shadow type="math_number" id="=~fI[Qxl)x^^rhK@Vz(?">
+            <field name="NUM">100</field>
+          </shadow>
+          <block type="variables_get" id="*xzo^uLp8vabmJ|}N]@W">
+            <field name="VAR" id="SRH!EC[0{6zo^vyu]|a0">vel</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_midi_on_note_off" id="X},Q|$3-5GZ%f#_Mn_f]" x="50" y="650">
+    <field name="CH" id="?7]/.z-br--eaS9-js/y">ch</field>
+    <field name="NOTE" id="sy?Uu!Af4FTNTNK+ENjd">note</field>
+    <field name="VEL" id="SRH!EC[0{6zo^vyu]|a0">vel</field>
+    <statement name="DO">
+      <block type="wc_release_note" id="k.X*)fwD:B/2Ec,W?[,t">
+        <field name="INSTRUMENT">Piano</field>
+        <value name="NOTE">
+          <shadow type="text" id="yE@HQe;l~D!,NYv2@we*">
+            <field name="TEXT">C4</field>
+          </shadow>
+          <block type="wc_midi_note_to_freq" id="PPJSF;(6=6$:0s+#/L9,">
+            <value name="NOTE">
+              <shadow type="math_number" id="lcouf`11io9lAn_PMrr?" disabled-reasons="orphan">
+                <field name="NUM">60</field>
+              </shadow>
+              <block type="variables_get" id="URnF/vGHIB|I:PT|[eI$">
+                <field name="VAR" id="sy?Uu!Af4FTNTNK+ENjd">note</field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -20,7 +20,7 @@
     <statement name="CHAIN">
       <block type="wc_sampler_percussion" id="JjI`%t)pt7j4sYB]]7vm">
         <field name="FOLDER">jazzkit/Roland_TR-909</field>
-        <field name="FILE">HANDCLP1</field>
+        <field name="FILE">Clap</field>
         <next>
           <block type="wc_component_volume" id="zAU?},G,|RvB)V2$Z(aV">
             <field name="VOL">80</field>

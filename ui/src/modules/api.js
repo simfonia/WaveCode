@@ -48,8 +48,21 @@ export const WaveCodeAPI = {
         },
         
         noteToFreq: function(name) {
-            const midi = this.noteToMidi(name);
+            const midi = (typeof name === 'string') ? this.noteToMidi(name) : name;
             if (midi === 0) return 0;
+            // 標準 MIDI 頻率公式：440 * 2^((midi-69)/12)
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        },
+        
+        midiToNoteName: function(midi) {
+            const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const octave = Math.floor(midi / 12) - 1;
+            const name = notes[midi % 12];
+            return `${name}${octave}`;
+        },
+
+        midiToFreq: function(midi) {
+            if (midi <= 0) return 0;
             return 440 * Math.pow(2, (midi - 69) / 12);
         }
     },
@@ -60,11 +73,14 @@ export const WaveCodeAPI = {
     _lastFields: {},
     _serialHandlers: [],
     _midiHandlers: [],
+    _keyHandlers: [], // 新增：自定義按鍵處理器
     _midiInitialized: false,
+    _keyInitialized: false,
 
     startScript: function() {
         this.reset();
         this._initMidi(); // 啟動腳本時確保 MIDI 已初始化
+        this._initKeyEvents(); // 啟動腳本時確保按鍵監聽已初始化
         const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
         // 修正：起跑時間動態對齊 Look-ahead
         this._playbackTime = now + this._lookAhead;
@@ -164,20 +180,41 @@ export const WaveCodeAPI = {
     },
 
     triggerNote: async function(note, instId = 'none', startTime = 0, duration = 0, velocity = 100) {
+        const id = WaveCodeAPI._execId;
         const inst = instId === 'none' ? this._currentInstrument : instId;
         const velVal = velocity / 100;
         const beatSec = 60 / (this._bpm || 120);
         const durSec = (typeof duration === 'string' ? this._parseDuration(duration) : duration) * beatSec;
         const start = startTime > 0 ? startTime : (AudioManager.ctx ? AudioManager.ctx.currentTime : 0);
 
+        // --- 修正：確保傳給底層的是數值頻率 ---
+        const freq = (typeof note === 'string') ? this.MusicUtils.noteToFreq(note) : note;
+
         if (this._chords[note]) {
             this._chords[note].forEach(n => {
-                const v = AudioManager.triggerNote(n, inst, start, velVal);
+                const f = (typeof n === 'string') ? this.MusicUtils.noteToFreq(n) : n;
+                const v = AudioManager.triggerNote(f, inst, start, velVal);
                 if (v && durSec > 0) v.release(start + durSec);
             });
         } else {
-            const v = AudioManager.triggerNote(note, inst, start, velVal);
+            const v = AudioManager.triggerNote(freq, inst, start, velVal);
             if (v && durSec > 0) v.release(start + durSec);
+        }
+
+        // 【關鍵修正】發送視覺化信號給 ADSR 面板
+        if (window.EnvelopeManager && window.EnvelopeManager._registry.has(inst)) {
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            const delayMs = Math.max(0, (start - now) * 1000);
+            // 如果時值 > 0，執行自動時值動畫；如果時值為 0 (如 A 鍵按住)，啟動長音模式
+            setTimeout(() => { 
+                if (!this.isScriptCancelled(id)) {
+                    if (durSec > 0) {
+                        window.EnvelopeManager.trigger(inst, durSec * 1000); 
+                    } else {
+                        window.EnvelopeManager.triggerStart(inst); // 修正：啟動持續發聲動畫
+                    }
+                }
+            }, delayMs);
         }
     },
 
@@ -191,11 +228,13 @@ export const WaveCodeAPI = {
 
         if (this._chords[note]) {
             this._chords[note].forEach(n => {
-                const v = AudioManager.triggerNote(n, inst, startTime, velVal);
+                const f = (typeof n === 'string') ? this.MusicUtils.noteToFreq(n) : n;
+                const v = AudioManager.triggerNote(f, inst, startTime, velVal);
                 if (v) v.release(startTime + durSec);
             });
         } else {
-            const v = AudioManager.triggerNote(note, inst, startTime, velVal);
+            const freq = (typeof note === 'string') ? this.MusicUtils.noteToFreq(note) : note;
+            const v = AudioManager.triggerNote(freq, inst, startTime, velVal);
             if (v) v.release(startTime + durSec);
         }
 
@@ -233,11 +272,13 @@ export const WaveCodeAPI = {
             if (noteOrChord.toUpperCase() !== 'R') {
                 if (this._chords[noteOrChord]) {
                     this._chords[noteOrChord].forEach(n => {
-                        const v = AudioManager.triggerNote(n, inst, startTime, noteVel);
+                        const f = (typeof n === 'string') ? this.MusicUtils.noteToFreq(n) : n;
+                        const v = AudioManager.triggerNote(f, inst, startTime, noteVel);
                         if (v) v.release(startTime + durSec);
                     });
                 } else {
-                    const v = AudioManager.triggerNote(noteOrChord, inst, startTime, noteVel);
+                    const freq = (typeof noteOrChord === 'string') ? this.MusicUtils.noteToFreq(noteOrChord) : noteOrChord;
+                    const v = AudioManager.triggerNote(freq, inst, startTime, noteVel);
                     if (v) v.release(startTime + durSec);
                 }
                 if (window.EnvelopeManager && window.EnvelopeManager._registry.has(inst)) {
@@ -317,11 +358,13 @@ export const WaveCodeAPI = {
 
                 if (isChord && this._chords[note]) {
                     this._chords[note].forEach(n => {
-                        const v = AudioManager.triggerNote(n, inst, startTime, velVal);
+                        const f = (typeof n === 'string') ? this.MusicUtils.noteToFreq(n) : n;
+                        const v = AudioManager.triggerNote(f, inst, startTime, velVal);
                         if (v) v.release(startTime + durSec * 0.95);
                     });
                 } else {
-                    const v = AudioManager.triggerNote(note, inst, startTime, velVal);
+                    const freq = (typeof note === 'string') ? this.MusicUtils.noteToFreq(note) : note;
+                    const v = AudioManager.triggerNote(freq, inst, startTime, velVal);
                     if (v) v.release(startTime + durSec * 0.95);
                 }
                 
@@ -338,9 +381,25 @@ export const WaveCodeAPI = {
         this._chords[name] = notesStr.split(/[\s,]+/).filter(n => n.length > 0);
     },
 
-    releaseNote: async function(freq, startTime = 0, instId = 'none') {
+    releaseNote: async function(note, startTime = 0, instId = 'none') {
         const inst = instId === 'none' ? this._currentInstrument : instId;
-        return AudioManager.releaseNote(freq, startTime, inst);
+        const time = startTime > 0 ? startTime : (AudioManager.ctx ? AudioManager.ctx.currentTime : 0);
+        
+        // --- 修正：確保釋放比對時使用的是數值頻率 ---
+        if (this._chords[note]) {
+            this._chords[note].forEach(n => {
+                const f = (typeof n === 'string') ? this.MusicUtils.noteToFreq(n) : n;
+                AudioManager.releaseNote(f, time, inst);
+            });
+        } else {
+            const freq = (typeof note === 'string') ? this.MusicUtils.noteToFreq(note) : note;
+            AudioManager.releaseNote(freq, time, inst);
+        }
+
+        // 通知視覺化面板停止長音動畫
+        if (window.EnvelopeManager && window.EnvelopeManager._registry.has(inst)) {
+            window.EnvelopeManager.triggerEnd(inst);
+        }
     },
 
     _parseDuration: function(code) {
@@ -372,29 +431,87 @@ export const WaveCodeAPI = {
     registerSerialHandler: function(h) { this._serialHandlers.push(h); },
     
     registerMidiHandler: function(h) { this._midiHandlers.push(h); },
+    registerKeyHandler: function(h) { this._keyHandlers.push(h); },
+
+    _initKeyEvents: function() {
+        if (this._keyInitialized) return;
+        const handle = (type, e) => {
+            // 如果正在打字，不觸發音樂事件
+            if (window.KeyboardController && window.KeyboardController.isTyping()) return;
+            
+            // 【關鍵】忽略作業系統的自動重複按鍵，解決第一與第二個音之間的延遲問題
+            if (e.repeat) return;
+
+            const key = e.key.toLowerCase();
+            const id = WaveCodeAPI._execId;
+
+            // 每個按鍵觸發都獲取獨立的軌道指針
+            const eventTrack = this.createTrack();
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            eventTrack._playbackTime = now + this._lookAhead;
+            eventTrack._contextStartTime = eventTrack._playbackTime;
+            this._keyHandlers.forEach(h => { try { h(type, key, id, eventTrack); } catch (err) {} });
+        };
+        window.addEventListener('keydown', (e) => handle('down', e), true);
+        window.addEventListener('keyup', (e) => handle('up', e), true);
+        this._keyInitialized = true;
+    },
+
+    _midiInitialized: false,
+    _midiAccess: null,
+    _midiInputs: [],
+    _midiOutputs: [],
+    _pressedMidiKeys: new Set(), // 儲存當前被按下的 MIDI 鍵 (0-127)
 
     _initMidi: async function() {
-        if (this._midiInitialized) return;
-        if (!navigator.requestMIDIAccess) {
-            console.warn("WaveCode: 您的瀏覽器不支援 MIDI API。");
-            return;
-        }
+        if (!navigator.requestMIDIAccess) return;
         try {
-            const midi = await navigator.requestMIDIAccess();
-            const inputs = midi.inputs.values();
-            for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-                input.value.onmidimessage = (msg) => this._onMidiMessage(msg);
+            if (!this._midiAccess) {
+                this._midiAccess = await navigator.requestMIDIAccess({ sysex: true });
+                this._midiAccess.onstatechange = () => {
+                    this._updateMidiPorts();
+                    this._dispatchMidiState();
+                };
             }
-            midi.onstatechange = (e) => {
-                if (e.port.type === 'input' && e.port.state === 'connected') {
-                    e.port.onmidimessage = (msg) => this._onMidiMessage(msg);
-                }
-            };
+            
+            this._updateMidiPorts();
             this._midiInitialized = true;
-            console.log("WaveCode: MIDI 系統已就緒。");
+            this._dispatchMidiState();
+            
+            const inCount = this._midiInputs.length;
+            const outCount = this._midiOutputs.length;
+            
+            if (inCount > 0 || outCount > 0) {
+                this.appendLog(`MIDI: 系統已就緒 (${inCount} In / ${outCount} Out)`, "success");
+            }
         } catch (err) {
-            console.error("WaveCode: MIDI 初始化失敗:", err);
+            console.error("MIDI Init Failed:", err);
+            this._midiAccess = null;
         }
+    },
+
+    _updateMidiPorts: function() {
+        if (!this._midiAccess) return;
+        
+        this._midiInputs = [];
+        // 修正：改用 forEach 以提升在不同 WebView 核心中的穩定性
+        this._midiAccess.inputs.forEach((input) => {
+            this._midiInputs.push(input.name);
+            input.onmidimessage = (msg) => this._onMidiMessage(msg);
+        });
+
+        this._midiOutputs = [];
+        this._midiAccess.outputs.forEach((output) => {
+            this._midiOutputs.push(output.name);
+        });
+
+        console.log(`MIDI Scan: In=${this._midiInputs.length}, Out=${this._midiOutputs.length}`);
+    },
+
+    _dispatchMidiState: function() {
+        window.dispatchEvent(new CustomEvent('midi-state-changed', { 
+            detail: { inputs: this._midiInputs, outputs: this._midiOutputs } 
+        }));
     },
 
     _onMidiMessage: function(msg) {
@@ -403,25 +520,74 @@ export const WaveCodeAPI = {
         const channel = (status & 0x0f) + 1;
         const id = WaveCodeAPI._execId;
 
+        // 派發活動事件 (讓圖示閃爍)
+        window.dispatchEvent(new CustomEvent('midi-activity'));
+
+        // // --- MIDI 觸發也使用獨立 Track ---
+        const eventTrack = this.createTrack();
+        const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+        eventTrack._playbackTime = now + this._lookAhead;
+        eventTrack._contextStartTime = eventTrack._playbackTime;
+
         // Note On
         if (type === 0x90 && velocity > 0) {
-            this._midiHandlers.forEach(h => {
-                try { h('noteon', { channel, note, velocity }, id); } catch (e) {}
-            });
+            this._pressedMidiKeys.add(note);
+            const noteName = this.MusicUtils.midiToNoteName(note);
+            this.appendLog(`MIDI In: Note On [${noteName} (${note}), Vel: ${velocity}, Ch: ${channel}]`, "info");
+            this._midiHandlers.forEach(h => { try { h('noteon', { channel, note, velocity }, id, eventTrack); } catch (e) {} });
         }
         // Note Off
         else if (type === 0x80 || (type === 0x90 && velocity === 0)) {
-            this._midiHandlers.forEach(h => {
-                try { h('noteoff', { channel, note, velocity }, id); } catch (e) {}
-            });
+            this._pressedMidiKeys.delete(note);
+            const noteName = this.MusicUtils.midiToNoteName(note);
+            this.appendLog(`MIDI In: Note Off [${noteName} (${note}), Ch: ${channel}]`, "info");
+            this._midiHandlers.forEach(h => { try { h('noteoff', { channel, note, velocity }, id, eventTrack); } catch (e) {} });
         }
         // Control Change
         else if (type === 0xb0) {
-            this._midiHandlers.forEach(h => {
-                try { h('cc', { channel, number: note, value: velocity }, id); } catch (e) {}
-            });
+            this.appendLog(`MIDI In: Control Change [No: ${note}, Val: ${velocity}, Ch: ${channel}]`, "info");
+            this._midiHandlers.forEach(h => { try { h('cc', { channel, number: note, value: velocity }, id, eventTrack); } catch (e) {} });
         }
     },
+
+    sendMidiNote: function(note, velocity, channel, deviceName) {
+        if (!this._midiAccess) return;
+        const status = 0x90 | ((channel - 1) & 0x0f);
+        this._sendToPort(deviceName, [status, note, velocity]);
+    },
+
+    sendMidiNoteOff: function(note, channel, deviceName) {
+        if (!this._midiAccess) return;
+        const status = 0x80 | ((channel - 1) & 0x0f);
+        this._sendToPort(deviceName, [status, note, 0]);
+    },
+
+    sendMidiCC: function(number, value, channel, deviceName) {
+        if (!this._midiAccess) return;
+        const status = 0xb0 | ((channel - 1) & 0x0f);
+        this._sendToPort(deviceName, [status, number, value]);
+    },
+
+    _sendToPort: function(deviceName, data) {
+        if (!this._midiAccess) return;
+        for (const output of this._midiAccess.outputs.values()) {
+            if (deviceName === 'All' || output.name === deviceName) {
+                output.send(data);
+            }
+        }
+    },
+
+    getMidiOutputOptions: function() {
+        // 直接讀取 Msg 物件，繞過解析引擎，這在動態選單中是最穩定的作法
+        const allLabel = (Blockly.Msg && Blockly.Msg['MIDI_ALL_DEVICES']) || '所有裝置';
+        const options = [[allLabel, 'All']];
+        if (this._midiOutputs) {
+            this._midiOutputs.forEach(name => { options.push([name, name]); });
+        }
+        return options;
+    },
+
+    isMidiKeyPressed: function(note) { return this._pressedMidiKeys.has(note); },
 
     handleSerialData: function(data) {
         if (!data || data === this._serialRaw) return;
@@ -431,7 +597,14 @@ export const WaveCodeAPI = {
         else if (data === "Kick") { prefix = "EVENT"; value = "Kick"; }
         this._lastFields[prefix] = this._serialFields[prefix] || value;
         this._serialFields[prefix] = value;
-        this._serialHandlers.forEach(h => { try { h(data, this._execId); } catch (e) {} });
+
+        // --- 修正：序列埠事件也使用獨立 Track ---
+        const eventTrack = this.createTrack();
+        const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+        eventTrack._playbackTime = now + this._lookAhead;
+        eventTrack._contextStartTime = eventTrack._playbackTime;
+
+        this._serialHandlers.forEach(h => { try { h(data, this._execId, eventTrack); } catch (e) {} });
     },
 
     reset: function() {
@@ -441,6 +614,8 @@ export const WaveCodeAPI = {
         this._bpm = 120;
         this._loopCounters.clear();
         this._serialHandlers = [];
+        this._midiHandlers = [];
+        this._keyHandlers = []; // 清空按鍵處理器
         this._serialFields = {};
         this._lastFields = {};
         this._currentInstrument = 'none';
@@ -457,7 +632,8 @@ export const WaveCodeAPI = {
     }
 };
 
-window.WaveCode = WaveCodeAPI;
+window.WaveCode = WaveCodeAPI;  // 使用作用域遮蔽，若積木在全域使用可調用WaveCode為WaveCodeAPI，在作用域內則為WaveCode
+window.WaveCodeAPI = WaveCodeAPI; // 雙重註冊以解決命名不一致問題
 if (window.__TAURI__ && window.__TAURI__.event) {
     window.__TAURI__.event.listen('serial-data', (e) => { WaveCodeAPI.handleSerialData(e.payload); });
 }

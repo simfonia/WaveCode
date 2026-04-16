@@ -315,6 +315,15 @@ body.resizing-panel {
 #stage-toggle { position: absolute; left: -20px; top: 50%; transform: translateY(-50%); width: 20px; height: 60px; background-color: var(--nyx-bg-panel); border: 1px solid var(--nyx-border); border-right: none; border-radius: 8px 0 0 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; }
 
 /* Blockly Customization */
+/* 修正 Blockly 下拉選單高度與捲動問題 */
+
+.blocklyDropDownContent {
+    max-height: 200px !important; /* 必須設定固定值，Blockly 才會出現捲軸 */
+    overflow-y: auto !important;
+    padding: 4px !important;
+}
+
+
 #minimap-toggle {
     position: absolute;
     right: 10px;
@@ -450,4 +459,33 @@ body.resizing-panel {
 }
 .mode-switch input:checked + label { background-color: #75FB4C; }
 .mode-switch input:checked + label:after { transform: translateX(14px); }
+
+
+/* --- MIDI Status & Activity (#nyx) --- */
+.midi-online {
+    box-shadow: 0 0 10px rgba(117, 251, 76, 0.3);
+    border-color: rgba(117, 251, 76, 0.4) !important;
+}
+
+/* 將粉紅圖示 (FE2F89) 濾鏡轉為綠色 (75FB4C) */
+.midi-online img { 
+    filter: hue-rotate(130deg) brightness(1.2) saturate(1.4) !important; 
+    opacity: 1 !important;
+}
+
+.midi-offline img { 
+    opacity: 0.4; 
+    filter: grayscale(100%); 
+}
+
+/* MIDI 訊號活動閃爍 */
+.midi-active { 
+    transform: scale(1.15); 
+    background-color: rgba(117, 251, 76, 0.15) !important;
+    transition: all 0.05s ease; 
+}
+
+.midi-active img {
+    filter: hue-rotate(130deg) brightness(1.6) saturate(1.8) drop-shadow(0 0 5px #75FB4C) !important;
+}
 

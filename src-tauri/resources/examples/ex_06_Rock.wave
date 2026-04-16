@@ -10,7 +10,7 @@
         <next>
           <block type="wc_sampler_percussion" id="sf*^3m:$X93KN!ph+yi:">
             <field name="FOLDER">jazzkit/Roland_TR-909</field>
-            <field name="FILE">Bass_BTAAADA</field>
+            <field name="FILE">Bass</field>
           </block>
         </next>
       </block>
@@ -21,7 +21,7 @@
     <statement name="CHAIN">
       <block type="wc_sampler_percussion" id="]v8uEhm?L/FGvf9VuE{a">
         <field name="FOLDER">jazzkit/Roland_TR-909</field>
-        <field name="FILE">Snare_ST0T3S3</field>
+        <field name="FILE">Snare</field>
       </block>
     </statement>
   </block>
@@ -30,7 +30,7 @@
     <statement name="CHAIN">
       <block type="wc_sampler_percussion" id="dwW*fH^?]aY}4S8Gp9x;">
         <field name="FOLDER">jazzkit/Roland_TR-909</field>
-        <field name="FILE">HiHatClosed_HHCD2</field>
+        <field name="FILE">HiHatClosed</field>
       </block>
     </statement>
   </block>
@@ -39,7 +39,7 @@
     <statement name="CHAIN">
       <block type="wc_sampler_percussion" id="so=Xdu9e-x6+3]6nL+6B">
         <field name="FOLDER">jazzkit/Roland_TR-909</field>
-        <field name="FILE">Crash_CSHD8</field>
+        <field name="FILE">Crash</field>
       </block>
     </statement>
   </block>

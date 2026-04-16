@@ -55,6 +55,13 @@ export const AudioManager = {
 
         Recorder.init(this.ctx);
 
+        // --- 全時自動連線 MIDI ---
+        if (window.WaveCode) {
+            window.WaveCode._initMidi().catch(err => {
+                console.warn("WaveCode Engine: MIDI 背景初始化失敗:", err);
+            });
+        }
+
         console.log("WaveCode Engine: Web Audio Manager Initialized");
     },
 
