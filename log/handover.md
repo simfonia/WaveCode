@@ -54,7 +54,6 @@
 
 ### 2. 下一步行動
 - **MIDI 輸出壓力測試**：驗證在高頻傳送 CC 訊號時，對外部 DAW 或硬體的控制穩定性。
-- **範例更新**：將 ex_10_Event_MIDI-Keyboard.wave 更新為使用最新的 wc_midi_note_to_freq 積木。
 - **ADSR/Filter 實時對接**：開發 CC 訊號與樂器參數的直接映射工具 (CC-to-Param Mapping)。
 
 ==================================================

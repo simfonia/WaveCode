@@ -270,8 +270,35 @@ fn open_serial(
     // 2. 請求停止舊執行緒
     state.serial.is_running.store(false, Ordering::SeqCst);
     
-    // 3. 給予短暫延遲 (100ms)，讓舊執行緒退出並釋放實體埠資源
-    std::thread::sleep(std::time::Duration::from_millis(150));
+    // 3. 給予短暫延遲，讓系統與舊執行緒釋放實體埠資源
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // 4. 【關鍵修正】在進入執行緒前先同步驗證序列埠是否可開啟
+    // 這能確保錯誤（如埠號被 Arduino IDE 佔用）能直接回傳給前端積木
+    match serialport::new(&port_name, baud_rate)
+        .timeout(std::time::Duration::from_millis(100))
+        .open() {
+        Ok(_) => {
+            println!("Serial port validation success: {}", port_name);
+        },
+        Err(e) => {
+            let err_str = e.to_string();
+            let friendly_msg = match e.kind() {
+                serialport::ErrorKind::Io(std::io::ErrorKind::PermissionDenied) => 
+                    "存取被拒絕。這通常是因為該埠已被其它程式 (如 Arduino IDE) 佔用。".to_string(),
+                serialport::ErrorKind::NoDevice => 
+                    "系統找不到指定的裝置。請檢查裝置是否已拔除，或該埠已被其它程式佔用。".to_string(),
+                _ => {
+                    if err_str.contains("Access is denied") || err_str.contains("being used") {
+                        "該埠目前正被另一個程式使用中。".to_string()
+                    } else {
+                        err_str
+                    }
+                }
+            };
+            return Err(format!("無法開啟序列埠 {}: {}", port_name, friendly_msg));
+        }
+    }
 
     {
         let mut name_lock = state.serial.port_name.lock().unwrap();

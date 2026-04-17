@@ -198,6 +198,14 @@ Blockly.defineBlocksWithJsonArray([
         "type": "field_dropdown",
         "name": "BAUD",
         "options": [["115200", "115200"], ["9600", "9600"], ["57600", "57600"]]
+      },
+      {
+        "type": "field_image",
+        "src": "/icons/usb_24dp_75FB4C.png",
+        "width": 22,
+        "height": 22,
+        "alt": "Reconnect",
+        "name": "RECONNECT"
       }
     ],
     "previousStatement": null,
@@ -445,6 +453,7 @@ Blockly.Extensions.register('wc_play_note_instrument_dropdown', function() {
 Blockly.Extensions.register('wc_serial_port_scanner', function() {
   const block = this;
   const dropdown = block.getField('PORT');
+  const btn = block.getField('RECONNECT');
   
   const updatePorts = async () => {
     if (!window.WaveCode || !window.WaveCode.listSerialPorts) return;
@@ -465,6 +474,30 @@ Blockly.Extensions.register('wc_serial_port_scanner', function() {
       originalShow.call(dropdown);
     });
   };
+
+  // 重新連線按鈕點擊處理
+  if (btn) {
+    btn.showEditor_ = async function() {
+      const port = block.getFieldValue('PORT');
+      const baud = block.getFieldValue('BAUD');
+      if (port === 'none') {
+        if (window.WaveCode && window.WaveCode.appendLog) {
+          window.WaveCode.appendLog("Serial: 請先選擇正確的序列埠 (COM Port)", "warning");
+        }
+        return;
+      }
+      
+      if (window.WaveCode && window.WaveCode.openSerial) {
+        try {
+          window.WaveCode.appendLog(`Serial: 嘗試連線至 ${port} (${baud})...`, "info");
+          await window.WaveCode.openSerial(port, baud);
+          window.WaveCode.appendLog(`Serial: 成功連線至 ${port}`, "success");
+        } catch (e) {
+          window.WaveCode.appendLog(`Serial: 連線失敗 - ${e.message || e}`, "error");
+        }
+      }
+    };
+  }
 });
 
 Blockly.Extensions.register('wc_phrase_call_dropdown', function() {

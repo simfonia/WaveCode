@@ -489,3 +489,23 @@ body.resizing-panel {
     filter: hue-rotate(130deg) brightness(1.6) saturate(1.8) drop-shadow(0 0 5px #75FB4C) !important;
 }
 
+/* Serial Init Reconnect Button Style */
+.blocklyWidgetDiv .blocklyMenu, .blocklyDropDownDiv { z-index: 1000; }
+
+/* 針對 wc_serial_init 中的 RECONNECT 圖示優化 (SVG 已內建亮綠色) */
+/* 僅使用濾鏡，避免 transform 導致 SVG 座標偏移跳動 */
+image[alt="Reconnect"] {
+    cursor: pointer !important;
+    pointer-events: all !important;
+    transition: filter 0.2s ease !important;
+}
+
+/* 滑鼠移入：變亮並產生綠色外發光 */
+image[alt="Reconnect"]:hover {
+    filter: brightness(1.4) drop-shadow(0 0 4px #75FB4C) !important;
+}
+
+/* 點擊：變暗 */
+image[alt="Reconnect"]:active {
+    filter: brightness(0.6) !important;
+}

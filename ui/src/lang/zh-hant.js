@@ -188,8 +188,8 @@
     "AUDIO_SERIAL_DATA_RECEIVED_TITLE": "當序列埠收到資料",
     "AUDIO_SERIAL_DATA_RECEIVED_VAR": "存入變數 %1",
     "AUDIO_SERIAL_DATA_RECEIVED_TOOLTIP": "當序列埠收到以換行符號結尾的資料時，自動執行內部的程式碼。",
-    "AUDIO_SERIAL_INIT": "連接序列埠 %1 波特率 %2",
-    "AUDIO_SERIAL_INIT_TOOLTIP": "掃描並連接實體裝置 (如 Arduino)。請確保裝置已插入且波特率設定正確。",
+    "AUDIO_SERIAL_INIT": "連接序列埠 %1 %3 Baud %2",
+    "AUDIO_SERIAL_INIT_TOOLTIP": "掃描並連接實體裝置 (如 Arduino)。請確保裝置已插入且 Baud 設定正確。",
     "AUDIO_SERIAL_CHECK_TTP": "當狀態 %1 的第 %2 個按鍵被按下",
     "AUDIO_SERIAL_CHECK_TTP_TOOLTIP": "解析 TTP229 的 16-bit 狀態字串。僅在該按鍵從「放開」變為「按下」的瞬間回傳 True (邊緣偵測)。",
 

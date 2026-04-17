@@ -623,6 +623,16 @@ export const WaveCodeAPI = {
         this._chords = {};
         AudioManager.stopAll();
         if (window.EnvelopeManager) window.EnvelopeManager.stopAll();
+
+        // 【新功能】點擊停止時輸出詳細動作 Log
+        const port = this._serialPort;
+        if (port) {
+            this.closeSerial().then(() => {
+                this.appendLog(`停止腳本執行、重設音訊引擎、清除監聽器、關閉序列埠 (${port})`, "info");
+            });
+        } else {
+            this.appendLog(`停止腳本執行、重設音訊引擎、清除監聽器`, "info");
+        }
     },
     stopAudio: async function() { this.reset(); },
     restartAudio: async function() { this.reset(); await AudioManager.restart(); },

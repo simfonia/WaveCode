@@ -47,7 +47,7 @@ unsigned long lastLdrTime = 0;
 unsigned long ldrInterval = 20; // 提高 LDR 取樣率至 50Hz (20ms)
 
 void setup() {
-  Serial.begin(115200); // 確保高波特率
+  Serial.begin(115200); // 確保高 Baud
   
   // TTP229 初始化
   pinMode(TTP229_SCL_PIN, OUTPUT);
