@@ -157,6 +157,19 @@
     "WC_MIDI_NOTE_TO_NAME_TOOLTIP": "Convert MIDI note number (0-127) to human-readable note name. e.g., 60 to 'C4'.",
     "WC_MIDI_IS_PRESSED": "MIDI key %1 is pressed?",
     "WC_MIDI_IS_PRESSED_TOOLTIP": "Detect if a specific MIDI key is currently pressed. This is a real-time detection that works regardless of whether the code is running.",
-    "WC_MIDI_ALL_DEVICES": "All Devices"
+    "WC_MIDI_ALL_DEVICES": "All Devices",
+
+    // Serial & Hardware (V2)
+    "CAT_SERIAL": "Serial Port",
+    "SERIAL_HUE": "#026660",
+    "AUDIO_SERIAL_INIT": "connect serial port %1 %3 Baud %2",
+    "AUDIO_SERIAL_INIT_TOOLTIP": "Scan and connect to physical devices (e.g. Arduino). Ensure the device is plugged in and Baud rate is correct.",
+    "AUDIO_SERIAL_DATA_RECEIVED_TITLE": "when serial data received",
+    "AUDIO_SERIAL_DATA_RECEIVED_VAR": "save to variable %1",
+    "AUDIO_SERIAL_DATA_RECEIVED_TOOLTIP": "Execute internal code automatically when serial data ending with a newline character is received.",
+    "AUDIO_SERIAL_CHECK_BIT_V2": "serial bit check: field %1 bit %2 (total %3-bits)",
+    "AUDIO_SERIAL_CHECK_BIT_TOOLTIP_V2": "Check if a specific bit in a serial packet has been triggered (from 0 to 1).",
+    "AUDIO_SERIAL_GET_FIELD_V2": "extract serial field [%1]",
+    "AUDIO_SERIAL_GET_FIELD_TOOLTIP_V2": "Extract the value of a specific prefix from current serial data (e.g. LDR:512)."
   });
 })(Blockly);

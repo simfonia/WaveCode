@@ -5,7 +5,7 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
 ## 🚀 核心技術 (Hybrid Architecture)
 - **音訊引擎**：Web Audio API (JavaScript / C++) - 負責實時合成與多聲部排程。
 - **系統外殼**：Tauri v2 (Rust) - 負責高效檔案 IO、並行資源解碼與序列埠通訊。
-- **視覺編程**：Google Blockly (對齊 #nyx / HarmoNyx 標準)。
+- **視覺編程**：Google Blockly。
 - **通訊協議**：Tauri Invoke (二進位快速通道) - 實現前端與系統的原生級連動。
 
 # WaveCode 任務清單 (Todo List)
@@ -73,11 +73,12 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
     - [x] 實作 **IDE 視覺回饋**：工具列 MIDI 圖示連線狀態與活動閃爍 (100ms 縮放強光)。
     - [x] 實作 **動態裝置選單**：`wc_midi_output_sync` 擴充支援硬體熱插拔即時刷新。
     - [x] 補齊 i18n 標籤：完成 `zh-hant.js` 與 `en.js` 的所有新積木標籤。
-
+- [x] **[Dev] 開發者工具實作 - 2026-04-18**
+    - [x] 實作 `BlockExporter.js`：支援全量積木 SVG/PNG 批次匯出，用於說明文件整理。
 
 ## [待辦]
 - [ ] 目前進度除錯，依指示進行。
-- [ ] 為每個積木匯出svg/png檔，以建立說明文件。
+- [x] 為每個積木匯出svg/png檔，以建立說明文件。
 - [ ] 說明文件補完，中英雙語化。
 - [ ] i18n
 - [ ] 架構重整、參數ini檔、模組化
@@ -85,6 +86,10 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
 
 
 ## [未來規畫，未必要，等指示再進行]
+- [ ] **[Web] WaveCode Web 版 (GitHub Pages)**:
+    - [ ] 實作 `NativeAPI` 適配層，支援 Tauri 與 Web 環境自動切換。
+    - [ ] 資源載入 HTTP 化：將音訊樣本改由 Fetch 載入。
+    - [ ] 硬體通訊 Mock/WebAPI：使用 Web Serial 與 Web MIDI。
 - [ ] UI 視覺化控制組件 (旋鈕/曲線)。
 - [ ] 支援更多音訊匯出格式 (如 MP3/OGG)。
 - [ ] 實作取樣預聽功能 (在選單中預覽聲音)。

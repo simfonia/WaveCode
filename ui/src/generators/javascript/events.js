@@ -179,11 +179,12 @@ Blockly.JavaScript.forBlock['wc_serial_init'] = function(block) {
   return `await window.WaveCode.openSerial("${port}", ${baud});\n`;
 };
 
-Blockly.JavaScript.forBlock['wc_serial_check_ttp'] = function(block) {
+Blockly.JavaScript.forBlock['wc_serial_check_bit'] = function(block) {
   const prefix = block.getFieldValue('PREFIX');
   const key = block.getFieldValue('KEY');
-  const code = `window.WaveCode.isTtpTriggered("${prefix}", ${key})`;
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  const total = block.getFieldValue('TOTAL_BITS');
+  const code = `WaveCode.isBitTriggered("${prefix}", ${key}, ${total})`;
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
 
 Blockly.JavaScript.forBlock['wc_serial_get_field'] = function(block) {

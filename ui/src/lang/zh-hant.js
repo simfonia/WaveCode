@@ -100,8 +100,8 @@
     "AUDIO_RHYTHM_V2_MODE_CHORD": "已定義和弦",
 
     // 序列埠與硬體 (V2)
-    "AUDIO_SERIAL_CHECK_TTP_V2": "解析 16-bits 字串：欄位 %1 的第 %2 個位元由 0 轉 1",
-    "AUDIO_SERIAL_CHECK_TTP_TOOLTIP_V2": "從 16-bit 狀態字串中偵測邊緣觸發。注意：最左邊為第 1 位元。",
+    "AUDIO_SERIAL_CHECK_BIT_V2": "序列埠%3bits檢查：欄位 %1 的第 %2 位元由0變1",
+    "AUDIO_SERIAL_CHECK_BIT_TOOLTIP_V2": "檢查序列埠封包中特定位置的位元是否被觸發 (由 0 變 1)，最左邊為第 1 位元。",
     "AUDIO_SERIAL_GET_FIELD_V2": "擷取序列埠欄位 [%1]",
     "AUDIO_SERIAL_GET_FIELD_TOOLTIP_V2": "從目前的序列埠資料中抓取指定前綴的數值 (如 LDR:512)。",
 
