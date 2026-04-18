@@ -422,10 +422,16 @@ export const WaveCodeAPI = {
         } catch (err) { throw err; }
     },
     closeSerial: async function() { await this.getInvoke()('close_serial'); this._serialPort = null; },
-    isTtpTriggered: function(prefix, keyIndex) {
-        const current = this._serialFields[prefix] || "0000000000000000";
-        const last = this._lastFields[prefix] || "0000000000000000";
-        return current[keyIndex-1] === '1' && last[keyIndex-1] === '0';
+    isBitTriggered: function(prefix, bitIndex, totalBits = 16) {
+        const raw = this._serialFields[prefix] || "";
+        // 如果長度不足，自動在左側補 0 (例如封包是 "11"，要求 16-bits，則補為 "0000000000000011")
+        const current = raw.padStart(totalBits, '0');
+        
+        const rawLast = this._lastFields[prefix] || "";
+        const last = rawLast.padStart(totalBits, '0');
+
+        // 注意：bitIndex 是 1-based，且從左邊開始算 (第 1 位元是最高位)
+        return current[bitIndex-1] === '1' && last[bitIndex-1] === '0';
     },
     getSerialField: function(prefix) { return this._serialFields[prefix] || ""; },
     registerSerialHandler: function(h) { this._serialHandlers.push(h); },

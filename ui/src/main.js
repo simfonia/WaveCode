@@ -152,6 +152,34 @@ setTimeout(() => {
         id: 'wavecode_unique_help',
         weight: 100,
     });
+
+    // --- 註冊工作區右鍵選單：匯出專案 SVG ---
+    registry.register({
+        displayText: () => '將專案匯出為 SVG',
+        preconditionFn: () => 'enabled',
+        callback: (scope) => {
+            if (window.BlockExporter && scope.workspace) {
+                window.BlockExporter.exportWorkspace(scope.workspace, 'svg');
+            }
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+        id: 'wavecode_export_workspace_svg',
+        weight: 100,
+    });
+
+    // --- 註冊工作區右鍵選單：匯出專案 PNG ---
+    registry.register({
+        displayText: () => '將專案匯出為 PNG (高品質)',
+        preconditionFn: () => 'enabled',
+        callback: (scope) => {
+            if (window.BlockExporter && scope.workspace) {
+                window.BlockExporter.exportWorkspace(scope.workspace, 'png');
+            }
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+        id: 'wavecode_export_workspace_png',
+        weight: 101,
+    });
 }, 1000);
 
 // --- 4. 輔助功能監聽 ---
@@ -251,3 +279,8 @@ setTimeout(() => {
         });
     }
 }, 1000);
+
+// --- 7. 開發者工具 (僅供內部整理說明文件使用) ---
+import { BlockExporter } from './modules/dev_tools.js';
+window.BlockExporter = BlockExporter;
+BlockExporter.initUI();

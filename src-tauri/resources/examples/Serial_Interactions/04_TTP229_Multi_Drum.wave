@@ -107,9 +107,10 @@
                 <next>
                   <block type="controls_if" id="if_k1">
                     <value name="IF0">
-                      <block type="wc_serial_check_ttp" id="check_1">
+                      <block type="wc_serial_check_bit" id="check_1">
                         <field name="PREFIX">TTP</field>
                         <field name="KEY">1</field>
+                        <field name="TOTAL_BITS">16</field>
                       </block>
                     </value>
                     <statement name="DO0">
@@ -135,9 +136,10 @@
                     <next>
                       <block type="controls_if" id="if_k6">
                         <value name="IF0">
-                          <block type="wc_serial_check_ttp" id="check_6">
+                          <block type="wc_serial_check_bit" id="check_6">
                             <field name="PREFIX">TTP</field>
                             <field name="KEY">6</field>
+                            <field name="TOTAL_BITS">16</field>
                           </block>
                         </value>
                         <statement name="DO0">
@@ -163,9 +165,10 @@
                         <next>
                           <block type="controls_if" id="if_k4">
                             <value name="IF0">
-                              <block type="wc_serial_check_ttp" id="check_4">
+                              <block type="wc_serial_check_bit" id="check_4">
                                 <field name="PREFIX">TTP</field>
                                 <field name="KEY">4</field>
+                                <field name="TOTAL_BITS">16</field>
                               </block>
                             </value>
                             <statement name="DO0">

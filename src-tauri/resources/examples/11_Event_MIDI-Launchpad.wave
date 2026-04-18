@@ -114,30 +114,6 @@
                       <block type="wc_define_chord" id="]mnnc[5SNswyiUT`u=77">
                         <field name="NAME">A7</field>
                         <field name="NOTES">A3,C#4,E4,G4</field>
-                        <next>
-                          <block type="wc_count_in" id=",uAv~afXiO55J*^3(lVg">
-                            <value name="MEASURES">
-                              <shadow type="math_number" id="v..r|8jl_m]oAVnvE^-4">
-                                <field name="NUM">1</field>
-                              </shadow>
-                            </value>
-                            <value name="BEATS">
-                              <shadow type="math_number" id="EUL[cD?`e?bv)Jy*5)xb">
-                                <field name="NUM">4</field>
-                              </shadow>
-                            </value>
-                            <value name="BEAT_UNIT">
-                              <shadow type="math_number" id=".sivRZ{?%U-Inz,:t:$+">
-                                <field name="NUM">4</field>
-                              </shadow>
-                            </value>
-                            <value name="VELOCITY">
-                              <shadow type="math_number" id="Km5A$}z:Uu]!0/#0pQSu">
-                                <field name="NUM">100</field>
-                              </shadow>
-                            </value>
-                          </block>
-                        </next>
                       </block>
                     </next>
                   </block>
@@ -181,14 +157,40 @@
             </value>
             <value name="DUR">
               <shadow type="text" id="tcdE9%0$cch,R9|mf/f*">
-                <field name="TEXT">1</field>
+                <field name="TEXT">0</field>
               </shadow>
             </value>
             <value name="VELOCITY">
               <shadow type="math_number" id="|jhiTzvpT1@qk6*CJn]Q">
                 <field name="NUM">100</field>
               </shadow>
+              <block type="variables_get" id="sN:NXT0[(ILR?W=;!|M3">
+                <field name="VAR" id="tFPNtRcNsk#F#D4py01=">vel</field>
+              </block>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id=")Y`slRK*hjs[oi|w5~CU">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="Gon$9mK0*wep~3!n6]}$">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="OlyD/K=FtF;pLJluh#Mi">
+                    <field name="NUM">15</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="Dq~kqJ|Nc4w:ULEg6#6C">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF1">
@@ -224,6 +226,29 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="_f=P*J@vVS=E5O/+`;8f">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="l!4c.9mo1i*u?$W7/,EX">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id=";yiD,b`QQ+$GC2_H4T*@">
+                    <field name="NUM">63</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="R:xG^S_4piNPYSE.7jB4">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF2">
@@ -256,9 +281,32 @@
             </value>
             <value name="VELOCITY">
               <shadow type="math_number" id="/mN-DYS:WGB.,EZPz6g.">
-                <field name="NUM">100</field>
+                <field name="NUM">30</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="5:C4mDH^.O91@O2b_hWm">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="HN,*bDX3IRRd^4@aUr07">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="2ZGT1macV`3[~Ntn!+PE">
+                    <field name="NUM">60</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="K;.T4j$EZce5+P5VTb:O">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF3">
@@ -294,6 +342,29 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="?YLLjd8a;MZvNez.W^+C">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="I,[p)yFG-1c}qm;|91A]">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="=k+F.uMn#?;J=m79!/?b">
+                    <field name="NUM">62</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="/+T@$nHvC_q`zLU?TEQG">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF4">
@@ -329,6 +400,29 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="H-j4Cu~4jI-4fJuNN[W5">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="N!4h!uGh-O-=0.B-TjXC">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="E`|(y@Eb5g.trnIDw-Ru">
+                    <field name="NUM">45</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="y7)`~a9z:0Y+xE2DtMTN">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF5">
@@ -364,6 +458,29 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="t!Y=SaqktK;?DMC2~yE;">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="taDz?:*Y%w?9p];63rb]">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="Dv$_=a)edkemH0%t5[Ww">
+                    <field name="NUM">46</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="fj0OZ$|1knSq(5]V5_id">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF6">
@@ -399,6 +516,29 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="bg;af82:C1oEU*Lw3BBs">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id=";ldo!dWfh`:ge9+LGEz-">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="g{4/a+{SkkgT?[7NLhxG">
+                    <field name="NUM">47</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="dplJ86:YNQTICP`m)yML">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
         <value name="IF7">
@@ -434,14 +574,60 @@
                 <field name="NUM">100</field>
               </shadow>
             </value>
+            <next>
+              <block type="wc_midi_send_note" id="uM#)$ZvMq8}N!z^taTU)">
+                <field name="DEVICE">Launchpad S</field>
+                <value name="NOTE">
+                  <shadow type="math_number" id="5J5I|p)6|Uw@4YT:,}!B">
+                    <field name="NUM">112</field>
+                  </shadow>
+                  <block type="variables_get" id="s4(gvhJnLHwjDpo-+-oW">
+                    <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+                  </block>
+                </value>
+                <value name="VEL">
+                  <shadow type="math_number" id="uwEMb~3{no?cEuI(h_`9">
+                    <field name="NUM">48</field>
+                  </shadow>
+                </value>
+                <value name="CH">
+                  <shadow type="math_number" id="a-`226(YBfV*pHW6-bKh">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
           </block>
         </statement>
       </block>
     </statement>
   </block>
-  <block type="wc_midi_on_note_off" id="-.`NVZfgcS?7Hz~9$XJ%" x="50" y="1790">
+  <block type="wc_midi_on_note_off" id="-.`NVZfgcS?7Hz~9$XJ%" x="50" y="2090">
     <field name="CH" id="rn6kkLemU_ZXPY5)})zU">ch</field>
     <field name="NOTE" id="j=u7m@04~iQF3y14cuY_">note</field>
     <field name="VEL" id="tFPNtRcNsk#F#D4py01=">vel</field>
+    <statement name="DO">
+      <block type="wc_midi_send_note" id="T*$3}JZsX6M9I{CHwx]s">
+        <field name="DEVICE">Launchpad S</field>
+        <value name="NOTE">
+          <shadow type="math_number" id="`ev#omH#hrP2@.K-51gL">
+            <field name="NUM">112</field>
+          </shadow>
+          <block type="variables_get" id="pVFF9dhZx9aw5he0GpO4">
+            <field name="VAR" id="j=u7m@04~iQF3y14cuY_">note</field>
+          </block>
+        </value>
+        <value name="VEL">
+          <shadow type="math_number" id="+@E%OlaO9Zcgk%E$LYh/">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+        <value name="CH">
+          <shadow type="math_number" id="3Di55CR^J=16.nrE).i?">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
   </block>
 </xml>

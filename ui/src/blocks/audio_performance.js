@@ -215,15 +215,16 @@ Blockly.defineBlocksWithJsonArray([
     "extensions": ["wc_serial_port_scanner"]
   },
   {
-    "type": "wc_serial_check_ttp",
-    "message0": "%{BKY_AUDIO_SERIAL_CHECK_TTP_V2}",
+    "type": "wc_serial_check_bit",
+    "message0": "%{BKY_AUDIO_SERIAL_CHECK_BIT_V2}",
     "args0": [
       { "type": "field_input", "name": "PREFIX", "text": "TTP" },
-      { "type": "field_number", "name": "KEY", "value": 1, "min": 1, "max": 16 }
+      { "type": "field_number", "name": "KEY", "value": 1, "min": 1 },
+      { "type": "field_number", "name": "TOTAL_BITS", "value": 16, "min": 1 }
     ],
     "output": "Boolean",
     "colour": "%{BKY_SERIAL_HUE}",
-    "tooltip": "%{BKY_AUDIO_SERIAL_CHECK_TTP_TOOLTIP_V2}"
+    "tooltip": "%{BKY_AUDIO_SERIAL_CHECK_BIT_TOOLTIP_V2}"
   },
   {
     "type": "wc_serial_get_field",

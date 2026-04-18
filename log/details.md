@@ -1,46 +1,22 @@
 # WaveCode 技術細節紀錄 (Details)
 
-## 2026-03-08 ~ 2026-04-12 (略)
+## 2026-03-08 ~ 2026-04-17 (略)
 
-## 2026-04-13 (第一階段：樣板載入機制、IDE 事件優先級與多採樣算法)
-(已記錄在原始檔案中)
+## 2026-04-18 (積木虛擬渲染與 SVG 資產化)
 
-## 2026-04-13 (第二階段：目錄解析策略、ID 歧義消除與 Extensions 實作)
-
-### 1. 深度子目錄與 ID 分隔符號設計
-- **問題**：在支援多層目錄（如 `violin/sust`）時，若使用底線 `_` 作為唯一分隔符，會導致與檔名（如 `bass_drum`）產生解析歧義。
+### 1. Headless Blockly 工作區的渲染挑戰
+- **問題**：在沒有可見 DOM 的情況下渲染積木，常會導致寬高計算為 0 或顏色丟失。
 - **解決方案**：
-    - 內部儲存 ID 格式：`[相對目錄路徑]::[純檔名]`。
-    - 目錄路徑內層級：統一使用 `/`。
-    - Rust 端：在遞迴掃描時累積路徑，並直接將切分好的 `folder` 與 `filename` 封裝進 `SampleInfo` 結構傳給 JS。
+    1. 建立一個位於視窗外 (`left: -2000px`) 但仍存在於 `document.body` 中的實體容器進行 `Blockly.inject`。
+    2. 導出時，手動將 `Blockly.Css.CONTENT` 注入到 SVG 的 `<style>` 標籤中。這是確保 SVG 檔案獨立開啟時顏色、字體與邊框正確顯示的關鍵。
+- **邊界校準**：使用 `block.getHeightWidth()` 取得精確尺寸，並在 SVG `viewBox` 中加入適度 `padding` (5px)，防止積木邊緣（如帽子積木的頂端）被裁切。
 
-### 2. Blockly 動態選單的連動機制 (Extensions)
-- **實作方式**：
-    - 使用 `field.menuGenerator_` 取代靜態清單。
-    - 在 `wc_percussion_menu_sync` 擴充中，透過 `setOnChange` 監聽 `FOLDER` 欄位的變動。
-    - 當資料夾更換時，手動呼叫 `FILE` 欄位的 `setValue` 並重設預設值，強制觸發 UI 重新渲染與選單更新。
+### 2. Web 版轉型的 API 適配策略 (Mock/Native Layer)
+- **概念設計**：為了達成「一套代碼，雙重執行」，預計實作一個 `NativeAdapter`。
+    - 在 Tauri 中：`NativeAdapter.invoke` 對應 `window.__TAURI__.invoke`。
+    - 在 Web 中：`NativeAdapter.invoke` 攔截特定指令（如 `get_sample`），並將其轉譯為 `fetch` 請求。
+- **序列埠 Mock**：由於序列埠是 WaveCode 的核心，Web 版將優先嘗試連動 **Web Serial API**。若環境不支援，則提供「模擬模式 (Virtual Serial)」，透過虛擬鍵盤或 UI 按鈕模擬硬體位元輸入。
 
-### 3. 多採樣映射 (Multi-sampling) 的目錄前綴匹配
-- **邏輯調整**：`findBestSample` 現在會檢查 ID 是否以 `[folder]::` 開頭。這確保了系統只會在特定的資料夾內尋找最近的音高取樣，而不會跨目錄誤抓（例如 `piano` 資料夾不會抓到 `grand_piano` 的檔案）。
-
-### 4. IDE 日誌同步
-- **通訊方式**：`AudioManager` 本身無 log 方法，必須透過 `import { invoke } from "@tauri-apps/api/core"` (或對應環境的 API) 呼叫後端 `log` 指令。
-- **效果**：取樣載入完成後，IDE 底部的日誌面板會顯示詳細的統計資訊（檔案總數、耗時、分類分佈）。
-
-## 2026-04-15 (MIDI 選單時序、翻譯解析與頻率映射策略)
-
-### 1. Blockly 動態選單翻譯失效之根源與解決 (Root Cause)
-- **現象**：積木在工具箱時顯示正確，拉出後變成 %BKY_MIDI_ALL_DEVICES%。
-- **原因**：當積木在工作區初始化並觸發 Extension 註冊 menuGenerator_ 時，如果該產生器回傳的陣列包含 %BKY_...%，Blockly 的動態選單引擎可能不會二次觸發翻譯解析，導致原始字串被直接渲染。
-- **解決方案**：
-    - 將 Extension 實作移入 blocks/events.js 以確保加載優先順序。
-    - 在 api.js (API Provider) 端直接呼叫 Blockly.Msg['MIDI_ALL_DEVICES'] 並回傳最終字串。這是不依賴解析引擎、在動態環境中最穩定的做法。
-
-### 2. MIDI-to-Frequency 映射算法與 sub-bass 支援
-- **策略**：統一使用 440 * Math.pow(2, (midi - 69) / 12)。
-- **輸入歧義處理**：在 MusicUtils.noteToFreq 中加入類型檢查，若輸入為 String 則先經由 
-oteToMidi 解析，若為 Number 則視為 raw MIDI Note。這讓使用者能自由混合使用 C4 與 60 這兩種輸入方式。
-
-### 3. CSS Filter 狀態模擬技術
-- **技術選型**：為了不增加額外的圖示資產並維持 #nyx 色調，採用 filter: hue-rotate(130deg) brightness(1.2) saturate(1.4) 將原始粉色圖示轉換為綠色。
-- **優點**：程式碼可控，且能輕鬆實作活動時的 scale 與 drop-shadow 呼吸效果。
+### 3. 多檔案批次下載與瀏覽器安全限制
+- **技術細節**：直接觸發大量的 `a.click()` 下載會被現代瀏覽器視為廣告行為而封鎖。
+- **優化方案**：在 `BlockExporter` 循環中加入了 100ms 的 `Promise` 延遲，這能顯著提高批次匯出（50+ 個積木）時的成功率。

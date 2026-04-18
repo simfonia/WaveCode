@@ -325,7 +325,7 @@ export const WaveCodeToolbox = {
             'contents': [
                 { 'kind': 'block', 'type': 'wc_serial_init' },
                 { 'kind': 'block', 'type': 'wc_serial_data_received' },
-                { 'kind': 'block', 'type': 'wc_serial_check_ttp' },
+                { 'kind': 'block', 'type': 'wc_serial_check_bit' },
                 { 'kind': 'block', 'type': 'wc_serial_get_field' }
             ]
         },
