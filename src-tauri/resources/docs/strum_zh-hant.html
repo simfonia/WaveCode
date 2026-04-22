@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>吉他刷弦 - WaveCode 說明文件</title>
+    <style>
+        :root { --primary-color: #FE2F89; --bg-color: #1e1e1e; --text-color: #e0e0e0; }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: var(--text-color); background: var(--bg-color); padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        h2 { color: #ff85b3; margin-top: 30px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        h3 { color: #75FB4C; margin-top: 25px; }
+        code { background: #333; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; color: #f8f8f2; }
+        .block-card { background: #2d2d2d; border-left: 5px solid var(--primary-color); padding: 15px; margin: 20px 0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #444; padding: 12px; text-align: left; }
+        th { background: #333; color: var(--primary-color); }
+        .tip { background: #2a3a2a; border-left: 5px solid #4caf50; padding: 15px; margin: 20px 0; }
+        .tip strong { color: #75FB4C; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .pattern-box { background: #000; color: #0f0; padding: 10px; font-family: monospace; border: 1px solid #444; }
+        .param-list { list-style: none; padding-left: 10px; }
+        .param-list li { margin-bottom: 8px; border-bottom: 1px dashed #444; padding-bottom: 4px; }
+        .param-list b { color: #ff85b3; min-width: 120px; display: inline-block; }
+        .highlight { color: #f1c40f; }
+        .chord-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
+        .chord-item { background: #333; padding: 8px; border-radius: 4px; text-align: center; border: 1px solid #444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎸 吉他刷弦 (Struming)</h1>
+    <p>吉他刷弦系統模擬了真實吉他的物理演奏特性。它不是簡單地同時播放 6 個音，而是根據撥弦方向產生微小的時間位移（Strum Offset），讓每一根弦依序響起。</p>
+
+    <div class="block-card">
+        <h2>積木說明</h2>
+        <p><b>[和弦]</b>：選擇要彈奏的和弦（如 C, G, Am）。系統會自動映射到吉他 6 弦的正確 MIDI 音高。<br>
+        <b>[節奏代碼]</b>：輸入節奏型（預設為 16 分音符為一格）。<br>
+        <b>[力度]</b>：基本彈奏力道 (0-127)。<br>
+        <b>[± 浮動音量]</b>：每一刷隨機增減的力度範圍，增加人性化感。<br>
+        <b>[樂器名稱]</b>：選擇發聲樂器。</p>
+    </div>
+
+    <h2>🎼 支援的和弦符號 (Preset Chords)</h2>
+    <p>您可以在積木的第一個欄位直接輸入以下符號。系統支援 <code>#</code> 或 <code>b</code> 的自動移調（例如輸入 <code>C#</code> 會自動將 <code>C</code> 的指法整體上移一格）。</p>
+    
+    <div class="chord-grid">
+        <div class="chord-item">C / CM7 / C7 / Cm</div>
+        <div class="chord-item">D / DM7 / D7 / Dm / Dm7</div>
+        <div class="chord-item">E / EM7 / E7 / Em / Em7</div>
+        <div class="chord-item">F / FM7 / F7 / Fm</div>
+        <div class="chord-item">G / GM7 / G7 / Gm</div>
+        <div class="chord-item">A / AM7 / A7 / Am / Am7</div>
+        <div class="chord-item">B / B7 / Bm / Bm7</div>
+    </div>
+
+    <h3>節奏代碼表 (Notation DSL)</h3>
+    <table>
+        <thead>
+            <tr><th>代碼</th><th>名稱</th><th>說明</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>D</code></td><td>全弦下刷</td><td>掃過所有有效弦 (Downstroke)。</td></tr>
+            <tr><td><code>U</code></td><td>全弦上挑</td><td>反向掃過所有弦 (Upstroke)。</td></tr>
+            <tr><td><code>d</code></td><td>高音下刷</td><td>僅刷動第 1-4 弦 (Treble Strings)。</td></tr>
+            <tr><td><code>u</code></td><td>高音上挑</td><td>僅刷動第 1-4 弦。</td></tr>
+            <tr><td><code>b</code></td><td>根音 (Bass)</td><td>僅彈奏最粗的一根低音弦。</td></tr>
+            <tr><td><code>-</code></td><td>延音</td><td>保持共鳴。</td></tr>
+            <tr><td><code>.</code></td><td>空拍</td><td>不動作。</td></tr>
+        </tbody>
+    </table>
+
+    <hr style="border:0; border-top:1px solid #444; margin:40px 0;">
+
+    <h2>🎨 建議參數設定 (Guitar Patch Settings)</h2>
+    <p>要在合成器中模擬好聽的吉他，關鍵在於 <b>Attack (攻擊時值)</b> 必須極短以模擬撥片撞擊聲。以下是針對不同風格的專業建議：</p>
+
+    <h3>1. 民謠吉他風格 (Acoustic Guitar Style)</h3>
+    <p>模擬鋼弦吉他的清脆感，最適合用於配合 <code>wc_strum</code> 進行掃弦演奏。</p>
+    <ul class="param-list">
+        <li><b>波形 (Oscillator)</b>：<code class="highlight">Triangle</code> (較溫潤) 或 <code class="highlight">Square</code> (較清脆)。</li>
+        <li><b>ADSR 設定</b>：
+            <ul>
+                <li><b>Attack (A): 0.005</b> - 極短，模擬撥片接觸琴弦的瞬間。</li>
+                <li><b>Decay (D): 0.8</b> - 模擬撥弦後聲音自然變小的過程。</li>
+                <li><b>Sustain (S): 0.1</b> - 保持一個很低的持續音。</li>
+                <li><b>Release (R): 0.6</b> - 放手後餘韻自然消失。</li>
+            </ul>
+        </li>
+        <li><b>低通濾波器 (LPF)</b>：頻率 <b>2500 Hz</b> (濾除刺耳電音) / Q 值 <b>1.2</b> (微提亮撥弦特徵)。</li>
+        <li><b>效果器</b>：加上 <b>Reverb (殘響)</b>，Mix 設為 20%，增加空間共鳴。</li>
+    </ul>
+
+    <h3>2. 電吉他破音風格 (Overdrive / Rock Style)</h3>
+    <p>適合搖滾節奏或強力的 D-U- 刷弦。</p>
+    <ul class="param-list">
+        <li><b>波形 (Oscillator)</b>：<code class="highlight">Sawtooth</code> (諧波最豐富)。</li>
+        <li><b>ADSR 設定</b>：
+            <ul>
+                <li><b>Attack (A): 0.01</b> / <b>Decay (D): 0.5</b></li>
+                <li><b>Sustain (S): 0.4</b> - 因為破音會壓縮動態，持續音可以設高一點。</li>
+                <li><b>Release (R): 0.3</b></li>
+            </ul>
+        </li>
+        <li><b>失真 (Distortion)</b>：Drive 設為 <b>40 ~ 70</b>。</li>
+        <li><b>低通濾波器 (LPF)</b>：頻率 <b>3500 Hz</b> (避免鋸齒波過於刺耳)。</li>
+    </ul>
+
+    <div class="tip">
+        <strong>💡 進階技巧：如何讓刷弦更像真的？</strong>
+        <p>
+            <b>1. 使用壓縮器 (Compressor)：</b><br>
+            在 <code>wc_master</code> 或樂器鏈後面加上壓縮器（Thresh: -24, Ratio: 4），可以讓掃過 6 根弦時的音量更均勻，防止多音並發時音量突然暴增。
+        </p>
+        <p>
+            <b>2. 善用 Pattern 空格：</b><br>
+            不要將代碼填得太滿。例如 <code>D-.. U-..</code> 留下的延音 <code>-</code> 會讓吉他的物理共鳴感更好。
+        </p>
+        <p>
+            <b>3. 力度變化 (Velocity Randomization)：</b><br>
+            在積木的「± 浮動音量」處設定數值（推薦 10-20），模擬人類彈奏時微小的力度不穩定，會讓機器人演奏更有靈魂。
+        </p>
+    </div>
+</body>
+</html>

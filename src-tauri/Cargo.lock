@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "WaveCode"
-version = "0.8.1"
+version = "1.0.0"
 dependencies = [
  "hound",
  "lazy_static",

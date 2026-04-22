@@ -20,23 +20,40 @@ export class FieldADSR extends Blockly.Field {
     }
     updateParams(a, d, s, r) {
         this.A = parseFloat(a) || 0; this.D = parseFloat(d) || 0; this.S = parseFloat(s) || 0; this.R = parseFloat(r) || 0;
-        this.render_();
+        if (this.svgGroup_) this.render_();
     }
+
+    // 新增：主動從所屬積木同步數值
+    _syncFromBlock() {
+        const block = this.getSourceBlock();
+        if (block) {
+            this.A = parseFloat(block.getFieldValue('A')) || 0;
+            this.D = parseFloat(block.getFieldValue('D')) || 0;
+            this.S = parseFloat(block.getFieldValue('S')) || 0;
+            this.R = parseFloat(block.getFieldValue('R')) || 0;
+            this.render_();
+        }
+    }
+
     playAnimation(noteDuration) {
-        this._duration = noteDuration / 1000; this._startTime = performance.now(); this._isPlaying = true;
+        this._syncFromBlock(); // 觸發時強制同步最新數值
+        this._duration = noteDuration / 1000; this._startTime = performance.now(); 
+        this._releaseTimeOffset = this._duration;
+        this._isPlaying = true; this._isHolding = false;
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
     startHold() {
-        this._startTime = performance.now(); this._isPlaying = true; this._isHolding = true; this._duration = 999; 
+        this._syncFromBlock(); // 觸發時強制同步最新數值
+        this._startTime = performance.now(); this._isPlaying = true; this._isHolding = true; 
+        this._releaseTimeOffset = 9999;
         if (this.dot_) this.dot_.setAttribute('opacity', 1);
         if (!this._animationId) this.animate_();
     }
     endHold() {
         if (this._isPlaying && this._isHolding) {
             this._isHolding = false;
-            const elapsedSinceStart = (performance.now() - this._startTime) / 1000;
-            this._duration = Math.max(elapsedSinceStart - (this.A + this.D), 0);
+            this._releaseTimeOffset = (performance.now() - this._startTime) / 1000;
         }
     }
     stopAnimation() {
@@ -47,8 +64,8 @@ export class FieldADSR extends Blockly.Field {
         if (!this._isPlaying) { this._animationId = null; return; }
         this.render_();
         const elapsed = (performance.now() - this._startTime) / 1000;
-        const totalDuration = this.A + this.D + (this._isHolding ? 999 : this._duration) + this.R;
-        if (!this._isHolding && elapsed > totalDuration + 0.2) { this._isPlaying = false; this._animationId = null; return; }
+        const totalDuration = this._releaseTimeOffset + this.R;
+        if (elapsed > totalDuration + 0.1) { this._isPlaying = false; this._animationId = null; return; }
         this._animationId = requestAnimationFrame(() => this.animate_());
     }
     render_() {
@@ -64,21 +81,31 @@ export class FieldADSR extends Blockly.Field {
         curX += 0.5 * scaleX; points.push(`L ${curX},${h - padding - (this.S * innerH)}`);
         curX += this.R * scaleX; points.push(`L ${curX},${h - padding}`);
         this.bgPath_.setAttribute('d', points.join(' '));
+
         if (this._isPlaying && this.dot_) {
             const elapsed = (performance.now() - this._startTime) / 1000;
             let dotX = padding, dotY = h - padding;
-            if (elapsed < this.A) {
+
+            if (elapsed >= this._releaseTimeOffset) {
+                // --- Release 階段 (放手後，不論先前在哪個階段) ---
+                const relElapsed = elapsed - this._releaseTimeOffset;
+                const p = Math.min(1, relElapsed / Math.max(0.01, this.R));
+                // 起點固定在 Sustain 區段結束點，高度則根據釋放時的比例衰減
+                dotX += (this.A + this.D + 0.5 + (p * this.R)) * scaleX;
+                dotY = (h - padding - (this.S * innerH)) + (p * this.S * innerH);
+            } else if (elapsed < this.A) {
+                // --- Attack ---
                 const p = this.A > 0 ? elapsed / this.A : 1;
                 dotX += elapsed * scaleX; dotY -= p * innerH;
             } else if (elapsed < this.A + this.D) {
-                const p = this.D > 0 ? (elapsed - this.A) / this.D : 1;
+                // --- Decay ---
+                const p = (elapsed - this.A) / this.D;
                 dotX += elapsed * scaleX; dotY = padding + (p * (1 - this.S) * innerH);
-            } else if (this._isHolding || elapsed < this.A + this.D + this._duration) {
-                dotX += (this.A + this.D + 0.25) * scaleX; dotY = h - padding - (this.S * innerH);
-            } else if (elapsed < this.A + this.D + this._duration + this.R) {
-                const p = (elapsed - (this.A + this.D + this._duration)) / this.R;
-                dotX += (this.A + this.D + 0.5 + (p * this.R)) * scaleX;
-                dotY = (h - padding - (this.S * innerH)) + (p * this.S * innerH);
+            } else {
+                // --- Sustain (來回晃動感) ---
+                const sustainPos = 0.25 + Math.sin(elapsed * 8) * 0.15;
+                dotX += (this.A + this.D + sustainPos) * scaleX; 
+                dotY = h - padding - (this.S * innerH);
             }
             this.dot_.setAttribute('cx', dotX); this.dot_.setAttribute('cy', dotY);
         }
@@ -110,8 +137,20 @@ export const EnvelopeManager = {
             this._registry.get(id).forEach(f => f.endHold());
         }
     },
+    refreshAll() {
+        this._registry.forEach(list => list.forEach(f => f._syncFromBlock()));
+    },
     stopAll() { this._registry.forEach(list => list.forEach(f => f.stopAnimation())); }
 };
+
+// 監聽 Ctrl+Enter 以即時更新視覺外觀 (不論是否發聲)
+window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+        // 稍微延遲 50ms 確保 Blockly 已將輸入框的值寫回積木欄位
+        setTimeout(() => EnvelopeManager.refreshAll(), 50);
+    }
+}, true);
+
 window.EnvelopeManager = EnvelopeManager;
 
 /**
@@ -308,41 +347,47 @@ export const Oscilloscope = {
         const drawH = h - 2 * window.devicePixelRatio;
         const pixelRatio = window.devicePixelRatio;
 
+        // 繪製底部灰暗基準線 (全模式套用)
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, drawH, w, 1 * pixelRatio);
+
         if (this._fftMode === 'linear') {
-            // --- 模式一：線性模式 (教學用 1/n 視覺) ---
+            // --- 模式一：線性模式 ---
             const bins = 240;
             const data = this._fftData.slice(0, bins);
             const barW = w / bins;
             for (let i = 0; i < bins; i++) {
                 const val = Math.min(drawH, data[i] * drawH); 
-                const x = i * barW, y = drawH - val;
+                const x = i * barW, y = (drawH + 1) - val;
                 const hue = 200 + (i / bins) * 180;
-                ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
-                ctx.fillRect(x, y, barW - 0.5, val);
-                ctx.fillStyle = `hsl(${hue}, 100%, 85%)`;
-                ctx.fillRect(x, y, barW - 0.5, 1.5 * pixelRatio);
+                
+                ctx.fillStyle = `hsl(${hue}, 85%, 50%)`;
+                ctx.fillRect(x, y, Math.max(1, barW - 0.5), val);
+                
+                if (val > 2) {
+                    ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
+                    ctx.fillRect(x, y, Math.max(1, barW - 0.5), 1.5 * pixelRatio);
+                }
             }
         } else {
-            // --- 模式二：分貝模式 (線性頻率 X + 對數分貝 Y) ---
-            const bins = 240; // 維持與線性模式相同的頻率範圍 (約 0-5kHz)
+            // --- 模式二：分貝模式 ---
+            const bins = 240; 
             const barW = w / bins;
             
             for (let i = 0; i < bins; i++) {
                 const db = this._fftRaw[i] || -120;
                 
-                // 將 -70dB ~ -10dB 映射到高度 (這會讓微弱諧波變得非常清晰)
-                const minDB = -70, maxDB = -10;
+                // 優化範圍：-85dB (更深) ~ -10dB
+                const minDB = -85, maxDB = -10;
                 const norm = Math.max(0, (db - minDB) / (maxDB - minDB));
                 const val = norm * drawH;
                 
-                const x = i * barW, y = drawH - val;
+                const x = i * barW, y = (drawH + 1) - val;
                 const hue = 200 + (i / bins) * 180;
                 
-                // 繪製細針譜線 (與線性模式對齊，但高度反映 dB)
                 ctx.fillStyle = `hsl(${hue}, 85%, 50%)`;
                 ctx.fillRect(x, y, Math.max(1, barW - 0.5), val);
                 
-                // 頂部高亮
                 if (val > 2) {
                     ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
                     ctx.fillRect(x, y, Math.max(1, barW - 0.5), 1.5 * pixelRatio);

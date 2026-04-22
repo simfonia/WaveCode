@@ -3,9 +3,11 @@
  * [功能存續查核]：已完整保留精密排程、Look-ahead、序列埠與和弦系統。
  */
 import { AudioManager } from './audio/manager.js';
+import { GuitarChords } from './audio/guitar_chords.js';
 
 export const WaveCodeAPI = {
     AudioManager: AudioManager,
+    GuitarChords: GuitarChords,
 
     // --- 核心狀態 ---
     _playbackTime: 0,
@@ -23,10 +25,10 @@ export const WaveCodeAPI = {
      * 音樂解析工具 (全域唯一真理來源)
      */
     MusicUtils: {
-        // 音名/和弦名稱匹配 (支援 #, s, S, b, B)
-        NOTE_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_]+|R)$/,
+        // 音名/和弦名稱匹配 (支援 #, s, S, b, B 以及自訂名稱中的 /)
+        NOTE_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_\/]+|R)$/,
         // 旋律 Token 匹配 (音名 + 時值 + 力度)
-        MELODY_TOKEN_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_]+|R)([WHQES][^:v]*)(?:[:v](\d+))?$/,
+        MELODY_TOKEN_PATTERN: /^([A-Ga-g][#bsSB]?\d?|[A-Za-z0-9_\/]+|R)([WHQES][^:v]*)(?:[:v](\d+))?$/,
         
         noteToMidi: function(name) {
             if (!name || typeof name !== 'string') return 60;
@@ -291,6 +293,89 @@ export const WaveCodeAPI = {
         }
     },
 
+    /**
+     * 吉他掃弦 (Strum) 核心方法
+     */
+    strum: function(notes, type, strumTime, velocity, technique, instId, jitter = 0) {
+        if (!notes) return;
+        const id = WaveCodeAPI._execId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
+        
+        // --- 核心改進：套用力道隨機抖動 ---
+        const currentVelocity = velocity + (Math.random() * 2 - 1) * jitter;
+        const velVal = Math.max(0, Math.min(1.27, currentVelocity / 100));
+
+        // 1. 決定音序與範圍
+        let activeNotes = notes.map((midi, idx) => ({ midi, idx }));
+
+        // 過濾掉 null
+        activeNotes = activeNotes.filter(n => n.midi !== null);
+
+        if (type === 'HIGH_DOWN' || type === 'HIGH_UP') {
+            // 只保留高音弦 (1-4 弦，即索引 2-5)
+            activeNotes = activeNotes.filter(n => n.idx >= 2);
+        } else if (type === 'BASS') {
+            // 只保留最低音的一根弦
+            activeNotes = activeNotes.slice(0, 1);
+        }
+
+        // 2. 排序 (低音弦到高音弦是 TUNING 0 -> 5)
+        activeNotes.sort((a, b) => a.idx - b.idx);
+        if (type === 'FULL_UP' || type === 'HIGH_UP') {
+            activeNotes.reverse();
+        }
+
+        // 3. 觸發
+        const interval = strumTime / Math.max(1, activeNotes.length - 1);
+        const baseTime = this._playbackTime;
+
+        activeNotes.forEach((n, i) => {
+            const startTime = baseTime + (i * interval);
+            const freq = this.MusicUtils.midiToFreq(n.midi);
+            const v = AudioManager.triggerNote(freq, inst, startTime, velVal);
+            // 吉他刷弦通常是長音直到下一次撥弦，給予一個合理的預設釋放 (2秒)
+            if (v) v.release(startTime + 2.0);
+        });
+
+        // 視覺化
+        if (window.EnvelopeManager && window.EnvelopeManager._registry.has(inst)) {
+            const now = AudioManager.ctx ? AudioManager.ctx.currentTime : 0;
+            const delayMs = Math.max(0, (baseTime - now) * 1000);
+            setTimeout(() => { if (!this.isScriptCancelled(id)) window.EnvelopeManager.trigger(inst, 200); }, delayMs);
+        }
+    },
+
+    /**
+     * 吉他刷弦節奏解析器 (16-beat)
+     */
+    playStrumPattern: async function(chordName, pattern, velocity, instId, jitter = 0) {
+        const id = WaveCodeAPI._execId;
+        const inst = instId === 'none' ? this._currentInstrument : instId;
+        
+        const notes = GuitarChords.getNotes(chordName);
+        if (!notes) return;
+
+        // 解析 Pattern (處理空格)
+        const rawChars = pattern.replace(/\s/g, '').split('');
+        
+        for (let i = 0; i < rawChars.length; i++) {
+            if (this.isScriptCancelled(id)) return;
+            const char = rawChars[i];
+            
+            switch (char) {
+                case 'D': this.strum(notes, 'FULL_DOWN', 0.04, velocity, 'normal', inst, jitter); break;
+                case 'U': this.strum(notes, 'FULL_UP', 0.04, velocity, 'normal', inst, jitter); break;
+                case 'd': this.strum(notes, 'HIGH_DOWN', 0.02, velocity * 0.8, 'normal', inst, jitter); break;
+                case 'u': this.strum(notes, 'HIGH_UP', 0.02, velocity * 0.8, 'normal', inst, jitter); break;
+                case 'b': this.strum(notes, 'BASS', 0.01, velocity * 1.1, 'normal', inst, jitter); break;
+                case '.': break;
+                case '-': break;
+            }
+
+            await this.waitMusical(0.25, 'BEATS');
+        }
+    },
+
     playCountIn: async function(measures, beatsPerMeasure, beatUnit, velocity) {
         const id = WaveCodeAPI._execId;
         const totalBeats = measures * beatsPerMeasure;
@@ -379,6 +464,24 @@ export const WaveCodeAPI = {
 
     defineChord: function(name, notesStr) {
         this._chords[name] = notesStr.split(/[\s,]+/).filter(n => n.length > 0);
+    },
+
+    defineGuitarChord: function(name, frets) {
+        // 標準定弦: E2(40), A2(45), D3(50), G3(55), B3(59), E4(64)
+        const tuning = [40, 45, 50, 55, 59, 64];
+        const notes = frets.map((fret, i) => {
+            if (fret === null) return null;
+            const midi = tuning[i] + fret;
+            return this.MusicUtils.midiToNoteName(midi);
+        }).filter(n => n !== null);
+        
+        // 直接注入和弦字典
+        this._chords[name] = notes;
+        
+        // 同時通知 GuitarChords 引擎 (以便讓 wc_strum 能識別此自訂指法)
+        if (GuitarChords) {
+            GuitarChords.CHORD_DATA[name] = frets;
+        }
     },
 
     releaseNote: async function(note, startTime = 0, instId = 'none') {

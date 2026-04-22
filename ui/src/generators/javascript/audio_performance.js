@@ -85,6 +85,26 @@ Blockly.JavaScript.forBlock['wc_define_chord'] = function(block) {
   return `await WaveCode.defineChord("${name}", "${notes}");\n`;
 };
 
+Blockly.JavaScript.forBlock['wc_define_guitar_chord'] = function(block) {
+    const name = block.getFieldValue('NAME');
+    const frets = [
+        block.getFieldValue('S6'), block.getFieldValue('S5'), block.getFieldValue('S4'),
+        block.getFieldValue('S3'), block.getFieldValue('S2'), block.getFieldValue('S1')
+    ];
+    // 將 'X' 轉為 null，數字轉為 Number
+    const cleanFrets = frets.map(f => (f.toUpperCase() === 'X') ? 'null' : (parseInt(f) || 0));
+    return `await WaveCode.defineGuitarChord("${name}", [${cleanFrets.join(',')}]);\n`;
+};
+
+Blockly.JavaScript.forBlock['wc_strum'] = function(block) {
+    const chord = block.getFieldValue('CHORD');
+    const pattern = block.getFieldValue('PATTERN');
+    const velocity = Blockly.JavaScript.valueToCode(block, 'VELOCITY', Blockly.JavaScript.ORDER_ATOMIC) || '100';
+    const jitter = Blockly.JavaScript.valueToCode(block, 'JITTER', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+    const instrument = block.getFieldValue('INSTRUMENT');
+    return `await WaveCode.playStrumPattern("${chord}", "${pattern}", ${velocity}, "${instrument}", ${jitter});\n`;
+};
+
 Blockly.JavaScript.forBlock['wc_init'] = function(block) {
   const code = Blockly.JavaScript.statementToCode(block, 'DO');
   return code;

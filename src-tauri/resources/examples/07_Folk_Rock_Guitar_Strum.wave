@@ -1,0 +1,333 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="wc_master" id="hBgy:wMZaI6U8qJ3rdDK" x="10" y="10">
+    <statement name="CHAIN">
+      <block type="wc_comment" id="UucvJg9kTk(_+Uog}s*Z">
+        <field name="TEXT">先壓縮動態，再加殘響, &amp;#10;若先壓縮，壓縮器會把殘響的尾音強行拉大、變厚，&amp;#10;導致整體聲音變得很「糊」，失去了殘響原有的空間層次感。</field>
+        <next>
+          <block type="wc_effect_compressor" id="it3}BP*W(oa4PQOl@{c{">
+            <value name="THRESH">
+              <shadow type="math_number" id="95@w2=Ss[`:eZhfy-IxX">
+                <field name="NUM">-24</field>
+              </shadow>
+            </value>
+            <value name="RATIO">
+              <shadow type="math_number" id="{s%F.Is`@cH!hh`~}V-s">
+                <field name="NUM">4</field>
+              </shadow>
+            </value>
+            <value name="ATTACK">
+              <shadow type="math_number" id="t4~bHww=Yffv:@aRon$+">
+                <field name="NUM">0.003</field>
+              </shadow>
+            </value>
+            <value name="RELEASE">
+              <shadow type="math_number" id="E+39Wdh).YkK`XyMQSDi">
+                <field name="NUM">0.25</field>
+              </shadow>
+            </value>
+            <value name="MAKEUP">
+              <shadow type="math_number" id="xMgAw!jGUTije6|Eij9T">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_effect_reverb" id="xb=@TTV#!4~#4PFT?B`3">
+                <value name="SECONDS">
+                  <shadow type="math_number" id="b:pP;?iI8m`bDyXX5jv5">
+                    <field name="NUM">3</field>
+                  </shadow>
+                </value>
+                <value name="DECAY">
+                  <shadow type="math_number" id="0#Y/8DXug!AHV[*:yBA!">
+                    <field name="NUM">2</field>
+                  </shadow>
+                </value>
+                <value name="MIX">
+                  <shadow type="math_number" id="Y!=p}B00)@p#@;tbeI2k">
+                    <field name="NUM">0.5</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="$2jmylkY9d*0u`PJ?gTS" x="10" y="330">
+    <field name="ID">Acoustic_Guitar</field>
+    <statement name="CHAIN">
+      <block type="wc_comment" id="K{YSU_NS~De4A~wU5W!6">
+        <field name="TEXT">三角波較溫潤，方波較清脆。&amp;#10;先過濾波器決定音色基調，再由 ADSR 控制物理動態</field>
+        <next>
+          <block type="wc_component_osc" id="Pv_LOa7q|12bK9.4$X-}">
+            <field name="WAVE">3</field>
+            <next>
+              <block type="wc_effect_filter" id="hjG7XS.vyw=K5Y(Nj`in">
+                <field name="TYPE">lowpass</field>
+                <value name="FREQ">
+                  <shadow type="math_number" id="%9?*!XjHgBT,#l}vX,0$">
+                    <field name="NUM">2500</field>
+                  </shadow>
+                </value>
+                <value name="Q">
+                  <shadow type="math_number" id="A49eF1Okl5U@Z93Pb}{L">
+                    <field name="NUM">1.2</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_component_adsr" id="MXaL|(l`3l])UqU$Z,jk">
+                    <field name="A">0.005</field>
+                    <field name="D">0.8</field>
+                    <field name="S">0.1</field>
+                    <field name="R">0.6</field>
+                    <next>
+                      <block type="wc_component_volume" id="0y{~QwP3+%J-`)/(o){x">
+                        <field name="VOL">80</field>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_instrument" id="b8o(s2]k}:0q[B~@RI:D" x="10" y="610">
+    <field name="ID">Rock_Guitar</field>
+    <statement name="CHAIN">
+      <block type="wc_comment" id="IJK^GZpe{ZUS;EGvcPcM">
+        <field name="TEXT">這是標準的電吉他單顆效果器鏈。&amp;#10;鋸齒波先經過失真器產生豐富諧波，再經過濾波器修飾刺耳的高頻，&amp;#10;最後進入 ADSR。&amp;#10;Distortion 放在 Filter 之前能確保失真後產生的雜訊高頻能被濾波器修掉，&amp;#10;聲音會比較紮實。</field>
+        <next>
+          <block type="wc_component_osc" id="4ow%~YZp|NsBDZT.4*e=">
+            <field name="WAVE">1</field>
+            <next>
+              <block type="wc_effect_distortion" id="ntuKI$}=|tD,N6ZFQn%H">
+                <value name="AMOUNT">
+                  <shadow type="math_number" id="p/J8^XP[A=Dvkl)8GspJ">
+                    <field name="NUM">50</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_effect_filter" id="S#VdTY~kT]p2SGbg5mu9">
+                    <field name="TYPE">lowpass</field>
+                    <value name="FREQ">
+                      <shadow type="math_number" id="Y],U$}_v);I_}W%4?P1j">
+                        <field name="NUM">3500</field>
+                      </shadow>
+                    </value>
+                    <value name="Q">
+                      <shadow type="math_number" id="5*)n{+2HUwk@hf?kOFzn">
+                        <field name="NUM">1</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_component_adsr" id="Pn{yGB]SZF_7%3qJ`un^">
+                        <field name="A">0.01</field>
+                        <field name="D">0.5</field>
+                        <field name="S">0.4</field>
+                        <field name="R">0.3</field>
+                        <next>
+                          <block type="wc_component_volume" id="cWtqUc)6Npxn@alHg}/N">
+                            <field name="VOL">80</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_init" id="F~fsi--YAT#A[xzznz9h" x="10" y="990">
+    <statement name="DO">
+      <block type="wc_transport_set_bpm" id="g+diORjGF#jhte:/Z#Gz">
+        <value name="BPM">
+          <shadow type="math_number" id="jSMah;9#r.M]tn`tOQmC">
+            <field name="NUM">110</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_count_in" id="?@sRfr}+^52pwrmI*-]z">
+            <value name="MEASURES">
+              <shadow type="math_number" id="iBnAi~pe${paX,2V#uI~">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="BEATS">
+              <shadow type="math_number" id="B8bFog5Wp0+h/?d8v|,@">
+                <field name="NUM">4</field>
+              </shadow>
+            </value>
+            <value name="BEAT_UNIT">
+              <shadow type="math_number" id="W@|vp_;#@J2x8)A0-0|N">
+                <field name="NUM">4</field>
+              </shadow>
+            </value>
+            <value name="VELOCITY">
+              <shadow type="math_number" id=",Tb7K)}$B9P9-#T2i]V,">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_define_guitar_chord" id=".si(1:SkVXk*r(ax2n3Z">
+                <field name="NAME">C/E</field>
+                <field name="S6">0</field>
+                <field name="S5">3</field>
+                <field name="S4">2</field>
+                <field name="S3">0</field>
+                <field name="S2">1</field>
+                <field name="S1">0</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="wc_loop" id="vL{CBT3D,C^J90fqsTvO" x="10" y="1150">
+    <field name="INTERVAL">8</field>
+    <statement name="DO">
+      <block type="wc_strum" id="1L5{J*G}j?Q^Noj-)ILZ">
+        <field name="CHORD">C</field>
+        <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+        <field name="INSTRUMENT">Acoustic_Guitar</field>
+        <value name="VELOCITY">
+          <shadow type="math_number" id="f#zB(7_G%1@N/ok{~(j*">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+        <value name="JITTER">
+          <shadow type="math_number" id="J_c0-w=t`nYhe$B.g2(l">
+            <field name="NUM">15</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="wc_strum" id="6[y)~{),|+B9hHNmbjWD">
+            <field name="CHORD">G</field>
+            <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+            <field name="INSTRUMENT">Acoustic_Guitar</field>
+            <value name="VELOCITY">
+              <shadow type="math_number" id="!^rpj:L32-!4#YJyY@.+">
+                <field name="NUM">100</field>
+              </shadow>
+            </value>
+            <value name="JITTER">
+              <shadow type="math_number" id="fIRO*z%O%=o)mCW[K3wX">
+                <field name="NUM">15</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="wc_strum" id="HBoEOD+F$O|l@vEJ0)Sy">
+                <field name="CHORD">Am</field>
+                <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+                <field name="INSTRUMENT">Acoustic_Guitar</field>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="CH~)zv~]|{s#5n,BdL=M">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <value name="JITTER">
+                  <shadow type="math_number" id=":Z6R?NQk1x~.df,R(Z;i">
+                    <field name="NUM">15</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="wc_strum" id="io*)q]p+?JDp$e.08[K!">
+                    <field name="CHORD">Em</field>
+                    <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+                    <field name="INSTRUMENT">Acoustic_Guitar</field>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="4J5EGKyIfTMB5-DbeCM}">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                    <value name="JITTER">
+                      <shadow type="math_number" id="kTWM=HVR?y~@o;+]2$}W">
+                        <field name="NUM">15</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="wc_strum" id="U:#tOo:,0%#775`*Kme6">
+                        <field name="CHORD">F</field>
+                        <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+                        <field name="INSTRUMENT">Acoustic_Guitar</field>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="o}$A/usDtvx:!dyE)jZv">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                        <value name="JITTER">
+                          <shadow type="math_number" id="mgb[o8pPI+gLc2W~b3@]">
+                            <field name="NUM">15</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="wc_strum" id="g2O[JcTE+c6Z*^k7?nNr">
+                            <field name="CHORD">C/E</field>
+                            <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+                            <field name="INSTRUMENT">Acoustic_Guitar</field>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="}j~j[j:?vhF{0JR5bkhy">
+                                <field name="NUM">100</field>
+                              </shadow>
+                            </value>
+                            <value name="JITTER">
+                              <shadow type="math_number" id="-Xg,{*^f~was`Y;,,A%B">
+                                <field name="NUM">15</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="wc_strum" id="dV@Xq2SG/4-|~6735!P,">
+                                <field name="CHORD">D7</field>
+                                <field name="PATTERN">D-..d-u- ..u- d-u-</field>
+                                <field name="INSTRUMENT">Acoustic_Guitar</field>
+                                <value name="VELOCITY">
+                                  <shadow type="math_number" id="DDShs,.N_(GYIBZEB(mR">
+                                    <field name="NUM">100</field>
+                                  </shadow>
+                                </value>
+                                <value name="JITTER">
+                                  <shadow type="math_number" id="B=EOZPN3u*t3S7omDNa(">
+                                    <field name="NUM">15</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="wc_strum" id="?Z_}S%,I/E8)edY_-!1B">
+                                    <field name="CHORD">G</field>
+                                    <field name="PATTERN">d-d- d-d- D-D- D-D- </field>
+                                    <field name="INSTRUMENT">Acoustic_Guitar</field>
+                                    <value name="VELOCITY">
+                                      <shadow type="math_number" id="VblziBy$z{`Xx4M|%9!T">
+                                        <field name="NUM">100</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="JITTER">
+                                      <shadow type="math_number" id="Przk/1?2E)Br7?,wof=)">
+                                        <field name="NUM">15</field>
+                                      </shadow>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

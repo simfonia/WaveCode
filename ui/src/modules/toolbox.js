@@ -241,6 +241,7 @@ export const WaveCodeToolbox = {
                 { 'kind': 'sep', 'gap': '32' },
                 { 'kind': 'label', 'text': '--- 和弦與樂句封裝 (Chords and Phrases) ---' },
                 { 'kind': 'block', 'type': 'wc_define_chord' },
+                { 'kind': 'block', 'type': 'wc_define_guitar_chord' },
                 { 'kind': 'block', 'type': 'wc_phrase_def' },
                 { 'kind': 'block', 'type': 'wc_phrase_call' },
 
@@ -266,6 +267,14 @@ export const WaveCodeToolbox = {
                 },
                 { 'kind': 'block', 'type': 'wc_play_melody' },
                 { 'kind': 'block', 'type': 'wc_rhythm_v2' },
+                {
+                    'kind': 'block',
+                    'type': 'wc_strum',
+                    'inputs': {
+                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
+                        'JITTER': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } }
+                    }
+                },
 
                 { 'kind': 'sep', 'gap': '32' },
                 { 'kind': 'label', 'text': '--- 控制與等待 (Control) ---' },

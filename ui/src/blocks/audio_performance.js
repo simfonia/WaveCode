@@ -113,6 +113,46 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
+    "type": "wc_define_guitar_chord",
+    "message0": "%{BKY_AUDIO_DEFINE_GUITAR_CHORD}",
+    "args0": [
+      { "type": "field_input", "name": "NAME", "text": "MyC" },
+      { "type": "field_input", "name": "S6", "text": "X" },
+      { "type": "field_input", "name": "S5", "text": "3" },
+      { "type": "field_input", "name": "S4", "text": "2" },
+      { "type": "field_input", "name": "S3", "text": "0" },
+      { "type": "field_input", "name": "S2", "text": "1" },
+      { "type": "field_input", "name": "S1", "text": "0" }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "inputsInline": true,
+    "colour": "%{BKY_PHRASES_HUE}",
+    "tooltip": "%{BKY_AUDIO_DEFINE_GUITAR_CHORD_TOOLTIP}",
+    "helpUrl": "strum"
+  },
+  {
+    "type": "wc_strum",
+    "message0": "%{BKY_AUDIO_STRUM_V2}",
+    "args0": [
+      { "type": "field_input", "name": "CHORD", "text": "C" },
+      { "type": "field_input", "name": "PATTERN", "text": "D-..d-u-" },
+      { "type": "input_value", "name": "VELOCITY", "check": "Number" },
+      { "type": "input_value", "name": "JITTER", "check": "Number" },
+      {
+        "type": "field_dropdown",
+        "name": "INSTRUMENT",
+        "options": [["Piano", "Piano"]]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_CORE_PLAY_HUE}",
+    "tooltip": "%{BKY_AUDIO_STRUM_TOOLTIP_V2}",
+    "helpUrl": "strum",
+    "extensions": ["wc_play_note_instrument_dropdown"]
+  },
+  {
     "type": "wc_transport_set_bpm",
     "message0": "%{BKY_AUDIO_SET_BPM}",
     "args0": [

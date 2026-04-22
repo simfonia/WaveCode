@@ -11,6 +11,28 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
 # WaveCode 任務清單 (Todo List)
 
 ## [已完成]
+- [x] **[I] 吉他刷弦系統實作 (Guitar Strumming System) - 2026-04-19**
+    - [x] 實作 `guitar_chords.js` 吉他指法引擎，內建 30+ 常用和弦。
+    - [x] 實作 `wc_strum` 積木與 16-beat 節奏解析器。
+    - [x] 實作精密掃弦排程 (Strum Offset) 與高低音刷弦細分 (D, U, d, u, b, m, c)。
+    - [x] 完成中英雙語 i18n 標籤與 Toolbox 整合。
+- [x] **[Dev] 開發者工具實作 - 2026-04-18**
+    - [x] 實作 `BlockExporter.js`：支援全量積木 SVG/PNG 批次匯出，用於說明文件整理。
+- [x] **[H] 工業級 MIDI 系統升級 (#nyx 標準) - 2026-04-15**
+    - [x] 實作 **全時自動連線**：MIDI 在啟動時初始化，不依賴程式執行。
+    - [x] 實作 **雙向通訊**：支援 MIDI Inputs 接收與 Outputs 發送。
+    - [x] 實作 **狀態追蹤**：`_pressedMidiKeys` 全時追蹤物理按鍵狀態。
+    - [x] 實作 **IDE 視覺回饋**：工具列 MIDI 圖示連線狀態與活動閃爍 (100ms 縮放強光)。
+    - [x] 實作 **動態裝置選單**：`wc_midi_output_sync` 擴充支援硬體熱插拔即時刷新。
+    - [x] 補齊 i18n 標籤：完成 `zh-hant.js` 與 `en.js` 的所有新積木標籤。
+- [x] **[G] 通用多採樣映射系統 (Multi-sampling Mapping) - 2026-04-13**
+- [x] **[G] 取樣系統深度優化 (Sample System Optimization) - 2026-04-13**
+    - [x] 實作智慧分類機制 (旋律類 vs 打擊類)。
+    - [x] 解決 ID 底線歧義問題，改用 `::` 作為分隔符號。
+    - [x] 實作打擊類積木兩層連動選單 (資料夾 > 檔案)。
+    - [x] 完成全量官方範例 (.wave) 遷移與測試。
+    - [x] 更新 HTML 說明文件與幫助系統連結。
+- [x] 實作空間效果器 (Reverb).
 - [x] **[R] 錄音與匯出系統 (Recording & Export) - 2026-04-12**
     - [x] 實作 `Recorder.js` 獨立錄音模組，採用 OGG/Opus 編碼確保跨平台播放相容性。
     - [x] 實作 **智慧靜音偵測 (Silence Polling)**：透過 `getActiveVoiceCount` 自動偵測播放結束並結算。
@@ -36,7 +58,7 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
     - [x] 實作多發聲數管理 (Voice Manager)，支援 32+ 同時發聲.
     - [x] 實作基礎組件：Oscillator, ADSR Envelope, Filter, Gain.
     - [x] 實作加法合成器 (Additive Synth) 邏輯.
-    - [x] 整合 `AnalyserNode` 並重構示波器 UI.
+    - [x] 整合 `AnalyserNode` 與重構示波器 UI.
     - [x] 實作 **釋放突跳修復 (Sustain Jump Fix)**.
     - [x] 實作效果器積木大拆分 (Filter, Delay, BitCrush, Distortion, Compressor, Reverb).
 - [x] **[B] 演奏系統與 Master 鏈 (#nyx 對齊)**
@@ -58,31 +80,14 @@ WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合�
 - [x] **[E] 文件與 DSL 轉型**
     - [x] **[重大異動] 指令鏈轉型為「音訊 DSL」**: 實作「底層跑 JS，上層看 DSL」模式與語法高亮.
     - [x] **[更新] 輔助說明文件系統**: 更新 `effects`, `master`, `melody` 說明文件.
-- [x] **[G] 通用多採樣映射系統 (Multi-sampling Mapping) - 2026-04-13**
-- [x] **[G] 取樣系統深度優化 (Sample System Optimization) - 2026-04-13**
-    - [x] 實作智慧分類機制 (旋律類 vs 打擊類)。
-    - [x] 解決 ID 底線歧義問題，改用 `::` 作為分隔符號。
-    - [x] 實作打擊類積木兩層連動選單 (資料夾 > 檔案)。
-    - [x] 完成全量官方範例 (.wave) 遷移與測試。
-    - [x] 更新 HTML 說明文件與幫助系統連結。
-- [x] 實作空間效果器 (Reverb).
-- [x] **[H] 工業級 MIDI 系統升級 (#nyx 標準) - 2026-04-15**
-    - [x] 實作 **全時自動連線**：MIDI 在啟動時初始化，不依賴程式執行。
-    - [x] 實作 **雙向通訊**：支援 MIDI Inputs 接收與 Outputs 發送。
-    - [x] 實作 **狀態追蹤**：`_pressedMidiKeys` 全時追蹤物理按鍵狀態。
-    - [x] 實作 **IDE 視覺回饋**：工具列 MIDI 圖示連線狀態與活動閃爍 (100ms 縮放強光)。
-    - [x] 實作 **動態裝置選單**：`wc_midi_output_sync` 擴充支援硬體熱插拔即時刷新。
-    - [x] 補齊 i18n 標籤：完成 `zh-hant.js` 與 `en.js` 的所有新積木標籤。
-- [x] **[Dev] 開發者工具實作 - 2026-04-18**
-    - [x] 實作 `BlockExporter.js`：支援全量積木 SVG/PNG 批次匯出，用於說明文件整理。
 
 ## [待辦]
 - [ ] 目前進度除錯，依指示進行。
-- [x] 為每個積木匯出svg/png檔，以建立說明文件。
+- [x] 為每個積木匯出 svg/png 檔，以建立說明文件。
 - [ ] 說明文件補完，中英雙語化。
-- [ ] i18n
-- [ ] 架構重整、參數ini檔、模組化
-- [ ] 程式碼總清理
+- [ ] i18n 完整性檢查。
+- [ ] 架構重整、參數 ini 檔、模組化。
+- [ ] 程式碼總清理。
 
 
 ## [未來規畫，未必要，等指示再進行]
