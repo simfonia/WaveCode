@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guitar Strumming - WaveCode Docs</title>
+    <style>
+        :root { --primary-color: #FE2F89; --bg-color: #1e1e1e; --text-color: #e0e0e0; }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: var(--text-color); background: var(--bg-color); padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        h2 { color: #ff85b3; margin-top: 30px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        code { background: #333; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; color: #f8f8f2; }
+        .block-card { background: #2d2d2d; border-left: 5px solid var(--primary-color); padding: 15px; margin: 20px 0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #444; padding: 12px; text-align: left; }
+        th { background: #333; color: var(--primary-color); }
+        .tip { background: #2a3a2a; border-left: 5px solid #4caf50; padding: 10px; margin: 20px 0; }
+        .pattern-box { background: #000; color: #0f0; padding: 10px; font-family: monospace; border: 1px solid #444; }
+        .param-table { font-size: 0.9em; }
+        .param-table b { color: #ff85b3; }
+    </style>
+</head>
+<body>
+    <h1>🎸 Guitar Strumming</h1>
+    <p>The Guitar Strumming system simulates the physical performance of a real guitar. It creates small time offsets based on the stroke direction.</p>
+
+    <div class="block-card">
+        <h2>Block Parameters</h2>
+        <p><b>[Chord]</b>: Select the chord to play (e.g., C, G, Am).<br>
+        <b>[Pattern]</b>: Input the 16-beat rhythm notation.<br>
+        <b>[Instrument]</b>: Select the instrument to trigger.</p>
+    </div>
+
+    <h3>Notation Table (DSL)</h3>
+    <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>D</code></td><td>Full Downstroke</td><td>Sweeps from low strings to high strings.</td></tr>
+            <tr><td><code>U</code></td><td>Full Upstroke</td><td>Sweeps from high strings to low strings.</td></tr>
+            <tr><td><code>d</code></td><td>High Downstroke</td><td>Strums only the treble strings (1-4).</td></tr>
+            <tr><td><code>u</code></td><td>High Upstroke</td><td>Strums treble strings upward.</td></tr>
+            <tr><td><code>b</code></td><td>Bass Note</td><td>Plays only the thickest bass string.</td></tr>
+            <tr><td><code>-</code></td><td>Sustain</td><td>Keeps the strings ringing.</td></tr>
+            <tr><td><code>.</code></td><td>Rest</td><td>No action.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>💡 Guitar Patch Setup Tips</h2>
+    <p>For a believable guitar tone, ensure your <b>Attack Time</b> is extremely short. Here are recommended settings:</p>
+
+    <h3>1. Folk Acoustic Style (Recommended)</h3>
+    <table class="param-table">
+        <tr><td><b>Oscillator</b></td><td>Triangle</td></tr>
+        <tr><td><b>ADSR (A, D, S, R)</b></td><td>0.005, 0.8, 0.1, 0.6</td></tr>
+        <tr><td><b>Filter Freq / Q</b></td><td>2500 Hz / 1.2</td></tr>
+        <tr><td><b>Reverb (Master Bus)</b></td><td>Mix: 0.2 (Adds body and space)</td></tr>
+    </table>
+
+    <h3>2. Rock Overdrive Style</h3>
+    <table class="param-table">
+        <tr><td><b>Oscillator</b></td><td>Sawtooth</td></tr>
+        <tr><td><b>ADSR (A, D, S, R)</b></td><td>0.01, 0.5, 0.4, 0.3</td></tr>
+        <tr><td><b>Distortion Drive</b></td><td>40 ~ 70</td></tr>
+        <tr><td><b>Filter Freq</b></td><td>3500 Hz (Filters sharp harshness)</td></tr>
+    </table>
+
+    <div class="tip">
+        <strong>Pro Tip:</strong><br>
+        Add a <b>Compressor</b> to your <b>Master Bus</b> (Threshold: -24, Ratio: 4) to normalize volume spikes during strums for a professional polished sound.
+    </div>
+</body>
+</html>

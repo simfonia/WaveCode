@@ -107,8 +107,8 @@
 
     // 樂器組件
     "AUDIO_COMP_OSC": "振盪器 %1",
-    "AUDIO_COMP_SAMPLER_PERCUSSION": "打擊類取樣：資料夾 %1 檔案 %2",
-    "AUDIO_COMP_SAMPLER_MELODIC": "旋律類取樣集 (資料夾) %1",
+    "AUDIO_COMP_SAMPLER_PERCUSSION": "非旋律類/音效 取樣集：資料夾 %1 檔案 %2",
+    "AUDIO_COMP_SAMPLER_MELODIC": "旋律類取樣集：資料夾 %1",
     "AUDIO_COMP_SAMPLER": "取樣器 %1",
     "AUDIO_COMP_MULTISAMPLER": "多採樣 (資料夾名) %1",
     "AUDIO_MULTISAMPLER_TOOLTIP": "輸入取樣檔案的前綴（例如 'piano'），系統會根據演奏頻率自動尋找最接近的取樣（如 piano_C4, piano_Ds4）並進行音高修補。",
@@ -206,6 +206,10 @@
 
     "AUDIO_DEFINE_CHORD": "定義和弦 名稱 %1 音符 (用逗號隔開) %2",
     "AUDIO_DEFINE_CHORD_TOOLTIP": "將一組音符定義為一個名稱，稍後可透過「演奏和弦」積木呼叫。音符格式可為 C4, E4, G4 等。",
+    "AUDIO_DEFINE_GUITAR_CHORD": "定義吉他指法 名稱 %1 6弦 %2 5弦 %3 4弦 %4 3弦 %5 2弦 %6 1弦 %7",
+    "AUDIO_DEFINE_GUITAR_CHORD_TOOLTIP": "依據吉他格數定義自訂指法。輸入數字代表格數，輸入 X 代表不撥弦（悶音）。",
+    "AUDIO_STRUM_V2": "吉他刷弦 和弦 %1 節奏 %2 音量 %3 ± %4 樂器 %5",
+    "AUDIO_STRUM_TOOLTIP_V2": "模擬吉他刷弦節奏。和弦輸入 C, Am 等；節奏字串：D(全下刷), U(全上挑), d(高音下刷), u(高音上挑), b(根音), -(延音), .(空拍)。",
     "AUDIO_PLAY_CHORD": "演奏和弦 %1 長度 %2 毫秒 使用樂器 %3",
     "AUDIO_PLAY_CHORD_TOOLTIP": "同時演奏已定義和弦中的所有音符。這是一個同步指令，會等待長度結束才繼續執行下一個積木。",
 

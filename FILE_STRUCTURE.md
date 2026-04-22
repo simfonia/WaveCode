@@ -22,7 +22,8 @@
     - `src/lang/`: **[更新] 多國語言語系檔 (同步 Serial Bit Check 與連線訊息)**
     - ui/src/modules/: 功能模組
             - `audio/`: Web Audio API 核心引擎
-            - `api.js`: **[重大更新] reset() 整合序列埠主動釋放邏輯與詳細清理日誌**
+                - `guitar_chords.js`: **[新增] 吉他指法引擎 (和弦映射與掃弦模式)**
+            - `api.js`: **[重大更新] 實作 playStrumPattern 16-beat 吉他刷弦解析器**
             - `dev_tools.js`: **[新增] 積木圖示匯出工具 (BlockExporter)**
             - `toolbar_manager.js`: 錄音控制與 MIDI 連線狀態回饋
             - `toolbox.js`: **[更新] 序列埠分類積木 ID 重構**

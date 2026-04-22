@@ -113,31 +113,17 @@ export class Voice {
         const isImmediate = (!startTime || startTime <= now);
         const time = isImmediate ? now : startTime;
 
-        if (this.envNode && this.adsr) {
+        const g = this.envNode ? this.envNode.gain : (this.gateNode ? this.gateNode.gain : null);
+        if (g) {
             try {
-                this.envNode.gain.cancelScheduledValues(time);
-                // 取得目前音量作為 Release 起點
-                let startVal = isImmediate ? Math.max(0.0001, this.envNode.gain.value) : (this.adsr.s || 0.5) * this.velocity;
-                this.envNode.gain.setValueAtTime(startVal, time);
-                const r = Math.max(0.005, this.adsr.r || 0.1);
-                this.envNode.gain.exponentialRampToValueAtTime(0.0001, time + r);
+                g.cancelScheduledValues(time);
+                let startVal = isImmediate ? Math.max(0.0001, g.value) : (this.adsr ? this.adsr.s : 0.5) * (this.velocity || 1.0);
+                g.setValueAtTime(startVal, time);
+                const r = Math.max(0.005, (this.adsr ? this.adsr.r : 0.1));
+                g.exponentialRampToValueAtTime(0.0001, time + r);
                 
-                // 考慮效果器尾跡 (Reverb/Delay)
                 const totalReleaseTime = r + (this.extraTail || 0);
                 this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + totalReleaseTime) * 1000 + 100));
-            } catch (e) { this.kill(); }
-        } else if (this.gateNode) {
-            // --- 關鍵修正：實施隱形安全淡出 (De-clicking) ---
-            try {
-                this.gateNode.gain.cancelScheduledValues(time);
-                let startVal = isImmediate ? Math.max(0.0001, this.gateNode.gain.value) : this.velocity;
-                this.gateNode.gain.setValueAtTime(startVal, time);
-                // 5毫秒的淡出足以消除爆音且耳朵幾乎聽不出延遲
-                const safetyRelease = 0.005; 
-                this.gateNode.gain.exponentialRampToValueAtTime(0.0001, time + safetyRelease);
-
-                const totalReleaseTime = safetyRelease + (this.extraTail || 0);
-                this.releaseTimer = setTimeout(() => { if (this.active) this.kill(); }, Math.max(0, (time - now + totalReleaseTime) * 1000 + 50));
             } catch (e) { this.kill(); }
         } else { this.kill(); }
     }

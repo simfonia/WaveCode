@@ -11,7 +11,7 @@ export const AudioManager = {
     masterChainNodes: [], // 儲存動態建立的主鏈節點
     analyser: null,
     voices: [],
-    maxVoices: 32,
+    maxVoices: 64, // 提升至 64 以應付長釋放 (Release) 的堆疊
     patches: {},
     masterPatch: [], // 主輸出鏈配置
     samples: {}, // ID -> AudioBuffer
@@ -222,7 +222,11 @@ export const AudioManager = {
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
         const patch = this.patches[instId];
-        if (!patch) return;
+        if (!patch) {
+            const errorMsg = `找不到樂器 "${instId}"，請確認您已放置對應的 [定義樂器] 積木，且名稱完全一致。`;
+            if (window.LogManager && window.LogManager.appendLog) window.LogManager.appendLog(errorMsg, "error");
+            return;
+        }
 
         let voice = this.voices.find(v => !v.active);
         if (!voice) {
@@ -239,13 +243,24 @@ export const AudioManager = {
 
         // --- 核心修正：排程時間補正 ---
         const now = this.ctx.currentTime;
-        // 如果傳入的時間已經落後於現在 (now)，則強制設為 now + 0.01s (10ms) 緩衝。
-        // 這能解決「快速播完」的問題，因為它給了瀏覽器最起碼的緩衝空間來排程音訊。
         const time = (startTime > now) ? startTime : now + 0.01;
         
         voice.instId = instId; 
         voice.play(freq, patch, time, velocity);
         return voice;
+    },
+
+    /**
+     * 停止特定樂器的所有發聲通道 (支援自定義釋放時值)
+     */
+    stopInstrument(instId, startTime = 0, forcedR = 0.01) {
+        if (!this.ctx) return;
+        const time = startTime > 0 ? startTime : this.ctx.currentTime;
+        this.voices.forEach(v => {
+            if (v.active && v.instId === instId) {
+                v.release(time, forcedR); 
+            }
+        });
     },
 
     releaseNote(freq, startTime = 0, instId = 'none') {
@@ -277,7 +292,8 @@ export const AudioManager = {
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
         osc.connect(gain);
-        gain.connect(this.masterGain);
+        // 跳過主輸出效果器 (masterGain -> masterPatch)，直接送往分析器與最終輸出
+        gain.connect(this.analyser);
 
         osc.start(time);
         osc.stop(time + 0.06);

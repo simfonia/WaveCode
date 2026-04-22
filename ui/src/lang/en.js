@@ -91,6 +91,8 @@
 
     "AUDIO_DEFINE_CHORD": "define chord name %1 notes (comma separated) %2",
     "AUDIO_DEFINE_CHORD_TOOLTIP": "Define a set of notes as a name, which can later be played with 'play chord' block. Format: C4, E4, G4 etc.",
+    "AUDIO_STRUM_V2": "strum chord %1 rhythm %2 vol %3 inst %4",
+    "AUDIO_STRUM_TOOLTIP_V2": "Simulate guitar strumming rhythm. Chord: C, Am, etc. Pattern: D(Full Down), U(Full Up), d(High Down), u(High Up), b(Bass), m(Mute Strum), c(Choke), .(Rest).",
     "AUDIO_PLAY_CHORD": "play chord %1 dur %2 ms using instrument %3",
     "AUDIO_PLAY_CHORD_TOOLTIP": "Simultaneously play all notes in a defined chord. This is a synchronous command and will wait for the duration to end.",
 
